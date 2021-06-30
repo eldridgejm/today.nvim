@@ -1,0 +1,3 @@
+local today = {}
+
+return today
