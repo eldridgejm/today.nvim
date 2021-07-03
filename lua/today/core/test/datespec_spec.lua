@@ -11,42 +11,42 @@ describe("datespec", function()
 
     describe("is_tomorrow", function()
         it("detects actual tomorrow", function()
-            local ds = DateSpec:new('2021-06-10')
-            assert.truthy(ds:is_tomorrow('2021-06-09'))
+            local ds = DateSpec:new('<2021-06-10>', '2021-06-09')
+            assert.truthy(ds:is_tomorrow())
         end)
 
         it("detects actual tomorrow", function()
-            local ds = DateSpec:new('2021-07-02')
-            assert.truthy(ds:is_tomorrow('2021-07-01T05:10:59'))
+            local ds = DateSpec:new('<2021-07-02>', '2021-07-01T05:10:59')
+            assert.truthy(ds:is_tomorrow())
         end)
 
         it("detects not tomorrow", function()
-            local ds = DateSpec:new('2021-06-10')
-            assert.falsy(ds:is_tomorrow('2021-06-08'))
+            local ds = DateSpec:new('<2021-06-10>', '2021-06-08')
+            assert.falsy(ds:is_tomorrow())
         end)
     end)
 
     describe("is_next_week", function()
         it("detects actual next week", function()
-            local ds = DateSpec:new('2021-06-12')
-            assert.truthy(ds:is_next_week('2021-06-09'))
+            local ds = DateSpec:new('<2021-06-12>', '2021-06-09')
+            assert.truthy(ds:is_next_week())
         end)
 
         it("detects not tomorrow", function()
-            local ds = DateSpec:new('2021-06-20')
-            assert.falsy(ds:is_next_week('2021-06-08'))
+            local ds = DateSpec:new('<2021-06-20>', '2021-06-08')
+            assert.falsy(ds:is_next_week())
         end)
 
         it("on date in the past", function()
-            local ds = DateSpec:new('2021-06-20')
-            assert.falsy(ds:is_next_week('2021-07-08'))
+            local ds = DateSpec:new('<2021-06-20>', '2021-07-08')
+            assert.falsy(ds:is_next_week())
         end)
     end)
 
     describe('serialize', function()
         it('converts a datespec to a string', function()
             assert.are.equal(
-                DateSpec:new('2021-06-20'):serialize(),
+                DateSpec:new('<2021-06-20>'):serialize(),
                 '<2021-6-20>'
             )
         end)
@@ -54,7 +54,7 @@ describe("datespec", function()
 
     describe('do_in_k_days', function()
         it('returns a datespec with do date of tomorrow', function()
-            local ds = DateSpec:new('2021-08-01', '2021-07-01')
+            local ds = DateSpec:new('<2021-08-01>', '2021-07-01')
             local new_ds = ds:do_in_k_days(1)
             assert.are.equal(
                 new_ds:serialize(),

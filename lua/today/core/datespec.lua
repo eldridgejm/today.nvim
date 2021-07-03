@@ -21,21 +21,23 @@ function is_same_day(d1, d2)
 end
 
 
-function DateSpec:from_string(s)
-    local obj = { do_date = date(do_date) }
-    self.__index = self
-    return setmetatable(obj, self)
+function parse(spec, today)
+    if spec == nil then
+        return today
+    end
+
+    local do_date = spec:match('<(.*)>')
+    if do_date == nil then
+        error('Date spec ' .. spec .. ' is not valid')
+    end
+    return date(do_date)
 end
 
 
-function DateSpec:new(do_date, today)
+function DateSpec:new(spec, today)
     today = default_today(today)
-
-    if do_date == nil then
-        do_date = today
-    end
-
-    local obj = { do_date = date(do_date) }
+    local do_date = parse(spec, today)
+    local obj = { do_date = do_date, today = today }
     self.__index = self
     return setmetatable(obj, self)
 end
@@ -46,41 +48,37 @@ function DateSpec:days_from(other_date)
 end
 
 
-function DateSpec:is_today(today)
-    local today = default_today(today)
-    return self:days_from(today) == 0
+function DateSpec:is_today()
+    return self:days_from(self.today) == 0
 end
 
 
-function DateSpec:is_future(today)
-    local today = default_today(today)
-    return self:days_from(today) > 0
+function DateSpec:is_future()
+    return self:days_from(self.today) > 0
 end
 
 
-function DateSpec:is_past(today)
-    local today = default_today(today)
-    return self:days_from(today) < 0
+function DateSpec:is_past()
+    return self:days_from(self.today) < 0
 end
 
 
-function DateSpec:is_tomorrow(today)
-    local today = default_today(today)
-    return self:days_from(today) == 1
+function DateSpec:is_tomorrow()
+    return self:days_from(self.today) == 1
 end
 
 
-function DateSpec:is_next_week(today)
-    local today = default_today(today)
-    local difference = self:days_from(today)
+function DateSpec:is_next_week()
+    local difference = self:days_from(self.today)
     return (difference < 7) and (difference >= 0)
 end
 
 
-function DateSpec:do_in_k_days(k, today)
-    local today = default_today(today)
-    local tomorrow = today:adddays(k)
-    return DateSpec:new(tomorrow, today) 
+function DateSpec:do_in_k_days(k)
+    local tomorrow = self.today:adddays(k)
+    local y, m, d = tomorrow:getdate()
+    local spec = '<' .. y .. '-' .. m .. '-' .. d .. '>'
+    return DateSpec:new(spec, self.today) 
 end
 
 

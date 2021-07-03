@@ -124,7 +124,7 @@ end
 
 
 function task.get_date_spec(line, today)
-    local do_date = line:match("<(.*)>")
+    local do_date = line:match("(<.*>)")
     return DateSpec:new(do_date, today)
 end
 
