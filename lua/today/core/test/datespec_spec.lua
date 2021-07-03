@@ -7,6 +7,20 @@ describe("datespec", function()
             local y, m, d = ds.do_date:getdate()
             assert.are.same({y, m, d}, {2021, 2, 1})
         end)
+
+        it("reads natural language for today", function()
+            local ds = DateSpec:new("<today>", "2021-02-01")
+            local y, m, d = ds.do_date:getdate()
+            assert.are.same({y, m, d}, {2021, 2, 1})
+        end)
+
+
+        it("reads natural language for tomorrow", function()
+            local ds = DateSpec:new("<tomorrow>", "2021-02-01")
+            local y, m, d = ds.do_date:getdate()
+            assert.are.same({y, m, d}, {2021, 2, 2})
+        end)
+
     end)
 
     describe("is_tomorrow", function()
@@ -59,6 +73,15 @@ describe("datespec", function()
             assert.are.equal(
                 new_ds:serialize(),
                 '<2021-7-2>'
+            )
+        end)
+
+        it('returns a datespec with do date of 3 days away', function()
+            local ds = DateSpec:new('<2021-08-01>', '2021-07-01')
+            local new_ds = ds:do_in_k_days(3)
+            assert.are.equal(
+                new_ds:serialize(),
+                '<2021-7-4>'
             )
         end)
     end)

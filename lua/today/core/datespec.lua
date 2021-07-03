@@ -30,7 +30,15 @@ function parse(spec, today)
     if do_date == nil then
         error('Date spec ' .. spec .. ' is not valid')
     end
-    return date(do_date)
+
+    if spec == '<today>' then
+        return today
+    elseif spec == '<tomorrow>' then
+        return today:adddays(1)
+    else
+        -- the spec contains a date string
+        return date(do_date)
+    end
 end
 
 
