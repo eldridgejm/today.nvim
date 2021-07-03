@@ -1,4 +1,5 @@
 util = require('today.core.util')
+DateSpec = require('today.core.datespec')
 
 
 task = {}
@@ -119,6 +120,12 @@ function task.set_priority(line, new_priority)
     end
 
     return util.strip(new_line)
+end
+
+
+function task.get_date_spec(line, today)
+    local do_date = line:match("<(.*)>")
+    return DateSpec:new(do_date, today)
 end
 
 

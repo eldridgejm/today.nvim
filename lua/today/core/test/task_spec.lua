@@ -64,5 +64,22 @@ describe("Today core module's", function()
         end)
     end)
 
+    describe("get_date_spec", function()
+        it("should return today's date if there is not date string", function()
+            local ds = task.get_date_spec("[x] tast", '2021-03-05')
+            local y, m, d = ds.do_date:getdate()
+            assert.are.same(
+                {y, m, d},
+                {2021, 3, 5}
+            )
+        end)
+
+        it("should parse the date", function()
+            local spec = task.get_date_spec("[x] something <2021-05-03>")
+            local y, m, d = spec.do_date:getdate()
+            assert.are.same({y, m, d}, {2021, 5, 3})
+        end)
+    end)
+
 
 end)

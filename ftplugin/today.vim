@@ -6,7 +6,7 @@ vnoremap <buffer> <localleader>` :lua require('today.ui').block_set_priority(0)<
 vnoremap <buffer> <localleader>1 :lua require('today.ui').block_set_priority(1)<cr>
 vnoremap <buffer> <localleader>2 :lua require('today.ui').block_set_priority(2)<cr>
 
-nnoremap <buffer> <localleader>d :lua require('today.ui').toggle_done()<cr>
+nnoremap <buffer> <localleader>d :exec "lua require('today.ui').toggle_done()" <bar> norm j<cr>
 vnoremap <buffer> <localleader>d :lua require('today.ui').block_toggle_done()<cr>
 
 augroup today
