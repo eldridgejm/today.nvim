@@ -1,4 +1,5 @@
 date = require('today.vendor.date')
+naturaldate = require('today.core.naturaldate')
 
 
 DateSpec = {}
@@ -31,14 +32,8 @@ function parse(spec, today)
         error('Date spec ' .. spec .. ' is not valid')
     end
 
-    if spec == '<today>' then
-        return today
-    elseif spec == '<tomorrow>' then
-        return today:adddays(1)
-    else
-        -- the spec contains a date string
-        return date(do_date)
-    end
+    return naturaldate.natural_to_date(do_date, today)
+
 end
 
 
@@ -82,17 +77,13 @@ function DateSpec:is_next_week()
 end
 
 
-function DateSpec:do_in_k_days(k)
-    local tomorrow = self.today:adddays(k)
-    local y, m, d = tomorrow:getdate()
-    local spec = '<' .. y .. '-' .. m .. '-' .. d .. '>'
-    return DateSpec:new(spec, self.today) 
-end
+function DateSpec:serialize(natural)
+    local do_date = self.do_date:fmt('%Y-%m-%d')
+    if natural == 1 then
+        do_date = naturaldate.date_to_natural(do_date, today)
+    end
 
-
-function DateSpec:serialize()
-    local y, m, d = self.do_date:getdate()
-    return '<' .. y .. '-' .. m .. '-' .. d .. '>'
+    return '<' .. do_date .. '>'
 end
 
 
