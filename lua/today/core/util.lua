@@ -13,7 +13,7 @@ end
 
 
 function util.map(fn, iterable)
-    result = {}
+    local result = {}
     for _, x in pairs(iterable) do
         table.insert(result, fn(x))
     end

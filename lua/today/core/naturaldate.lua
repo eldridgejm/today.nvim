@@ -175,6 +175,7 @@ RULES:add {
 
 
 function naturaldate.natural_to_date(s, today)
+    -- Convert a natural date string to a YYYY-MM-DD date string
     today = date(today)
     s = s:lower()
 
@@ -187,11 +188,12 @@ function naturaldate.natural_to_date(s, today)
         end
     end
 
-    return date(s)
+    return date(s):fmt('%Y-%m-%d')
 end
 
 
 function naturaldate.date_to_natural(d, today)
+    -- Convert a YYYY-MM-DD date string to a natural date string
     d = date(d)
     today = date(today)
 

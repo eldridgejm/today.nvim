@@ -10,12 +10,14 @@ describe("datespec", function()
 
         it("reads natural language for today", function()
             local ds = DateSpec:new("<today>", "2021-02-01")
-            assert.are.same(ds.do_date, '2021-02-01')
+            local y, m, d = ds.do_date:getdate()
+            assert.are.same({y, m, d}, {2021, 2, 1})
         end)
 
         it("reads natural language for tomorrow", function()
             local ds = DateSpec:new("<tomorrow>", "2021-02-01")
-            assert.are.same(ds.do_date, '2021-02-02')
+            local y, m, d = ds.do_date:getdate()
+            assert.are.same({y, m, d}, {2021, 2, 2})
         end)
 
     end)
@@ -59,6 +61,13 @@ describe("datespec", function()
             assert.are.equal(
                 DateSpec:new('<2021-06-20>'):serialize(),
                 '<2021-06-20>'
+            )
+        end)
+
+        it('converts to natural language', function()
+            assert.are.equal(
+                DateSpec:new('<2021-06-20>', '2021-06-20'):serialize(true),
+                '<today>'
             )
         end)
     end)

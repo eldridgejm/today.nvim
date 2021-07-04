@@ -23,6 +23,7 @@ end
 
 
 function parse(spec, today)
+    -- Parse a date spec string to a date object
     if spec == nil then
         return today
     end
@@ -32,7 +33,7 @@ function parse(spec, today)
         error('Date spec ' .. spec .. ' is not valid')
     end
 
-    return naturaldate.natural_to_date(do_date, today)
+    return date(naturaldate.natural_to_date(do_date, today))
 
 end
 
@@ -41,6 +42,9 @@ function DateSpec:new(spec, today)
     today = default_today(today)
     local do_date = parse(spec, today)
     local obj = { do_date = do_date, today = today }
+    -- ensure that these are date tables
+    assert(do_date.getdate ~= nil, 'do_date is not a date object')
+    assert(today.getdate ~= nil, 'today is not a date object')
     self.__index = self
     return setmetatable(obj, self)
 end
@@ -79,8 +83,8 @@ end
 
 function DateSpec:serialize(natural)
     local do_date = self.do_date:fmt('%Y-%m-%d')
-    if natural == 1 then
-        do_date = naturaldate.date_to_natural(do_date, today)
+    if natural then
+        do_date = naturaldate.date_to_natural(do_date, self.today)
     end
 
     return '<' .. do_date .. '>'

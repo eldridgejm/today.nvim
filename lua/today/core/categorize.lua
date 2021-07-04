@@ -1,5 +1,6 @@
 task = require('today.core.task')
 util = require('today.core.util')
+DateSpec = require('today.core.datespec')
 
 
 function categorize(lines)
@@ -15,17 +16,17 @@ function categorize(lines)
     groups['done'] = util.filter(is_done, lines)
 
     local function is_future(line)
-        local ds = task.get_date_spec(line)
+        local ds = task.get_datespec(line)
         return ds:is_future() and (not ds:is_tomorrow())
     end
 
     local function is_tomorrow(line)
-        local ds = task.get_date_spec(line)
+        local ds = task.get_datespec(line)
         return ds:is_tomorrow()
     end
 
     local function is_doable_today(line)
-        local ds = task.get_date_spec(line)
+        local ds = task.get_datespec(line)
         return not ds:is_future()
     end
 

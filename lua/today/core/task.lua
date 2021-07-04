@@ -123,9 +123,36 @@ function task.set_priority(line, new_priority)
 end
 
 
-function task.get_date_spec(line, today)
-    local do_date = line:match("(<.*>)")
-    return DateSpec:new(do_date, today)
+function task.get_datespec(line, today)
+    return DateSpec:new(line:match("(<.*>)"), today)
+end
+
+
+function replace_datespec_string(line, new_spec)
+    local new_line, number_of_matches = line:gsub("(<.*>)", new_spec)
+    return new_line
+end
+
+
+function task.make_datespec_absolute(line, today)
+    local ds = task.get_datespec(line, today)
+    return replace_datespec_string(line, ds:serialize(false))
+end
+
+
+function task.make_datespec_natural(line, today)
+    local ds = task.get_datespec(line, today)
+    return replace_datespec_string(line, ds:serialize(true))
+end
+
+
+function task.set_do_date(line, do_date)
+    local new_ds = '<' .. do_date .. '>'
+    if line:match("<.*>") == nil then
+        return line .. ' ' .. new_ds
+    else
+        return replace_datespec_string(line, '<' .. do_date .. '>')
+    end
 end
 
 
