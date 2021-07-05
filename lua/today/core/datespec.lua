@@ -51,6 +51,7 @@ end
 
 
 function DateSpec:days_from(other_date)
+    other_date = date(other_date)
     return math.ceil(date.diff(self.do_date, other_date):spandays())
 end
 
@@ -75,7 +76,7 @@ function DateSpec:is_tomorrow()
 end
 
 
-function DateSpec:is_next_week()
+function DateSpec:is_this_week()
     local difference = self:days_from(self.today)
     return (difference < 7) and (difference >= 0)
 end
