@@ -23,5 +23,5 @@ vnoremap <buffer> <localleader>rr :s/<.*>/<><left>
 augroup today
     autocmd!
     autocmd BufWritePre *.today lua require('today.ui').update_pre_write()
-    autocmd BufWinEnter,BufWritePost *.today lua require('today.ui').update_post_read()
+    autocmd BufWinEnter,BufWritePost *.today exec "lua require('today.ui').update_post_read()" | set modified&
 augroup END
