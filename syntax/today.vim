@@ -7,7 +7,7 @@ let s:checked_color = "guifg=#565f89 ctermfg=14"
 " comments
 " ========
 syntax match todayComment /^--.*/ contains=todaySection
-syntax match todaySection /^--\s\zs.*\ze\s{{{/ contained
+syntax match todaySection /^--\s\zs.*\ze (/ contained
 exec "highlight default todayComment " . s:comment_color
 exec "highlight default todaySection gui=bold,underline " . s:comment_color
 
@@ -36,3 +36,8 @@ syntax match todayPriorityLow /\v(^|\s)\zs!\ze($|\s)/
 
 highlight default todayPriorityHigh gui=bold guifg=#ff4444
 highlight default todayPriorityLow gui=bold guifg=#ffa500
+
+" tags
+" ====
+syntax match todayTag /\v#\w+/
+highlight default todayTag gui=bold,underline

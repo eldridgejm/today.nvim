@@ -23,9 +23,7 @@ describe("core.sort", function()
             assert.are.same(expected, lines)
 
         end)
-    end)
 
-    describe("by_priority", function()
         it("is stable", function()
             -- given
             local lines = {
@@ -49,6 +47,33 @@ describe("core.sort", function()
             }
             assert.are.same(expected, lines)
 
+        end)
+    end)
+
+    describe("by_priority_then_date", function()
+        it("should break ties as specified", function()
+            local lines = {
+                "[ ] 1 this is high !! <tomorrow>",
+                "[ ] 2 this is high !! <today>",
+                "[ ] this is low ! <today>",
+                "[ ] 3 this is high !! <tomorrow> #tag1",
+                "[ ] 4 this is high !! <tomorrow> #tag2",
+                "[ ] this has no priority #tag1",
+                "[ ] 5 this is high !! <tomorrow> #tag1",
+            }
+
+            sort.by_priority_then_date(lines)
+
+            local expected = {
+                "[ ] 2 this is high !! <today>",
+                "[ ] 1 this is high !! <tomorrow>",
+                "[ ] 3 this is high !! <tomorrow> #tag1",
+                "[ ] 4 this is high !! <tomorrow> #tag2",
+                "[ ] 5 this is high !! <tomorrow> #tag1",
+                "[ ] this is low ! <today>",
+                "[ ] this has no priority #tag1",
+            }
+            assert.are.same(expected, lines)
         end)
     end)
 end)

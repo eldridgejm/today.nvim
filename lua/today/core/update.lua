@@ -92,6 +92,7 @@ function categorize(lines, today)
     for _, key in pairs(order) do
         local group = groups[key]
         local group_lines = util.filter(group.filter, lines)
+        sort.by_priority_then_date(group_lines)
 
         if #group_lines > 0 then
             add_line('-- ' .. group.header .. ' (' .. #group_lines .. ')' .. ' {{{')

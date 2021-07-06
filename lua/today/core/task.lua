@@ -7,7 +7,7 @@ task = {}
 
 function task.normalize(line)
     -- if the line does not start with a checkbox [ ], [x],
-    -- add an empty checkbox
+    -- add an empty checkbox. strip whitespace.
     local start = string.sub(line, 1, 3)
     if not ((start == "[ ]") or (start == "[x]")) then
         -- strip whitespace on the left
@@ -24,7 +24,6 @@ function task.is_task(line)
     local is_blank = not (line:match("^%s*$") == nil)
     return not (is_comment or is_blank)
 end
-
 
 
 function task.get_priority(line)
@@ -75,6 +74,24 @@ function task.is_checked(line)
 end
 
 
+function task.mark_done(line)
+    if not task.is_task(line) then
+        return line
+    end
+
+    local line = task.normalize(line)
+    return "[x] " .. tail(line)
+end
+
+
+function task.mark_undone(line)
+    if not task.is_task(line) then
+        return line
+    end
+
+    local line = task.normalize(line)
+    return "[ ] " .. tail(line)
+end
 
 
 function task.toggle_checkbox(line)

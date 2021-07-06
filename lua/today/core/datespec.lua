@@ -56,11 +56,6 @@ function DateSpec:days_from(other_date)
 end
 
 
-function DateSpec:is_today()
-    return self:days_from(self.today) == 0
-end
-
-
 function DateSpec:is_future()
     return self:days_from(self.today) > 0
 end
@@ -68,6 +63,11 @@ end
 
 function DateSpec:is_past()
     return self:days_from(self.today) < 0
+end
+
+
+function DateSpec:is_today()
+    return self:days_from(self.today) == 0
 end
 
 

@@ -100,5 +100,32 @@ describe("update", function()
             }
             assert.are.same(result, expected)
         end)
+
+        it("should sort by do date within each section", function()
+            -- given
+            local lines = {
+                "[ ] undone <11 days from now>",
+                "[x] this is done <tomorrow>",
+                "[x] also done <today>",
+                "[ ] but this isn't <10 days from now>",
+            }
+
+            -- when
+            local result = update.post_read(lines, "2021-02-01")
+
+            -- then
+            local expected = {
+                "-- future (2) {{{",
+                "[ ] but this isn't <2021-02-11>",
+                "[ ] undone <2021-02-12>",
+                "-- }}}",
+                "",
+                "-- done (2) {{{",
+                "[x] also done <today>",
+                "[x] this is done <tomorrow>",
+                "-- }}}",
+            }
+            assert.are.same(result, expected)
+        end)
     end)
 end)
