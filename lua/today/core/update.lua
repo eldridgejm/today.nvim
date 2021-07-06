@@ -111,6 +111,8 @@ end
 
 
 function update.pre_write(lines, today)
+    assert(today ~= nil)
+
     local function make_datespec_absolute(line)
         return task.make_datespec_absolute(line, today)
     end
@@ -123,6 +125,8 @@ end
 
 
 function update.post_read(lines, today)
+    assert(today ~= nil)
+
     local function make_datespec_natural(line)
         return task.make_datespec_natural(line, today)
     end
@@ -130,6 +134,7 @@ function update.post_read(lines, today)
     lines = util.map(make_datespec_natural, lines)
     sort.by_priority(lines)
     lines = categorize(lines, today)
+
     return lines
 end
 

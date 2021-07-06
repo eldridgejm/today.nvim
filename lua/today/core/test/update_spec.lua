@@ -29,7 +29,7 @@ describe("update", function()
             }
 
             -- when
-            local result = update.post_read(lines)
+            local result = update.post_read(lines, "2021-06-01")
 
             -- then
             local expected = {
@@ -57,7 +57,7 @@ describe("update", function()
             }
 
             -- when
-            local result = update.post_read(lines)
+            local result = update.post_read(lines, "2021-06-01")
 
             -- then
             local expected = {

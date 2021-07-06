@@ -6,7 +6,7 @@ nnoremap <buffer> <localleader>2 :TodaySetPriority 2<cr>
 vnoremap <buffer> <localleader>2 :TodaySetPriority 2<cr>
 
 nnoremap <buffer> <localleader>d :exec "TodayToggleDone" <bar> norm j<cr>
-vnoremap <buffer> <localleader>d :TodayToggleDone
+vnoremap <buffer> <localleader>d :TodayToggleDone<cr>
 
 nnoremap <buffer> <localleader>rt :exec "TodayReschedule today" <bar> norm j<cr>
 vnoremap <buffer> <localleader>rt :TodayReschedule today<cr>
@@ -34,4 +34,5 @@ augroup today
     autocmd!
     autocmd BufWritePre <buffer> lua require('today.ui').update_pre_write()
     autocmd BufWinEnter,BufWritePost <buffer> exec "lua require('today.ui').update_post_read()" | set modified&
+    autocmd BufWinEnter <buffer> lua require('today.ui').start_refresh_loop()
 augroup END
