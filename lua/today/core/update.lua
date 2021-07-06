@@ -10,9 +10,7 @@ local function define_groups(today)
 
     local groups = {}
 
-    local function is_done(line)
-        return task.is_checked(line)
-    end
+    local is_done = task.is_done
 
     local function get_datespec(line)
         return task.get_datespec(line, today)

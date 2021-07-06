@@ -7,12 +7,12 @@ describe("update", function()
                 "[x] this is something",
                 "[x] and so is this <today>"
             }
-            result = update.pre_write(lines, "2021-07-04")
+            result = update.pre_write(lines, "2021-07-02")
             assert.are.same(
                 result,
                 {
                     "[x] this is something",
-                    "[x] and so is this <2021-07-04>"
+                    "[x] <2021-07-02> and so is this"
                 }
             )
         end)

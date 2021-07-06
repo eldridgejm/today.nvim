@@ -29,8 +29,8 @@ end
 
 ui.mark_done = make_ranged_function(task.mark_done)
 ui.mark_undone = make_ranged_function(task.mark_undone)
-ui.reschedule = make_ranged_function(task.set_do_date)
 ui.toggle_done = make_ranged_function(task.toggle_done)
+ui.reschedule = make_ranged_function(task.set_do_date)
 ui.set_priority = make_ranged_function(task.set_priority)
 ui.make_datespec_absolute = make_ranged_function(task.make_datespec_absolute)
 ui.make_datespec_natural = make_ranged_function(task.make_datespec_natural)
