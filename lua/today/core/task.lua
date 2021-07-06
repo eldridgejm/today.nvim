@@ -94,7 +94,7 @@ function task.mark_undone(line)
 end
 
 
-function task.toggle_checkbox(line)
+function task.toggle_done(line)
     if not task.is_task(line) then
         return line
     end
