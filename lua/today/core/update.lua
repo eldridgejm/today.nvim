@@ -26,28 +26,28 @@ local function define_groups(today)
     groups['undone:overdue'] = {
         header = "overdue",
         filter = function(line) 
-            return (not is_done(line)) and (get_datespec(line):is_past())
+            return (not is_done(line)) and (get_datespec(line):days_away() < 0)
         end
     }
 
     groups['undone:today'] = {
         header = "today",
         filter = function(line) 
-            return (not is_done(line)) and (get_datespec(line):is_today())
+            return (not is_done(line)) and (get_datespec(line):days_away() == 0)
         end
     }
 
     groups['undone:tomorrow'] = {
         header = "tomorrow",
         filter = function(line) 
-            return (not is_done(line)) and (get_datespec(line):is_tomorrow())
+            return (not is_done(line)) and (get_datespec(line):days_away() == 1)
         end
     }
 
     groups['undone:next_7_days'] = {
         header = "next 7 days",
         filter = function(line) 
-            local days_from_today = get_datespec(line):days_from(today)
+            local days_from_today = get_datespec(line):days_away()
             local is_this_week = (days_from_today <= 7) and (days_from_today >= 2)
             return (not is_done(line)) and is_this_week
         end
@@ -56,7 +56,7 @@ local function define_groups(today)
     groups['undone:future'] = {
         header = "future",
         filter = function(line)
-            local days_from_today = get_datespec(line):days_from(today)
+            local days_from_today = get_datespec(line):days_away()
             return (not is_done(line)) and (days_from_today > 7)
         end
     }

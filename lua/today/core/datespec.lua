@@ -50,35 +50,8 @@ function DateSpec:new(spec, today)
 end
 
 
-function DateSpec:days_from(other_date)
-    other_date = date(other_date)
-    return math.ceil(date.diff(self.do_date, other_date):spandays())
-end
-
-
-function DateSpec:is_future()
-    return self:days_from(self.today) > 0
-end
-
-
-function DateSpec:is_past()
-    return self:days_from(self.today) < 0
-end
-
-
-function DateSpec:is_today()
-    return self:days_from(self.today) == 0
-end
-
-
-function DateSpec:is_tomorrow()
-    return self:days_from(self.today) == 1
-end
-
-
-function DateSpec:is_this_week()
-    local difference = self:days_from(self.today)
-    return (difference < 7) and (difference >= 0)
+function DateSpec:days_away()
+    return math.ceil(date.diff(self.do_date, self.today):spandays())
 end
 
 
