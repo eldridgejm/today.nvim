@@ -1,20 +1,38 @@
---- Functions for working with individual tasks.
+--- Functions for working with individual task strings.
 
-util = require("today.core.util")
-DateSpec = require("today.core.datespec")
+local util = require("today.core.util")
+local DateSpec = require("today.core.datespec")
 
-task = {}
+local task = {}
 
-function head(line)
+local function head(line)
     -- the checkbox part of the line
     return task.ensure_checkbox(line):sub(1, 3)
 end
 
-function tail(line)
+local function tail(line)
     -- the "contents" of the line
     return task.ensure_checkbox(line):sub(5)
 end
 
+--- Convert a priority number to a string.
+local function priority_number_to_string(priority)
+    if priority == 0 then
+        return ""
+    else
+        local lookup = { "!", "!!" }
+        return lookup[priority]
+    end
+end
+
+--- Normalization
+-- @section
+
+--- Return a version of the task that has a checkbox in front. If the task
+-- already has a checkbox, it is left as-is. If not, an empty checkbox is placed
+-- at the beginning of the string
+-- @param line The task string.
+-- @return The new task string.
 function task.ensure_checkbox(line)
     local start = string.sub(line, 1, 3)
     if not ((start == "[ ]") or (start == "[x]")) then
@@ -25,12 +43,24 @@ function task.ensure_checkbox(line)
     return line
 end
 
-function task.normalize(line)
-    -- if the line does not start with a checkbox [ ], [x], add [ ]
-    -- move the datespec string to after the checkbox
-    -- move the priority to after the datespec
-    -- finally, add the task definition
+--- Return true/false if the line is a task. A line is a task if it does not
+-- start with "--" (it is a comment) and if it is not pure whitespace.
+-- @param line The task string.
+-- @return Boolean.
+function task.is_task(line)
+    local is_comment = line:sub(1, 2) == "--"
+    local is_blank = not (line:match("^%s*$") == nil)
+    return not (is_comment or is_blank)
+end
 
+--- Normalize the location of elements within a task string.
+-- If the line does not start with a checkbox [ ], [x], add [ ].
+-- Move the datespec string (if it exists) to after the checkbox.
+-- Move the priority (if it exists) to after the datespec.
+-- Finally, add the task definition.
+-- @param line The task string
+-- @return The new, normalized task string.
+function task.normalize(line)
     local start = string.sub(line, 1, 3)
     if not ((start == "[ ]") or (start == "[x]")) then
         start = "[ ]"
@@ -50,7 +80,7 @@ function task.normalize(line)
     end
 
     if priority ~= 0 then
-        concat(priority_as_string(priority))
+        concat(priority_number_to_string(priority))
     end
 
     concat(description)
@@ -58,52 +88,45 @@ function task.normalize(line)
     return util.strip(result)
 end
 
-function task.is_task(line)
-    local is_comment = line:sub(1, 2) == "--"
-    local is_blank = not (line:match("^%s*$") == nil)
-    return not (is_comment or is_blank)
-end
+--- Checkboxes
+-- @section
 
-function task.get_description(line)
-    local l = tail(line)
-    l = task.remove_datespec(l)
-    l = task.remove_priority(l)
-    return l
-end
-
+--- Return true/false if the task is done. If the line is not a task,
+-- an error is raised. If the line does not have a checkbox, it is considered
+-- undone.
+-- @param line The task line.
+-- @return Boolean.
 function task.is_done(line)
-    if not task.is_task(line) then
-        return line
-    end
+    assert(task.is_task(line))
 
     -- determines whether the line is checked or not
     return head(line) == "[x]"
 end
 
+--- Mark a task as done.
+-- If the line has no checkbox, one is added at the beginning.
+-- @param line The task string.
+-- @return The new task string.
 function task.mark_done(line)
-    if not task.is_task(line) then
-        return line
-    end
-
-    local line = task.ensure_checkbox(line)
+    line = task.ensure_checkbox(line)
     return "[x] " .. tail(line)
 end
 
+--- Mark a task as undone.
+-- If the line has no checkbox, one is added at the beginning.
+-- @param line The task string.
+-- @return The new task string.
 function task.mark_undone(line)
-    if not task.is_task(line) then
-        return line
-    end
-
-    local line = task.ensure_checkbox(line)
+    line = task.ensure_checkbox(line)
     return "[ ] " .. tail(line)
 end
 
+--- Toggle a tasks checkmark.
+-- If the line has no checkbox, one is added at the beginning.
+-- @param line The task string.
+-- @return The new task string.
 function task.toggle_done(line)
-    if not task.is_task(line) then
-        return line
-    end
-
-    local line = task.ensure_checkbox(line)
+    line = task.ensure_checkbox(line)
     if task.is_done(line) then
         return "[ ] " .. tail(line)
     else
@@ -111,36 +134,53 @@ function task.toggle_done(line)
     end
 end
 
-function priority_as_string(priority)
-    if priority == 0 then
-        return ""
-    else
-        local lookup = { "!", "!!" }
-        return lookup[priority]
-    end
+--- Description and Tags
+-- @section description
+
+--- Retrieves the description part of a task string. This includes the tags.
+-- @param line The task string.
+-- @return The description part.
+function task.get_description(line)
+    local l = tail(line)
+    l = task.remove_datespec(l)
+    l = task.remove_priority(l)
+    return l
 end
 
-function replace_priority_string(line, new_priority)
+--- Priority
+-- @section priority
+
+--- Replaces a priority string with a new priority string.
+-- @param line The task string.
+-- @param new_priority_string The new priority string.
+-- @return The new task string.
+local function replace_priority_string(line, new_priority_string)
     line = " " .. line .. " "
 
     local second_space = " "
-    if new_priority == "" then
+    if new_priority_string == "" then
         second_space = ""
     end
 
-    local new_line, number_of_matches = line:gsub(
+    local new_line, _ = line:gsub(
         "%s(!+)%s",
-        " " .. new_priority .. second_space
+        " " .. new_priority_string .. second_space
     )
     return util.strip(new_line)
 end
 
+--- Get the priority part of a task as a string of !s.
+-- @param line The task string.
+-- @return The priority as a string.
 function task.get_priority_as_string(line)
-    local line = " " .. line .. " "
+    line = " " .. line .. " "
     local match = line:match("%s(!+)%s")
     return match
 end
 
+--- Get the priority of a task as a number from 0 to 2.
+-- @param line The task string.
+-- @return The priority.
 function task.get_priority(line)
     -- add spaces to make mathing easier
     local match = task.get_priority_as_string(line)
@@ -155,42 +195,32 @@ function task.get_priority(line)
     end
 end
 
+--- Remove the priority part from a task string.
+-- @param line The task string.
+-- @return The new task string, but without the priority.
 function task.remove_priority(line)
     line = " " .. line .. " "
     line = replace_priority_string(line, "")
     return util.strip(line)
 end
 
+--- Set the priority of the task.
+-- @param line The task string.
+-- @param new_priority The new priority as a number from 0-2.
+-- @return The new task string with the priority replaced.
 function task.set_priority(line, new_priority)
-    if not task.is_task(line) then
-        return line
-    end
-
     local old_priority = task.get_priority(line)
-
-    -- add space to make matching easier
-    line = util.strip(line) .. " "
-    local new_line = ""
+    local new_pstring = priority_number_to_string(new_priority)
 
     if old_priority == 0 then
-        new_line = line .. priority_as_string(new_priority)
+        return util.strip(line) .. " " .. new_pstring
     else
-        local old_pstring = priority_as_string(old_priority)
-        local new_pstring = priority_as_string(new_priority)
-        local pattern = "%s+(" .. old_pstring .. ")%s+"
-
-        local replacement = ""
-        if new_priority == 0 then
-            replacement = " "
-        else
-            replacement = " " .. new_pstring .. " "
-        end
-
-        new_line = line:gsub(pattern, replacement)
+        return replace_priority_string(line, new_pstring)
     end
-
-    return util.strip(new_line)
 end
+
+--- Datespec
+-- @section datespec
 
 --- Retrieve the datespec as a DateSpec object. If the task string has no datespec,
 -- this will return a "default" datespec with a do date of today.
@@ -212,16 +242,14 @@ function task.get_datespec_as_string(line)
     return line:match("(<.*>)")
 end
 
-function replace_datespec_string(line, new_spec)
+--- Helper function which replaces a datespec string with a new one.
+local function replace_datespec_string(line, new_spec)
     local second_space = " "
     if new_spec == "" then
         second_space = ""
     end
 
-    local new_line, number_of_matches = line:gsub(
-        "%s?(<.*>)%s*",
-        " " .. new_spec .. second_space
-    )
+    local new_line, _ = line:gsub("%s?(<.*>)%s*", " " .. new_spec .. second_space)
     return util.rstrip(new_line)
 end
 
@@ -231,7 +259,9 @@ end
 -- @param today The date of today as a string in YYYY-MM-DD format or a dateObjecA.t
 function task.make_datespec_absolute(line, today)
     local ds = task.get_datespec_safe(line, today)
-    if ds == nil then return line end
+    if ds == nil then
+        return line
+    end
     return replace_datespec_string(line, ds:serialize(false))
 end
 
@@ -241,14 +271,23 @@ end
 -- @param today The date of today as a string in YYYY-MM-DD format or a dateObjecA.t
 function task.make_datespec_natural(line, today)
     local ds = task.get_datespec_safe(line, today)
-    if ds == nil then return line end
+    if ds == nil then
+        return line
+    end
     return replace_datespec_string(line, ds:serialize(true))
 end
 
+--- Remove the datespec from a task string.
+-- @param line The task string.
+-- @return The new task string.
 function task.remove_datespec(line)
     return util.strip(replace_datespec_string(line, ""))
 end
 
+--- Set the do date part of a task's datespec.
+-- @param line The task string.
+-- @param do_date The do date as a string.
+-- @return The new tasks string.
 function task.set_do_date(line, do_date)
     local new_ds = "<" .. do_date .. ">"
     if line:match("<.*>") == nil then

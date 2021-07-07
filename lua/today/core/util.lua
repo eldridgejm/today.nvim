@@ -7,8 +7,8 @@ local util = {}
 -- @param a The starting index of the slice.
 -- @param b The end index. The resulting list will include this element.
 function util.slice(lst, a, b)
-    result = {}
-    i = a
+    local result = {}
+    local i = a
     while i < b do
         table.insert(result, lst[i])
         i = i + 1

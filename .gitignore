@@ -1,4 +1,5 @@
 *.today
 doc
 .direnv/*
-./stylua
+stylua
+.DS_Store

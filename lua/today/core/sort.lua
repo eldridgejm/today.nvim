@@ -8,7 +8,7 @@ local sort = {}
 --- Stable sort in decreasing order of priority. Operates in-place.
 -- @param tasks The tasks to sort.
 function sort.by_priority(tasks)
-    function comparator(x, y)
+    local function comparator(x, y)
         return task.get_priority(x) >= task.get_priority(y)
     end
 
@@ -21,7 +21,7 @@ end
 -- @param tasks The tasks to sort.
 function sort.by_priority_then_date(tasks)
     -- stable sort by priority first, then date
-    function comparator(x, y)
+    local function comparator(x, y)
         local x_ds = task.get_datespec_safe(x)
         local y_ds = task.get_datespec_safe(y)
 

@@ -1,21 +1,26 @@
 --- The user interface.
 
-task = require("today.core.task")
-util = require("today.core.util")
-update = require("today.core.update")
-date = require("today.vendor.date")
+local task = require("today.core.task")
+local update = require("today.core.update")
 
-ui = {}
+local date = require("today.vendor.date")
 
--- takes in a function `func` and makes a function which applies
--- `func` to a range of lines
-function make_ranged_function(func)
+local ui = {}
+
+ui.options = {
+    -- the time at which the today buffer will be automatically refreshed
+    refresh_time = nil,
+}
+
+--- Takes in a function `func` and makes a function which applies `func` to a
+-- range of lines.
+local function make_ranged_function(func)
     return function(start_row, end_row, ...)
         local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, 0)
 
         local transformed_lines = {}
         for _, line in pairs(lines) do
-            local result = ""
+            local result
             if not task.is_task(line) then
                 result = line
             else
@@ -28,14 +33,14 @@ function make_ranged_function(func)
     end
 end
 
-ui.mark_done = make_ranged_function(task.mark_done)
-ui.mark_undone = make_ranged_function(task.mark_undone)
-ui.toggle_done = make_ranged_function(task.toggle_done)
-ui.reschedule = make_ranged_function(task.set_do_date)
-ui.set_priority = make_ranged_function(task.set_priority)
-ui.make_datespec_absolute = make_ranged_function(task.make_datespec_absolute)
-ui.make_datespec_natural = make_ranged_function(task.make_datespec_natural)
-ui.set_do_date = make_ranged_function(task.set_do_date)
+ui.task_mark_done = make_ranged_function(task.mark_done)
+ui.task_mark_undone = make_ranged_function(task.mark_undone)
+ui.task_toggle_done = make_ranged_function(task.toggle_done)
+ui.task_reschedule = make_ranged_function(task.set_do_date)
+ui.task_set_priority = make_ranged_function(task.set_priority)
+ui.task_make_datespec_absolute = make_ranged_function(task.make_datespec_absolute)
+ui.task_make_datespec_natural = make_ranged_function(task.make_datespec_natural)
+ui.task_set_do_date = make_ranged_function(task.set_do_date)
 
 function ui.update_pre_write()
     local today = date(vim.b.today_working_date)
@@ -44,12 +49,7 @@ function ui.update_pre_write()
 end
 
 function ui.update_post_read()
-    local today = vim.g.today_debug_today
-    if today == nil then
-        today = date()
-    else
-        today = date(today)
-    end
+    local today = ui.get_current_time()
 
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
     vim.api.nvim_buf_set_lines(0, 0, -1, 0, update.post_read(lines, today))
@@ -57,9 +57,9 @@ function ui.update_post_read()
     vim.b.today_working_date = today:fmt("%Y-%m-%d")
 end
 
-function ui.time_in_seconds(when)
+local function time_in_seconds(when)
     if when == nil then
-        when = date()
+        when = ui.get_current_time()
     end
     local hour, min, sec, _ = when:gettime()
     return sec + 60 * min + 3600 * hour
@@ -86,17 +86,22 @@ function ui.start_refresh_loop()
         return
     end
 
-    local last_time = ui.time_in_seconds(date())
-    local current_time = ui.time_in_seconds(date())
+    if ui.options.refresh_time == nil then
+        return
+    end
+
+    local last_time = time_in_seconds(ui.get_current_time())
+    local current_time = time_in_seconds(ui.get_current_time())
 
     ui.timer = vim.loop.new_timer()
     ui.timer:start(
         1000,
         5000,
         vim.schedule_wrap(function()
-            current_time = ui.time_in_seconds(date())
+            current_time = time_in_seconds(ui.get_current_time())
+            print(current_time)
 
-            local at_time = vim.g.today_refresh_time
+            local at_time = ui.options.refresh_time
             if at_time == nil then
                 return
             end
@@ -110,6 +115,17 @@ function ui.start_refresh_loop()
             last_time = current_time
         end)
     )
+end
+
+function ui.get_current_time()
+    local delta = ui.time_delta or 0
+    return date():addseconds(delta)
+end
+
+ui.time_delta = nil
+
+function ui.set_current_time(d)
+    ui.time_delta = (date(d) - date()):spanseconds()
 end
 
 return ui

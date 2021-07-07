@@ -179,7 +179,7 @@ RULES:add({
     -- defaults to the first day of next month
     from_natural = function(s, today)
         if s == "next month" then
-            local y, m, d = today:getdate()
+            local y, m, _ = today:getdate()
             m = (m + 1) % 12
             if m == 0 then
                 m = 12
@@ -192,7 +192,7 @@ RULES:add({
 --- Convert a natural date into an absolute date.
 -- @param s The natural date as a string. Can be in any case.
 -- @param today The date used for today, as a YYYY-MM-DD string or a dateObject.
--- @returns The absolute date as a string in YYYY-MM-DD format.
+-- @return The absolute date as a string in YYYY-MM-DD format.
 function naturaldate.natural_to_absolute(s, today)
     -- Convert a natural date string to a YYYY-MM-DD date string
     today = date(today)
@@ -200,7 +200,7 @@ function naturaldate.natural_to_absolute(s, today)
 
     for _, rule in ipairs(RULES) do
         if rule.from_natural ~= nil then
-            result = rule.from_natural(s, today)
+            local result = rule.from_natural(s, today)
             -- if the result is nil, there is no rule
             if result ~= nil then
                 return result:fmt("%Y-%m-%d")
@@ -216,14 +216,14 @@ end
 -- the date is left as a string in YYYY-MM-DD format.
 -- @param s The absolute date as a string in YYYY-MM-DD format.
 -- @param today The date used for today, as a YYYY-MM-DD string or a dateObject.
--- @returns The date in natural form as a string.
+-- @return The date in natural form as a string.
 function naturaldate.absolute_to_natural(s, today)
-    d = date(s)
+    local d = date(s)
     today = date(today)
 
     for _, rule in ipairs(RULES) do
         if rule.from_absolute ~= nil then
-            result = rule.from_absolute(d, today)
+            local result = rule.from_absolute(d, today)
             if result ~= nil then
                 return result
             end

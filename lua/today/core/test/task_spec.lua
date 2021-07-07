@@ -1,6 +1,12 @@
 describe("Today core module's", function()
     task = require("today.core.task")
 
+    describe("is_done", function()
+        it("should consider a task without a checkbox to be undone", function()
+            assert.falsy(task.is_done("this is not done"))
+        end)
+    end)
+
     describe("set_priority", function()
         it("should add priority to end if nonexistant", function()
             assert.are.equal(task.set_priority("testing", 2), "testing !!")
@@ -163,6 +169,11 @@ describe("Today core module's", function()
         it("should convert today to natural", function()
             local result = task.make_datespec_natural("[x] task <2021-7-4>", "2021-7-4")
             assert.are.equal(result, "[x] task <today>")
+        end)
+
+        it("should leave string unchanged if no datespec present", function()
+            local result = task.make_datespec_absolute("[x] task")
+            assert.are.equal(result, "[x] task")
         end)
 
         it("should convert date within next 7 to natural", function()

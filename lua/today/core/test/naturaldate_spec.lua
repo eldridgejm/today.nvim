@@ -1,7 +1,6 @@
 local naturaldate = require("today.core.naturaldate")
 
 describe("natural language to date", function()
-
     describe("today", function()
         it("converts natural language to date", function()
             assert.are.equal(
