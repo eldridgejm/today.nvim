@@ -1,13 +1,11 @@
-DateSpec = require('today.core.datespec')
-sort = require('today.core.sort')
-task = require('today.core.task')
-util = require('today.core.util')
-
+DateSpec = require("today.core.datespec")
+sort = require("today.core.sort")
+task = require("today.core.task")
+util = require("today.core.util")
 
 update = {}
 
 local function define_groups(today)
-
     local groups = {}
 
     local is_done = task.is_done
@@ -16,64 +14,65 @@ local function define_groups(today)
         return task.get_datespec(line, today)
     end
 
-    groups['done'] = {
+    groups["done"] = {
         header = "done",
-        filter = function(line) return is_done(line) end
+        filter = function(line)
+            return is_done(line)
+        end,
     }
 
-    groups['undone:overdue'] = {
+    groups["undone:overdue"] = {
         header = "overdue",
-        filter = function(line) 
+        filter = function(line)
             return (not is_done(line)) and (get_datespec(line):days_away() < 0)
-        end
+        end,
     }
 
-    groups['undone:today'] = {
+    groups["undone:today"] = {
         header = "today",
-        filter = function(line) 
+        filter = function(line)
             return (not is_done(line)) and (get_datespec(line):days_away() == 0)
-        end
+        end,
     }
 
-    groups['undone:tomorrow'] = {
+    groups["undone:tomorrow"] = {
         header = "tomorrow",
-        filter = function(line) 
+        filter = function(line)
             return (not is_done(line)) and (get_datespec(line):days_away() == 1)
-        end
+        end,
     }
 
-    groups['undone:next_7_days'] = {
+    groups["undone:next_7_days"] = {
         header = "next 7 days",
-        filter = function(line) 
+        filter = function(line)
             local days_from_today = get_datespec(line):days_away()
             local is_this_week = (days_from_today <= 7) and (days_from_today >= 2)
             return (not is_done(line)) and is_this_week
-        end
+        end,
     }
 
-    groups['undone:future'] = {
+    groups["undone:future"] = {
         header = "future",
         filter = function(line)
             local days_from_today = get_datespec(line):days_away()
             return (not is_done(line)) and (days_from_today > 7)
-        end
+        end,
     }
 
     return groups
 end
-
 
 function categorize(lines, today)
     lines = util.filter(task.is_task, lines)
     local groups = define_groups(today)
 
     local order = {
-        'undone:overdue',
-        'undone:today',
-        'undone:tomorrow',
-        'undone:next_7_days',
-        'undone:future',
-        'done',
+        "undone:overdue",
+        "undone:today",
+        "undone:tomorrow",
+        "undone:next_7_days",
+        "undone:future",
+        "done",
     }
 
     local result = {}
@@ -93,10 +92,10 @@ function categorize(lines, today)
         sort.by_priority_then_date(group_lines)
 
         if #group_lines > 0 then
-            add_line('-- ' .. group.header .. ' (' .. #group_lines .. ')' .. ' {{{')
+            add_line("-- " .. group.header .. " (" .. #group_lines .. ")" .. " {{{")
             add_lines(group_lines)
-            add_line('-- }}}')
-            add_line('')
+            add_line("-- }}}")
+            add_line("")
         end
     end
 
@@ -108,7 +107,6 @@ function categorize(lines, today)
 
     return result
 end
-
 
 function update.pre_write(lines, today)
     assert(today ~= nil)
@@ -123,7 +121,6 @@ function update.pre_write(lines, today)
     return lines
 end
 
-
 function update.post_read(lines, today)
     assert(today ~= nil)
 
@@ -137,7 +134,5 @@ function update.post_read(lines, today)
 
     return lines
 end
-
-
 
 return update

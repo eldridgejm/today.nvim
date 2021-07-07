@@ -1,32 +1,27 @@
-util = require('today.core.util')
-DateSpec = require('today.core.datespec')
-
+util = require("today.core.util")
+DateSpec = require("today.core.datespec")
 
 task = {}
-
 
 function head(line)
     -- the checkbox part of the line
     return task.ensure_checkbox(line):sub(1, 3)
 end
 
-
 function tail(line)
     -- the "contents" of the line
     return task.ensure_checkbox(line):sub(5)
 end
 
-
 function task.ensure_checkbox(line)
     local start = string.sub(line, 1, 3)
     if not ((start == "[ ]") or (start == "[x]")) then
         -- strip whitespace on the left
-        line = line:match( "^%s*(.+)" )
+        line = line:match("^%s*(.+)")
         line = "[ ] " .. line
     end
     return line
 end
-
 
 function task.normalize(line)
     -- if the line does not start with a checkbox [ ], [x], add [ ]
@@ -44,7 +39,9 @@ function task.normalize(line)
     local description = task.get_description(line)
 
     local result = start
-    local concat = function(s) result = result .. " " .. s end
+    local concat = function(s)
+        result = result .. " " .. s
+    end
 
     if ds ~= nil then
         concat(ds)
@@ -57,16 +54,13 @@ function task.normalize(line)
     concat(description)
 
     return util.strip(result)
-
 end
 
-
 function task.is_task(line)
-    local is_comment = line:sub(1, 2) == '--'
+    local is_comment = line:sub(1, 2) == "--"
     local is_blank = not (line:match("^%s*$") == nil)
     return not (is_comment or is_blank)
 end
-
 
 function task.get_description(line)
     local l = tail(line)
@@ -74,7 +68,6 @@ function task.get_description(line)
     l = task.remove_priority(l)
     return l
 end
-
 
 function task.is_done(line)
     if not task.is_task(line) then
@@ -85,7 +78,6 @@ function task.is_done(line)
     return head(line) == "[x]"
 end
 
-
 function task.mark_done(line)
     if not task.is_task(line) then
         return line
@@ -95,7 +87,6 @@ function task.mark_done(line)
     return "[x] " .. tail(line)
 end
 
-
 function task.mark_undone(line)
     if not task.is_task(line) then
         return line
@@ -104,7 +95,6 @@ function task.mark_undone(line)
     local line = task.ensure_checkbox(line)
     return "[ ] " .. tail(line)
 end
-
 
 function task.toggle_done(line)
     if not task.is_task(line) then
@@ -119,16 +109,14 @@ function task.toggle_done(line)
     end
 end
 
-
 function priority_as_string(priority)
-    if priority == 0 then 
+    if priority == 0 then
         return ""
     else
-        local lookup = {"!", "!!"}
+        local lookup = { "!", "!!" }
         return lookup[priority]
     end
 end
-
 
 function replace_priority_string(line, new_priority)
     line = " " .. line .. " "
@@ -138,17 +126,18 @@ function replace_priority_string(line, new_priority)
         second_space = ""
     end
 
-    local new_line, number_of_matches = line:gsub("%s(!+)%s", " " .. new_priority .. second_space)
+    local new_line, number_of_matches = line:gsub(
+        "%s(!+)%s",
+        " " .. new_priority .. second_space
+    )
     return util.strip(new_line)
 end
 
-
 function task.get_priority_as_string(line)
-    local line = ' ' .. line .. ' '
-    local match = line:match('%s(!+)%s')
+    local line = " " .. line .. " "
+    local match = line:match("%s(!+)%s")
     return match
 end
-
 
 function task.get_priority(line)
     -- add spaces to make mathing easier
@@ -164,14 +153,11 @@ function task.get_priority(line)
     end
 end
 
-
-
 function task.remove_priority(line)
     line = " " .. line .. " "
     line = replace_priority_string(line, "")
     return util.strip(line)
 end
-
 
 function task.set_priority(line, new_priority)
     if not task.is_task(line) then
@@ -181,8 +167,8 @@ function task.set_priority(line, new_priority)
     local old_priority = task.get_priority(line)
 
     -- add space to make matching easier
-    line = util.strip(line) .. ' '
-    local new_line = ''
+    line = util.strip(line) .. " "
+    local new_line = ""
 
     if old_priority == 0 then
         new_line = line .. priority_as_string(new_priority)
@@ -204,17 +190,14 @@ function task.set_priority(line, new_priority)
     return util.strip(new_line)
 end
 
-
 function task.get_datespec(line, today)
     local ds = task.get_datespec_as_string(line)
     return DateSpec:new(ds, today)
 end
 
-
 function task.get_datespec_as_string(line, today)
     return line:match("(<.*>)")
 end
-
 
 function replace_datespec_string(line, new_spec)
     local second_space = " "
@@ -222,36 +205,34 @@ function replace_datespec_string(line, new_spec)
         second_space = ""
     end
 
-    local new_line, number_of_matches = line:gsub("%s?(<.*>)%s*", " " .. new_spec .. second_space)
+    local new_line, number_of_matches = line:gsub(
+        "%s?(<.*>)%s*",
+        " " .. new_spec .. second_space
+    )
     return util.rstrip(new_line)
 end
-
 
 function task.make_datespec_absolute(line, today)
     local ds = task.get_datespec(line, today)
     return replace_datespec_string(line, ds:serialize(false))
 end
 
-
 function task.make_datespec_natural(line, today)
     local ds = task.get_datespec(line, today)
     return replace_datespec_string(line, ds:serialize(true))
 end
 
-
 function task.remove_datespec(line)
     return util.strip(replace_datespec_string(line, ""))
 end
 
-
 function task.set_do_date(line, do_date)
-    local new_ds = '<' .. do_date .. '>'
+    local new_ds = "<" .. do_date .. ">"
     if line:match("<.*>") == nil then
-        return line .. ' ' .. new_ds
+        return line .. " " .. new_ds
     else
-        return replace_datespec_string(line, '<' .. do_date .. '>')
+        return replace_datespec_string(line, "<" .. do_date .. ">")
     end
 end
-
 
 return task

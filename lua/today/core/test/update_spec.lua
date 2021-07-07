@@ -1,31 +1,27 @@
 describe("update", function()
-    update = require('today.core.update')
+    update = require("today.core.update")
 
     describe("pre_write", function()
         it("should make date specs absolute", function()
             lines = {
                 "[x] this is something",
-                "[x] and so is this <today>"
+                "[x] and so is this <today>",
             }
             result = update.pre_write(lines, "2021-07-02")
-            assert.are.same(
-                result,
-                {
-                    "[x] this is something",
-                    "[x] <2021-07-02> and so is this"
-                }
-            )
+            assert.are.same(result, {
+                "[x] this is something",
+                "[x] <2021-07-02> and so is this",
+            })
         end)
     end)
 
     describe("post_read", function()
-
         it("should move completed lines to the end", function()
             -- given
             local lines = {
                 "[ ] undone",
                 "[x] this is done",
-                "[ ] but this isn't"
+                "[ ] but this isn't",
             }
 
             -- when
@@ -40,7 +36,7 @@ describe("update", function()
                 "",
                 "-- done (1) {{{",
                 "[x] this is done",
-                "-- }}}"
+                "-- }}}",
             }
             assert.are.same(result, expected)
         end)
@@ -53,7 +49,7 @@ describe("update", function()
                 "[ ] but this isn't",
                 "",
                 "-- done (0) {{{",
-                "-- }}}"
+                "-- }}}",
             }
 
             -- when

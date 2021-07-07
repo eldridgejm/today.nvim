@@ -1,6 +1,5 @@
 describe("core.sort", function()
-
-    sort = require('today.core.sort')
+    sort = require("today.core.sort")
 
     describe("by_priority", function()
         it("sorts lines by their priority", function()
@@ -21,7 +20,6 @@ describe("core.sort", function()
                 "[ ] this has no priority",
             }
             assert.are.same(expected, lines)
-
         end)
 
         it("is stable", function()
@@ -46,7 +44,6 @@ describe("core.sort", function()
                 "[ ] this has no priority",
             }
             assert.are.same(expected, lines)
-
         end)
     end)
 

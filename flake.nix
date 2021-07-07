@@ -13,8 +13,9 @@
 
           let
             pkgs = nixpkgs.legacyPackages.${system};
-            lua = pkgs.lua5_2.withPackages (ps: with ps; [
+            lua = pkgs.lua5_3.withPackages (ps: with ps; [
               ps.busted
+              ps.ldoc
             ]);
           in
             pkgs.mkShell {

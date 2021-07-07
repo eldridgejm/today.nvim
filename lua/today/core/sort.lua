@@ -1,22 +1,26 @@
-util = require('today.core.util')
-task = require('today.core.task')
+--- Functions for sorting groups of tasks.
 
+util = require("today.core.util")
+task = require("today.core.task")
 
 sort = {}
 
-
-function sort.by_priority(lines)
-    -- stable sort by priority
+--- Stable sort in decreasing order of priority. Operates in-place.
+-- @param tasks The tasks to sort.
+function sort.by_priority(tasks)
 
     function comparator(x, y)
         return task.get_priority(x) >= task.get_priority(y)
     end
 
-    util.mergesort(lines, comparator)
+    util.mergesort(tasks, comparator)
 end
 
-
-function sort.by_priority_then_date(lines)
+--- Stable sort in decreasing order of priority and date.
+-- If two tasks have the same priority, their do-date is used as a tiebreaker.
+-- Operates in-place.
+-- @param tasks The tasks to sort.
+function sort.by_priority_then_date(tasks)
     -- stable sort by priority first, then date
     function comparator(x, y)
         local x_ds = task.get_datespec(x)
@@ -34,8 +38,7 @@ function sort.by_priority_then_date(lines)
         end
     end
 
-    util.mergesort(lines, comparator)
+    util.mergesort(tasks, comparator)
 end
-
 
 return sort
