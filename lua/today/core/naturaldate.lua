@@ -1,14 +1,14 @@
 --- Convert between dates in absolute and natural (relative) format.
 
-date = require("today.vendor.date")
+local date = require("today.vendor.date")
 
-naturaldate = {}
+local naturaldate = {}
 
 -- Count number of days the date is into the future.
 -- @param d The date in question. String or dateObject.
 -- @param today The date that should be used for today. String or dateObject.
 -- @returns An integer counting the difference in days.
-function days_into_future(d, today)
+local function days_into_future(d, today)
     local diff = math.ceil(date.diff(d, today):spandays())
     return diff
 end
@@ -25,11 +25,14 @@ end
 -- representing the date in natural format, or nil. A value of nil for this key
 -- signals that there is no conversion from the absolute date to a natural
 -- date.
-RULES = {}
+local RULES = {}
 
 -- A function to add a rule table to the set of all rules.
 function RULES:add(rule)
-    table.insert(self, { from_natural = rule.from_natural, from_absolute = rule.from_absolute })
+    table.insert(
+        self,
+        { from_natural = rule.from_natural, from_absolute = rule.from_absolute }
+    )
 end
 
 -- today
@@ -64,11 +67,11 @@ RULES:add({
     end,
 })
 
--- Do a prefix search in a table of strings. 
+-- Do a prefix search in a table of strings.
 -- This will search the table for an target "x". "x" matches a table element if
 -- it is a prefix of the element.  If there is only one match, it is returned;
 -- else "nil" is returned.
-function prefix_search(tbl, x)
+local function prefix_search(tbl, x)
     local matches = {}
 
     local function _starts_with(s, pattern)

@@ -1,7 +1,7 @@
---- Higher-level date specification table type.
+--- Higher-level natural date specification type.
 
-date = require("today.vendor.date")
-naturaldate = require("today.core.naturaldate")
+local date = require("today.vendor.date")
+local naturaldate = require("today.core.naturaldate")
 
 function default_today(today)
     if today ~= nil then
@@ -12,11 +12,6 @@ function default_today(today)
     return today
 end
 
-function is_same_day(d1, d2)
-    local y1, m1, d1 = d1:getdate()
-    local y2, m2, d2 = d2:getdate()
-    return (y1 == y2) and (m1 == m2) and (d1 == d2)
-end
 
 function parse(spec, today)
     -- Parse a date spec string to a date object
@@ -32,7 +27,7 @@ function parse(spec, today)
     return date(naturaldate.natural_to_absolute(do_date, today))
 end
 
-DateSpec = {}
+local DateSpec = {}
 
 function DateSpec:new(spec, today)
     today = default_today(today)

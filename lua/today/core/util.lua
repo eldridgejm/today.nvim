@@ -1,6 +1,6 @@
 --- Utility functions.
 
-util = {}
+local util = {}
 
 --- Return a slice of an list.
 -- @param lst The list to slice.
@@ -62,7 +62,7 @@ function util.strip(s)
 end
 
 -- Private helper function for mergesort.
-function merge(left, right, lst, cmp)
+local function merge(left, right, lst, cmp)
     local left_ix = 1
     local right_ix = 1
 

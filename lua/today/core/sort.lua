@@ -1,14 +1,13 @@
 --- Functions for sorting groups of tasks.
 
-util = require("today.core.util")
-task = require("today.core.task")
+local util = require("today.core.util")
+local task = require("today.core.task")
 
-sort = {}
+local sort = {}
 
 --- Stable sort in decreasing order of priority. Operates in-place.
 -- @param tasks The tasks to sort.
 function sort.by_priority(tasks)
-
     function comparator(x, y)
         return task.get_priority(x) >= task.get_priority(y)
     end

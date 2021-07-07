@@ -1,5 +1,6 @@
+local naturaldate = require("today.core.naturaldate")
+
 describe("natural language to date", function()
-    local naturaldate = require("today.core.naturaldate")
 
     describe("today", function()
         it("converts natural language to date", function()
@@ -164,7 +165,10 @@ end)
 
 describe("date to natural language", function()
     it("converts today", function()
-        assert.are.equal(naturaldate.absolute_to_natural("2021-7-5", "2021-7-5"), "today")
+        assert.are.equal(
+            naturaldate.absolute_to_natural("2021-7-5", "2021-7-5"),
+            "today"
+        )
     end)
 
     it("converts tomorrow date to natural language", function()
@@ -182,11 +186,17 @@ describe("date to natural language", function()
     end)
 
     it("converts within 7 days of now to weekdays", function()
-        assert.are.equal(naturaldate.absolute_to_natural("2021-7-9", "2021-7-5"), "friday")
+        assert.are.equal(
+            naturaldate.absolute_to_natural("2021-7-9", "2021-7-5"),
+            "friday"
+        )
     end)
 
     it("converts within 7 days of now to weekday", function()
-        assert.are.equal(naturaldate.absolute_to_natural("2021-7-11", "2021-7-5"), "sunday")
+        assert.are.equal(
+            naturaldate.absolute_to_natural("2021-7-11", "2021-7-5"),
+            "sunday"
+        )
     end)
 
     it("does not convert exactly one week away", function()
