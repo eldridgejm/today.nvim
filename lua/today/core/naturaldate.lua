@@ -1,4 +1,6 @@
---- Convert between dates in absolute and natural (relative) format.
+--- Convert between dates in absolute and natural (relative) format.  For
+-- example, convert "natural" dates like "today", "tomorrow", "3 weeks from now"
+-- to the date in YYYY-MM-DD, and vice versa.
 
 local date = require("today.vendor.date")
 
@@ -190,6 +192,7 @@ RULES:add({
 --- Convert a natural date into an absolute date.
 -- @param s The natural date as a string. Can be in any case.
 -- @param today The date used for today, as a YYYY-MM-DD string or a dateObject.
+-- @returns The absolute date as a string in YYYY-MM-DD format.
 function naturaldate.natural_to_absolute(s, today)
     -- Convert a natural date string to a YYYY-MM-DD date string
     today = date(today)
@@ -209,8 +212,11 @@ function naturaldate.natural_to_absolute(s, today)
 end
 
 --- Convert an absolute date to a natural date.
+-- If there is no valid conversion of the absolute date to a natural date,
+-- the date is left as a string in YYYY-MM-DD format.
 -- @param s The absolute date as a string in YYYY-MM-DD format.
 -- @param today The date used for today, as a YYYY-MM-DD string or a dateObject.
+-- @returns The date in natural form as a string.
 function naturaldate.absolute_to_natural(s, today)
     d = date(s)
     today = date(today)

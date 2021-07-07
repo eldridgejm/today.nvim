@@ -1,3 +1,5 @@
+--- Functions for working with individual tasks.
+
 util = require("today.core.util")
 DateSpec = require("today.core.datespec")
 
@@ -190,12 +192,23 @@ function task.set_priority(line, new_priority)
     return util.strip(new_line)
 end
 
-function task.get_datespec(line, today)
+--- Retrieve the datespec as a DateSpec object. If the task string has no datespec,
+-- this will return a "default" datespec with a do date of today.
+-- @param line The task string.
+-- @param today The date of today as a dateObject or string in YYYY-MM-DD format.
+-- @return The DateSpec for the task.
+function task.get_datespec_safe(line, today)
     local ds = task.get_datespec_as_string(line)
+    -- this implicitly creates a DateSpec with a do-date of today if
+    -- there is no datespec string present.
     return DateSpec:new(ds, today)
 end
 
-function task.get_datespec_as_string(line, today)
+--- Retrieve the datespec as a string from the task string.
+-- @param line The task string.
+-- @return The datespec string (including angle brackets) or nil if there is
+-- no datespec.
+function task.get_datespec_as_string(line)
     return line:match("(<.*>)")
 end
 
@@ -212,13 +225,23 @@ function replace_datespec_string(line, new_spec)
     return util.rstrip(new_line)
 end
 
+--- Replaces a datespec with an absolute datespec. If there is no datespec,
+-- this leaves the task unchanged.
+-- @param line The task line.
+-- @param today The date of today as a string in YYYY-MM-DD format or a dateObjecA.t
 function task.make_datespec_absolute(line, today)
-    local ds = task.get_datespec(line, today)
+    local ds = task.get_datespec_safe(line, today)
+    if ds == nil then return line end
     return replace_datespec_string(line, ds:serialize(false))
 end
 
+--- Replaces an absolute datespec with a natural datespec. If there is no datespec,
+-- this leaves the task unchanged.
+-- @param line The task line.
+-- @param today The date of today as a string in YYYY-MM-DD format or a dateObjecA.t
 function task.make_datespec_natural(line, today)
-    local ds = task.get_datespec(line, today)
+    local ds = task.get_datespec_safe(line, today)
+    if ds == nil then return line end
     return replace_datespec_string(line, ds:serialize(true))
 end
 

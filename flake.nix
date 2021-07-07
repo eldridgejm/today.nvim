@@ -16,6 +16,7 @@
             lua = pkgs.lua5_3.withPackages (ps: with ps; [
               ps.busted
               ps.ldoc
+              ps.luacheck
             ]);
           in
             pkgs.mkShell {

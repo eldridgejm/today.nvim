@@ -2,11 +2,6 @@ describe("datespec", function()
     DateSpec = require("today.core.datespec")
 
     describe("new", function()
-        it("defaults to today", function()
-            local ds = DateSpec:new(nil, "2021-02-01")
-            local y, m, d = ds.do_date:getdate()
-            assert.are.same({ y, m, d }, { 2021, 2, 1 })
-        end)
 
         it("reads natural language for today", function()
             local ds = DateSpec:new("<today>", "2021-02-01")

@@ -3,18 +3,8 @@
 local date = require("today.vendor.date")
 local naturaldate = require("today.core.naturaldate")
 
-function default_today(today)
-    if today ~= nil then
-        today = date(today)
-    else
-        today = date()
-    end
-    return today
-end
-
-
-function parse(spec, today)
-    -- Parse a date spec string to a date object
+--- Parse a date spec string to a date object
+local function parse_do_date(spec, today)
     if spec == nil then
         return today
     end
@@ -29,13 +19,18 @@ end
 
 local DateSpec = {}
 
+--- Create a new DateSpec object.
+-- @param spec The specification string.
+-- @today today The date of today as a dateObject or a string in YYYY-MM-DD format.
 function DateSpec:new(spec, today)
-    today = default_today(today)
-    local do_date = parse(spec, today)
-    local obj = { do_date = do_date, today = today }
-    -- ensure that these are date tables
+    today = date(today)
+
+    local do_date = parse_do_date(spec, today)
+
     assert(do_date.getdate ~= nil, "do_date is not a date object")
     assert(today.getdate ~= nil, "today is not a date object")
+
+    local obj = { do_date = do_date, today = today }
     self.__index = self
     return setmetatable(obj, self)
 end
