@@ -12,7 +12,7 @@ docs:
 
 .PHONY: style
 style:
-	./stylua lua/
+	stylua lua/
 
 .PHONY: check
 check:

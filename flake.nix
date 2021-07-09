@@ -1,6 +1,5 @@
 {
-  inputs.nixpkgs.url = github:NixOS/nixpkgs/21.05;
-
+  inputs.nixpkgs.url = github:NixOS/nixpkgs;
 
   outputs = { self, nixpkgs, }:
     let
@@ -13,16 +12,19 @@
 
           let
             pkgs = nixpkgs.legacyPackages.${system};
+
             lua = pkgs.lua5_3.withPackages (ps: with ps; [
               ps.busted
               ps.ldoc
               ps.luacheck
             ]);
+
           in
             pkgs.mkShell {
               buildInputs = 
               [
                 lua
+                pkgs.stylua
               ];
             }
         );
