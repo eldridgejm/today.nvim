@@ -23,7 +23,7 @@ local function make_ranged_function(func)
             if not task.is_task(line) then
                 result = line
             else
-                result = func(line, ...)
+                result = task.normalize(func(line, ...))
             end
             table.insert(transformed_lines, result)
         end
@@ -56,13 +56,13 @@ function ui.update_post_read()
     vim.b.today_working_date = today:fmt("%Y-%m-%d")
 end
 
+local function is_today_buffer(bufnum)
+    return vim.api.nvim_buf_get_option(bufnum, "filetype") == "today"
+end
+
 function ui.refresh_all_buffers()
     -- for every buffer with filetype=today, if the buffer is not modified,
     -- re-read its contents
-
-    local function is_today_buffer(bufnum)
-        return vim.api.nvim_buf_get_option(bufnum, "filetype") == "today"
-    end
 
     local function needs_reload(bufnum)
         if vim.api.nvim_buf_get_option(bufnum, "modified") then
@@ -103,6 +103,20 @@ function ui.start_refresh_loop()
             ui.refresh_all_buffers()
         end)
     )
+end
+
+function ui.stop_refresh_loop()
+    if ui.timer ~= nil then
+        ui.timer:close()
+        ui.timer = nil
+    end
+end
+
+function ui.on_buffer_delete()
+    local today_buffers = util.filter(is_today_buffer, vim.api.nvim_list_bufs())
+    if #today_buffers == 1 then
+        ui.stop_refresh_loop()
+    end
 end
 
 function ui.get_current_time()
