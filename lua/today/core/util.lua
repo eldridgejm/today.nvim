@@ -43,6 +43,22 @@ function util.filter(predicate, iterable)
     return result
 end
 
+
+function util.groupby(keyfn, lst)
+    local groups = {}
+    for _, x in pairs(lst) do
+        local key = keyfn(x)
+
+        if groups[key] == nil then
+            groups[key] = {}
+        end
+
+        table.insert(groups[key], x)
+    end
+    return groups
+end
+
+
 --- Remove whitespace from the left of a string.
 -- @param s The string to strip.
 function util.lstrip(s)

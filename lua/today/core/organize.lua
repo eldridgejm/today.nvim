@@ -2,75 +2,37 @@ local sort = require("today.core.sort")
 local task = require("today.core.task")
 local util = require("today.core.util")
 
-local function define_groups(today)
-    local groups = {}
-
-    local is_done = task.is_done
-
-    local function get_datespec_safe(line)
-        return task.get_datespec_safe(line, today)
-    end
-
-    groups["done"] = {
-        header = "done",
-        filter = function(line)
-            return is_done(line)
-        end,
-    }
-
-    groups["undone:overdue"] = {
-        header = "overdue",
-        filter = function(line)
-            return get_datespec_safe(line):days_until_do() < 0
-        end,
-    }
-
-    groups["undone:today"] = {
-        header = "today",
-        filter = function(line)
-            return get_datespec_safe(line):days_until_do() == 0
-        end,
-    }
-
-    groups["undone:tomorrow"] = {
-        header = "tomorrow",
-        filter = function(line)
-            return (not is_done(line))
-                and (get_datespec_safe(line):days_until_do() == 1)
-        end,
-    }
-
-    groups["undone:next_7_days"] = {
-        header = "next 7 days",
-        filter = function(line)
-            local days_from_today = get_datespec_safe(line):days_until_do()
-            local is_this_week = (days_from_today <= 7) and (days_from_today >= 2)
-            return (not is_done(line)) and is_this_week
-        end,
-    }
-
-    groups["undone:future"] = {
-        header = "future",
-        filter = function(line)
-            local days_from_today = get_datespec_safe(line):days_until_do()
-            return (not is_done(line)) and (days_from_today > 7)
-        end,
-    }
-
-    return groups
-end
 
 local function categorize(lines, today)
-    lines = util.filter(task.is_task, lines)
-    local groups = define_groups(today)
 
-    local process_order = {
-        "done",
-        "undone:overdue",
-        "undone:today",
-        "undone:tomorrow",
-        "undone:next_7_days",
-        "undone:future",
+    local function get_date_key(t)
+        local datespec = task.get_datespec_safe(t, today)
+
+        if task.is_done(t) then
+            return 'done'
+        elseif datespec:days_until_do() < 0 then
+            return 'undone:overdue'
+        elseif datespec:days_until_do() == 0 then
+            return 'undone:today'
+        elseif datespec:days_until_do() == 1 then
+            return 'undone:tomorrow'
+        elseif datespec:days_until_do() <= 7 then
+            return 'undone:next_7_days'
+        else
+            return 'undone:future'
+        end
+    end
+
+    local tasks = util.filter(task.is_task, lines)
+    local groups = util.groupby(get_date_key, tasks)
+
+    local headers = {
+        ["undone:overdue"] = "overdue",
+        ["undone:today"] = "today",
+        ["undone:tomorrow"] = "tomorrow",
+        ["undone:next_7_days"] = "next_7_days",
+        ["undone:future"] = "future",
+        ["done"] = "done" ,
     }
 
     local presentation_order = {
@@ -93,25 +55,13 @@ local function categorize(lines, today)
         end
     end
 
-    local remaining_lines = lines
-    local group_lines = {}
-
-    for _, key in pairs(process_order) do
-        local group = groups[key]
-        group_lines[key] = util.filter(group.filter, remaining_lines)
-        remaining_lines = util.filter(function(line)
-            return not group.filter(line)
-        end, remaining_lines)
-    end
-
     for _, key in pairs(presentation_order) do
-        local group = groups[key]
-        local tasks = group_lines[key]
-        sort.by_priority_then_date(tasks)
+        local group_tasks = groups[key]
+        if group_tasks ~= nil then
+            sort.by_priority_then_date(group_tasks)
 
-        if #tasks > 0 then
-            add_line("-- " .. group.header .. " (" .. #tasks .. ")" .. " {{{")
-            add_lines(tasks)
+            add_line("-- " .. headers[key] .. " (" .. #group_tasks .. ")" .. " {{{")
+            add_lines(group_tasks)
             add_line("-- }}}")
             add_line("")
         end
