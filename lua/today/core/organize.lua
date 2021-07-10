@@ -2,8 +2,6 @@ local sort = require("today.core.sort")
 local task = require("today.core.task")
 local util = require("today.core.util")
 
-local update = {}
-
 local function define_groups(today)
     local groups = {}
 
@@ -109,27 +107,34 @@ local function categorize(lines, today)
     return result
 end
 
-local function transform(lines, today, datespec_transformer)
+local function make_datespec_standardizer(natural, today)
+    local datespec_standard
+    if natural then
+        datespec_standard = task.make_datespec_natural
+    else
+        datespec_standard = task.make_datespec_absolute
+    end
+
+    return function(line)
+        return datespec_standard(line, today)
+    end
+end
+
+return function(lines, today, opts)
     assert(today ~= nil)
 
-    local function transform_datespec(line)
-        return datespec_transformer(line, today)
+    if opts == nil then
+        opts = {
+            natural = true,
+        }
     end
+
+    local standardize_datespec = make_datespec_standardizer(opts.natural, today)
 
     lines = util.filter(task.is_task, lines)
     lines = util.map(task.normalize, lines)
-    lines = util.map(transform_datespec, lines)
+    lines = util.map(standardize_datespec, lines)
     sort.by_priority(lines)
     lines = categorize(lines, today)
     return lines
 end
-
-function update.pre_write(lines, today)
-    return transform(lines, today, task.make_datespec_absolute)
-end
-
-function update.post_read(lines, today)
-    return transform(lines, today, task.make_datespec_natural)
-end
-
-return update

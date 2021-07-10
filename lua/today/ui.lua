@@ -1,5 +1,5 @@
 local task = require("today.core.task")
-local update = require("today.core.update")
+local organize = require("today.core.organize")
 local util = require("today.core.util")
 
 local date = require("today.vendor.date")
@@ -41,17 +41,24 @@ ui.task_make_datespec_absolute = make_ranged_function(task.make_datespec_absolut
 ui.task_make_datespec_natural = make_ranged_function(task.make_datespec_natural)
 ui.task_set_do_date = make_ranged_function(task.set_do_date)
 
+local function apply_to_buffer(fn)
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
+    vim.api.nvim_buf_set_lines(0, 0, -1, 0, fn(lines))
+end
+
 function ui.update_pre_write()
     local today = date(vim.b.today_working_date)
-    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
-    vim.api.nvim_buf_set_lines(0, 0, -1, 0, update.pre_write(lines, today))
+    apply_to_buffer(function(lines)
+        return organize(lines, today, { natural = false })
+    end)
 end
 
 function ui.update_post_read()
     local today = ui.get_current_time()
 
-    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
-    vim.api.nvim_buf_set_lines(0, 0, -1, 0, update.post_read(lines, today))
+    apply_to_buffer(function(lines)
+        return organize(lines, today, { natural = true })
+    end)
 
     vim.b.today_working_date = today:fmt("%Y-%m-%d")
 end
@@ -60,10 +67,9 @@ local function is_today_buffer(bufnum)
     return vim.api.nvim_buf_get_option(bufnum, "filetype") == "today"
 end
 
+--- for every buffer with filetype=today, if the buffer is not modified,
+-- re-read its contents
 function ui.refresh_all_buffers()
-    -- for every buffer with filetype=today, if the buffer is not modified,
-    -- re-read its contents
-
     local function needs_reload(bufnum)
         if vim.api.nvim_buf_get_option(bufnum, "modified") then
             return false
