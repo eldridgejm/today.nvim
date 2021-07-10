@@ -252,6 +252,7 @@ end
 -- @param today The date of today as a dateObject or string in YYYY-MM-DD format.
 -- @return The DateSpec for the task.
 function task.get_datespec_safe(line, today)
+    assert(today ~= nil)
     local ds = task.get_datespec_as_string(line)
     -- this implicitly creates a DateSpec with a do-date of today if
     -- there is no datespec string present.

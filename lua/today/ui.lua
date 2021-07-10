@@ -48,8 +48,19 @@ ui.task_make_datespec_natural = make_ranged_function(function(line)
 end)
 
 function ui.organize()
+    local categorizer = vim.b.today_categorizer
+    local working_date = date(vim.b.today_working_date)
+
+    if (categorizer == nil) or (categorizer == "do_date") then
+        categorizer = organize.do_date_categorizer(working_date)
+    elseif categorizer == "first_tag" then
+        categorizer = organize.first_tag_categorizer(working_date)
+    else
+        error("Categorizer " .. categorizer .. " not known.")
+    end
+
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
-    lines = organize(lines, date(vim.b.today_working_date))
+    lines = organize.organize(lines, categorizer)
     vim.api.nvim_buf_set_lines(0, 0, -1, 0, lines)
 end
 

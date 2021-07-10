@@ -165,7 +165,10 @@ describe("organize", function()
                 "this is another #one",
             }
 
-            local result = organize.organize(lines, organize.first_tag_categorizer())
+            local result = organize.organize(
+                lines,
+                organize.first_tag_categorizer("2021-07-04")
+            )
 
             assert.are.same(result, {
                 "-- #one (2) {{{",
@@ -196,7 +199,10 @@ describe("organize", function()
                 "and this is a four th",
             }
 
-            local result = organize.organize(lines, organize.first_tag_categorizer())
+            local result = organize.organize(
+                lines,
+                organize.first_tag_categorizer("2021-07-05")
+            )
 
             assert.are.same(result, {
                 "-- #one (2) {{{",
@@ -228,7 +234,10 @@ describe("organize", function()
                 "[ ] ok this works",
             }
 
-            local result = organize.organize(lines, organize.first_tag_categorizer())
+            local result = organize.organize(
+                lines,
+                organize.first_tag_categorizer("2021-07-05")
+            )
 
             assert.are.same(result, {
 

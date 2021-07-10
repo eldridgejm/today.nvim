@@ -193,7 +193,7 @@ describe("Today core module's", function()
         end)
 
         it("should leave string unchanged if no datespec present", function()
-            local result = task.make_datespec_absolute("[x] task")
+            local result = task.make_datespec_absolute("[x] task", "2021-07-05")
             assert.are.equal(result, "[x] task")
         end)
     end)
@@ -205,7 +205,7 @@ describe("Today core module's", function()
         end)
 
         it("should leave string unchanged if no datespec present", function()
-            local result = task.make_datespec_absolute("[x] task")
+            local result = task.make_datespec_absolute("[x] task", "2021-12-12")
             assert.are.equal(result, "[x] task")
         end)
 

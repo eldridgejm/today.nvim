@@ -83,13 +83,19 @@ function sort.chain_comparators(chain)
     end
 end
 
-function sort.datespec_comparator(task_x, task_y)
-    local x_ds = task.get_datespec_safe(task_x).do_date
-    local y_ds = task.get_datespec_safe(task_y).do_date
-    if x_ds == y_ds then
-        return nil
+function sort.datespec_comparator(working_date)
+    assert(working_date ~= nil)
+
+    local function comparator(task_x, task_y)
+        local x_ds = task.get_datespec_safe(task_x, working_date).do_date
+        local y_ds = task.get_datespec_safe(task_y, working_date).do_date
+        if x_ds == y_ds then
+            return nil
+        end
+        return x_ds < y_ds
     end
-    return x_ds < y_ds
+
+    return comparator
 end
 
 function sort.completed_comparator(task_x, task_y)
