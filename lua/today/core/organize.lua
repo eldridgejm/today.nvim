@@ -1,5 +1,6 @@
 local task = require("today.core.task")
 local util = require("today.core.util")
+local sort = require("today.core.sort")
 
 local organize = {}
 
@@ -43,21 +44,10 @@ function organize.do_date_categorizer(working_date)
                 "done",
             }
         end,
-        comparefunc = function(task_x, task_y)
-            local x_ds = task.get_datespec_safe(task_x)
-            local y_ds = task.get_datespec_safe(task_y)
-
-            local x_pr = task.get_priority(task_x)
-            local y_pr = task.get_priority(task_y)
-
-            if x_pr > y_pr then
-                return true
-            elseif x_pr == y_pr then
-                return x_ds.do_date <= y_ds.do_date
-            else
-                return false
-            end
-        end,
+        comparefunc = sort.chain_comparators({
+            sort.datespec_comparator,
+            sort.priority_comparator,
+        }),
     }
 end
 
@@ -75,12 +65,14 @@ function organize.first_tag_categorizer()
             return key
         end,
         orderfunc = function(keys)
-            util.mergesort(keys)
+            sort.mergesort(keys)
             return keys
         end,
-        comparefunc = function(task_x, _)
-            return not task.is_done(task_x)
-        end,
+        comparefunc = sort.chain_comparators({
+            sort.completed_comparator,
+            sort.datespec_comparator,
+            sort.priority_comparator,
+        }),
     }
 end
 
@@ -104,7 +96,7 @@ local function categorize(lines, categorizer)
     for _, key in pairs(order) do
         local group_tasks = groups[key]
         if group_tasks ~= nil then
-            util.mergesort(group_tasks, categorizer.comparefunc)
+            sort.mergesort(group_tasks, categorizer.comparefunc)
             local header = categorizer.headerfunc(key)
 
             add_line("-- " .. header .. " (" .. #group_tasks .. ")" .. " {{{")

@@ -155,7 +155,7 @@ describe("organize", function()
         end)
     end)
 
-    describe("single_tag_categorizer", function()
+    describe("first_tag_categorizer", function()
         it("should sort headers alphabetically", function()
             local lines = {
                 "this is #one something",
@@ -215,6 +215,39 @@ describe("organize", function()
                 "-- other (2) {{{",
                 "[ ] and this is a four th",
                 "[x] ok this works",
+                "-- }}}",
+            })
+        end)
+        it("should order by do date then priority", function()
+            local lines = {
+                "[ ] this is #three #one a third",
+                "this is #one something <tomorrow>",
+                "and this is a #one th <today> !",
+                "[ ] this is another #one <today> !!",
+                "this is #two another",
+                "[ ] ok this works",
+            }
+
+            local result = organize.organize(lines, organize.first_tag_categorizer())
+
+            assert.are.same(result, {
+
+                "-- #one (3) {{{",
+                "[ ] <today> !! this is another #one",
+                "[ ] <today> ! and this is a #one th",
+                "[ ] <tomorrow> this is #one something",
+                "-- }}}",
+                "",
+                "-- #three (1) {{{",
+                "[ ] this is #three #one a third",
+                "-- }}}",
+                "",
+                "-- #two (1) {{{",
+                "[ ] this is #two another",
+                "-- }}}",
+                "",
+                "-- other (1) {{{",
+                "[ ] ok this works",
                 "-- }}}",
             })
         end)

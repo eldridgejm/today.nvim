@@ -1,76 +1,61 @@
 describe("core.sort", function()
     sort = require("today.core.sort")
 
-    describe("by_priority", function()
-        it("sorts lines by their priority", function()
-            -- given
-            local lines = {
-                "[ ] this is low !",
-                "[ ] this is high !!",
-                "[ ] this has no priority",
-            }
-
-            -- when
-            sort.by_priority(lines)
-
-            -- then
-            local expected = {
-                "[ ] this is high !!",
-                "[ ] this is low !",
-                "[ ] this has no priority",
-            }
-            assert.are.same(expected, lines)
+    describe("mergesort", function()
+        it(", you know, sorts, small lists", function()
+            local list = { 2, 1, 3 }
+            sort.mergesort(list)
+            assert.are.same(list, { 1, 2, 3 })
         end)
 
-        it("is stable", function()
-            -- given
-            local lines = {
-                "[ ] this is low !",
-                "[ ] 1 this is high !!",
-                "[ ] 2 this is high !!",
-                "[ ] 3 this is high !!",
-                "[ ] this has no priority",
-            }
+        it(", you know, sorts", function()
+            local list = { 4, 5, 1, 2, 9, 6, 10 }
+            sort.mergesort(list)
+            assert.are.same(list, { 1, 2, 4, 5, 6, 9, 10 })
+        end)
 
-            -- when
-            sort.by_priority(lines)
-
-            -- then
-            local expected = {
-                "[ ] 1 this is high !!",
-                "[ ] 2 this is high !!",
-                "[ ] 3 this is high !!",
-                "[ ] this is low !",
-                "[ ] this has no priority",
-            }
-            assert.are.same(expected, lines)
+        it(", you know, sorts again", function()
+            local list = { 4, 5, 1, 2, 9, 6 }
+            sort.mergesort(list)
+            assert.are.same(list, { 1, 2, 4, 5, 6, 9 })
         end)
     end)
 
-    describe("by_priority_then_date", function()
-        it("should break ties as specified", function()
-            local lines = {
-                "[ ] 1 this is high !! <tomorrow>",
-                "[ ] 2 this is high !! <today>",
-                "[ ] this is low ! <today>",
-                "[ ] 3 this is high !! <tomorrow> #tag1",
-                "[ ] 4 this is high !! <tomorrow> #tag2",
-                "[ ] this has no priority #tag1",
-                "[ ] 5 this is high !! <tomorrow> #tag1",
-            }
+    describe("chain_comparators", function()
+        local function by_1(x, y)
+            if x[1] == y[1] then
+                return nil
+            end
+            return x[1] < y[1]
+        end
 
-            sort.by_priority_then_date(lines)
+        local function by_2(x, y)
+            if x[2] == y[2] then
+                return nil
+            end
+            return x[2] < y[2]
+        end
 
-            local expected = {
-                "[ ] 2 this is high !! <today>",
-                "[ ] 1 this is high !! <tomorrow>",
-                "[ ] 3 this is high !! <tomorrow> #tag1",
-                "[ ] 4 this is high !! <tomorrow> #tag2",
-                "[ ] 5 this is high !! <tomorrow> #tag1",
-                "[ ] this is low ! <today>",
-                "[ ] this has no priority #tag1",
-            }
-            assert.are.same(expected, lines)
+        local function by_3(x, y)
+            if x[3] == y[3] then
+                return nil
+            end
+            return x[3] < y[3]
+        end
+
+        it("should fall through on a tie", function()
+            local chain = sort.chain_comparators({ by_1, by_2 })
+            assert.truthy(chain({ 1, 2, 3 }, { 1, 4, 5 }))
+        end)
+
+        it("should fall through on a tie, again", function()
+            local chain = sort.chain_comparators({ by_1, by_2 })
+            assert.falsy(chain({ 1, 2, 3 }, { 1, 0, 5 }))
+        end)
+
+        it("should return false if equal", function()
+            local chain = sort.chain_comparators({ by_1, by_2 })
+            assert.are.equal(chain({ 1, 2, 3 }, { 1, 2, 3 }), true)
         end)
     end)
 end)
