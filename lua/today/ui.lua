@@ -56,14 +56,6 @@ function ui.update_post_read()
     vim.b.today_working_date = today:fmt("%Y-%m-%d")
 end
 
-local function time_in_seconds(when)
-    if when == nil then
-        when = ui.get_current_time()
-    end
-    local hour, min, sec, _ = when:gettime()
-    return sec + 60 * min + 3600 * hour
-end
-
 function ui.refresh_all_buffers()
     -- for every buffer with filetype=today, if the buffer is not modified,
     -- re-read its contents
@@ -73,7 +65,7 @@ function ui.refresh_all_buffers()
     end
 
     local function needs_reload(bufnum)
-        if vim.api.nvim_buf_get_option(0, "modified") then
+        if vim.api.nvim_buf_get_option(bufnum, "modified") then
             return false
         end
 

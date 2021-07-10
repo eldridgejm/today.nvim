@@ -6,6 +6,9 @@ test:
 		--lpath ./lua/?.lua \
 		./lua/today/core/test/
 
+.PHONY: pre-commit
+pre-commit: test style check
+
 .PHONY: docs
 docs:
 	ldoc lua/ --ignore
