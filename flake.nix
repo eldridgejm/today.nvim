@@ -8,7 +8,7 @@
 
     in
       {
-        devShell = forAllSystems (system: 
+        devShell = forAllSystems (system:
 
           let
             pkgs = nixpkgs.legacyPackages.${system};
@@ -21,10 +21,11 @@
 
           in
             pkgs.mkShell {
-              buildInputs = 
+              buildInputs =
               [
                 lua
                 pkgs.stylua
+                pkgs.pre-commit
               ];
             }
         );

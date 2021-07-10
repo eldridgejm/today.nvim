@@ -17,8 +17,8 @@ vnoremap <buffer> <localleader>rm :TodayReschedule tomorrow<cr>
 nnoremap <buffer> <localleader>rw :exec "TodayReschedule next week" <bar> norm j<cr>
 vnoremap <buffer> <localleader>rw :TodayReschedule next week<cr>
 
-nnoremap <buffer> <localleader>rr :TodayReschedule 
-vnoremap <buffer> <localleader>rr :TodayReschedule 
+nnoremap <buffer> <localleader>rr :TodayReschedule
+vnoremap <buffer> <localleader>rr :TodayReschedule
 
 
 command -buffer -range TodayMarkDone lua require('today.ui').task_mark_done(<line1>, <line2>)
@@ -33,6 +33,6 @@ command -buffer -range -nargs=1 TodaySetPriority lua require('today.ui').task_se
 augroup today
     autocmd!
     autocmd BufWritePre <buffer> lua require('today.ui').update_pre_write()
-    autocmd BufWinEnter,BufWritePost <buffer> exec "lua require('today.ui').update_post_read()" | set modified&
+    autocmd BufWinEnter,BufWritePost,FileChangedShellPost <buffer> exec "lua require('today.ui').update_post_read()" | set modified&
     autocmd BufWinEnter <buffer> lua require('today.ui').start_refresh_loop()
 augroup END

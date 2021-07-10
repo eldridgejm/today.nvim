@@ -83,7 +83,7 @@ describe("update", function()
             -- then
             local expected = {
                 "-- overdue (1) {{{",
-                "[ ] but this isn't <2021-01-01>",
+                "[ ] <2021-01-01> but this isn't",
                 "-- }}}",
                 "",
                 "-- today (1) {{{",
@@ -112,13 +112,13 @@ describe("update", function()
             -- then
             local expected = {
                 "-- future (2) {{{",
-                "[ ] but this isn't <2021-02-11>",
-                "[ ] undone <2021-02-12>",
+                "[ ] <2021-02-11> but this isn't",
+                "[ ] <2021-02-12> undone",
                 "-- }}}",
                 "",
                 "-- done (2) {{{",
-                "[x] also done <today>",
-                "[x] this is done <tomorrow>",
+                "[x] <today> also done",
+                "[x] <tomorrow> this is done",
                 "-- }}}",
             }
             assert.are.same(result, expected)

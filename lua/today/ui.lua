@@ -1,7 +1,6 @@
---- The user interface.
-
 local task = require("today.core.task")
 local update = require("today.core.update")
+local util = require("today.core.util")
 
 local date = require("today.vendor.date")
 
@@ -9,7 +8,7 @@ local ui = {}
 
 ui.options = {
     -- the time at which the today buffer will be automatically refreshed
-    refresh_time = nil,
+    automatic_refresh = true,
 }
 
 --- Takes in a function `func` and makes a function which applies `func` to a
@@ -68,16 +67,30 @@ end
 function ui.refresh_all_buffers()
     -- for every buffer with filetype=today, if the buffer is not modified,
     -- re-read its contents
-    local reload = function()
-        vim.cmd("e")
+
+    local function is_today_buffer(bufnum)
+        return vim.api.nvim_buf_get_option(bufnum, "filetype") == "today"
     end
 
-    for _, buffer in pairs(vim.api.nvim_list_bufs()) do
-        if vim.api.nvim_buf_get_option(buffer, "filetype") == "today" then
-            if not vim.api.nvim_buf_get_option(buffer, "modified") then
-                vim.api.nvim_buf_call(buffer, reload)
-            end
+    local function needs_reload(bufnum)
+        if vim.api.nvim_buf_get_option(0, "modified") then
+            return false
         end
+
+        local current_date = date(ui.get_current_time():getdate())
+        local buffer_working_date = date(date(vim.b.today_working_date):getdate())
+
+        return current_date ~= buffer_working_date
+    end
+
+    local today_buffers = util.filter(is_today_buffer, vim.api.nvim_list_bufs())
+    local reload_buffers = util.filter(needs_reload, today_buffers)
+
+    for _, buffer in pairs(reload_buffers) do
+        print("today buffers refreshed due to date change")
+        vim.api.nvim_buf_call(buffer, function()
+            vim.cmd("e")
+        end)
     end
 end
 
@@ -86,33 +99,16 @@ function ui.start_refresh_loop()
         return
     end
 
-    if ui.options.refresh_time == nil then
+    if not ui.options.automatic_refresh then
         return
     end
-
-    local last_time = time_in_seconds(ui.get_current_time())
-    local current_time = time_in_seconds(ui.get_current_time())
 
     ui.timer = vim.loop.new_timer()
     ui.timer:start(
         1000,
         5000,
         vim.schedule_wrap(function()
-            current_time = time_in_seconds(ui.get_current_time())
-            print(current_time)
-
-            local at_time = ui.options.refresh_time
-            if at_time == nil then
-                return
-            end
-
-            local c1 = (last_time < at_time) and (current_time >= at_time)
-            local c2 = (last_time > current_time) and (current_time >= at_time)
-            if c1 or c2 then
-                print(last_time, current_time, at_time)
-                ui.refresh_all_buffers()
-            end
-            last_time = current_time
+            ui.refresh_all_buffers()
         end)
     )
 end

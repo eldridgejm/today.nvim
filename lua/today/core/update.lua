@@ -129,6 +129,8 @@ function update.post_read(lines, today)
         return task.make_datespec_natural(line, today)
     end
 
+    lines = util.filter(task.is_task, lines)
+    lines = util.map(task.normalize, lines)
     lines = util.map(make_datespec_natural, lines)
     sort.by_priority(lines)
     lines = categorize(lines, today)
