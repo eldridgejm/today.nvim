@@ -9,8 +9,10 @@ describe("update", function()
             }
             result = update.pre_write(lines, "2021-07-02")
             assert.are.same(result, {
-                "[x] this is something",
+                "-- done (2) {{{",
                 "[x] <2021-07-02> and so is this",
+                "[x] this is something",
+                "-- }}}",
             })
         end)
     end)
