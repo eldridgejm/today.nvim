@@ -134,7 +134,7 @@ return function(lines, today, opts)
     lines = util.filter(task.is_task, lines)
     lines = util.map(task.normalize, lines)
     lines = util.map(standardize_datespec, lines)
-    sort.by_priority(lines)
+    sort.by_priority_then_date(lines)
     lines = categorize(lines, today)
     return lines
 end

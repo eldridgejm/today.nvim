@@ -46,20 +46,25 @@ local function apply_to_buffer(fn)
     vim.api.nvim_buf_set_lines(0, 0, -1, 0, fn(lines))
 end
 
+
+function ui.organize(today, natural)
+    if today == nil then
+        today = ui.get_current_time()
+    end
+
+    apply_to_buffer(function(lines)
+        return organize(lines, today, { natural = natural })
+    end)
+end
+
 function ui.update_pre_write()
     local today = date(vim.b.today_working_date)
-    apply_to_buffer(function(lines)
-        return organize(lines, today, { natural = false })
-    end)
+    ui.organize(today, false)
 end
 
 function ui.update_post_read()
     local today = ui.get_current_time()
-
-    apply_to_buffer(function(lines)
-        return organize(lines, today, { natural = true })
-    end)
-
+    ui.organize(today, true)
     vim.b.today_working_date = today:fmt("%Y-%m-%d")
 end
 
