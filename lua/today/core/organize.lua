@@ -120,6 +120,19 @@ local function make_datespec_standardizer(natural, today)
     end
 end
 
+local function extract_user_comments(lines)
+    local comments = {}
+
+    for _, line in pairs(lines) do
+        if util.startswith(line, "--:") then
+            table.insert(comments, line)
+        else
+            return comments
+        end
+    end
+    return {}
+end
+
 return function(lines, today, opts)
     assert(today ~= nil)
 
@@ -131,10 +144,25 @@ return function(lines, today, opts)
 
     local standardize_datespec = make_datespec_standardizer(opts.natural, today)
 
-    lines = util.filter(task.is_task, lines)
-    lines = util.map(task.normalize, lines)
-    lines = util.map(standardize_datespec, lines)
-    sort.by_priority_then_date(lines)
-    lines = categorize(lines, today)
-    return lines
+    local head_comments = extract_user_comments(lines)
+    local tail_comments = extract_user_comments(util.reverse(lines))
+
+    local tasks = util.filter(task.is_task, lines)
+    tasks = util.map(task.normalize, tasks)
+    tasks = util.map(standardize_datespec, tasks)
+    sort.by_priority_then_date(tasks)
+    tasks = categorize(tasks, today)
+
+    local result = {}
+    if #head_comments > 0 then
+        util.put_into(result, head_comments)
+        table.insert(result, "")
+    end
+    util.put_into(result, tasks)
+    if #tail_comments > 0 then
+        table.insert(result, "")
+        util.put_into(result, tail_comments)
+    end
+
+    return result
 end

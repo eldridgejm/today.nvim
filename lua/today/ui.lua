@@ -46,7 +46,6 @@ local function apply_to_buffer(fn)
     vim.api.nvim_buf_set_lines(0, 0, -1, 0, fn(lines))
 end
 
-
 function ui.organize(today, natural)
     if today == nil then
         today = ui.get_current_time()

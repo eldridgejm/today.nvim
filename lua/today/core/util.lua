@@ -124,4 +124,22 @@ function util.mergesort(lst, cmp)
     merge(left, right, lst, cmp)
 end
 
+function util.startswith(s, prefix)
+    return s:sub(0, #prefix) == prefix
+end
+
+function util.reverse(tbl)
+    local result = {}
+    for i = #tbl, 1, -1 do
+        table.insert(result, tbl[i])
+    end
+    return result
+end
+
+function util.put_into(dst_tbl, src_tbl)
+    for _, x in pairs(src_tbl) do
+        table.insert(dst_tbl, x)
+    end
+end
+
 return util

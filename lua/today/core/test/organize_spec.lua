@@ -135,4 +135,33 @@ describe("organize", function()
         }
         assert.are.same(result, expected)
     end)
+
+    it("should keep user comments at the beginning and end", function()
+        -- given
+        local lines = {
+            "--: this is a user comment",
+            "[x] this is done",
+            "[ ] but this isn't",
+            "--: and so is this",
+        }
+
+        -- when
+        local result = organize(lines, "2021-02-01", { natural = false })
+
+        -- then
+        local expected = {
+            "--: this is a user comment",
+            "",
+            "-- today (1) {{{",
+            "[ ] but this isn't",
+            "-- }}}",
+            "",
+            "-- done (1) {{{",
+            "[x] this is done",
+            "-- }}}",
+            "",
+            "--: and so is this",
+        }
+        assert.are.same(result, expected)
+    end)
 end)
