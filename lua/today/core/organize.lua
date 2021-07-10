@@ -1,48 +1,92 @@
-local sort = require("today.core.sort")
 local task = require("today.core.task")
 local util = require("today.core.util")
 
+local organize = {}
 
-local function categorize(lines, today)
+function organize.do_date_categorizer(working_date)
+    return {
+        keyfunc = function(t)
+            local datespec = task.get_datespec_safe(t, working_date)
 
-    local function get_date_key(t)
-        local datespec = task.get_datespec_safe(t, today)
+            if task.is_done(t) then
+                return "done"
+            elseif datespec:days_until_do() < 0 then
+                return "undone:overdue"
+            elseif datespec:days_until_do() == 0 then
+                return "undone:today"
+            elseif datespec:days_until_do() == 1 then
+                return "undone:tomorrow"
+            elseif datespec:days_until_do() <= 7 then
+                return "undone:next_7_days"
+            else
+                return "undone:future"
+            end
+        end,
+        headerfunc = function(key)
+            local mapping = {
+                ["undone:overdue"] = "overdue",
+                ["undone:today"] = "today",
+                ["undone:tomorrow"] = "tomorrow",
+                ["undone:next_7_days"] = "next_7_days",
+                ["undone:future"] = "future",
+                ["done"] = "done",
+            }
+            return mapping[key]
+        end,
+        orderfunc = function(_)
+            return {
+                "undone:overdue",
+                "undone:today",
+                "undone:tomorrow",
+                "undone:next_7_days",
+                "undone:future",
+                "done",
+            }
+        end,
+        comparefunc = function(task_x, task_y)
+            local x_ds = task.get_datespec_safe(task_x)
+            local y_ds = task.get_datespec_safe(task_y)
 
-        if task.is_done(t) then
-            return 'done'
-        elseif datespec:days_until_do() < 0 then
-            return 'undone:overdue'
-        elseif datespec:days_until_do() == 0 then
-            return 'undone:today'
-        elseif datespec:days_until_do() == 1 then
-            return 'undone:tomorrow'
-        elseif datespec:days_until_do() <= 7 then
-            return 'undone:next_7_days'
-        else
-            return 'undone:future'
-        end
-    end
+            local x_pr = task.get_priority(task_x)
+            local y_pr = task.get_priority(task_y)
 
+            if x_pr > y_pr then
+                return true
+            elseif x_pr == y_pr then
+                return x_ds.do_date <= y_ds.do_date
+            else
+                return false
+            end
+        end,
+    }
+end
+
+function organize.first_tag_categorizer()
+    return {
+        keyfunc = function(t)
+            local first_tag = task.get_first_tag(t)
+            if first_tag ~= nil then
+                return first_tag
+            else
+                return "other"
+            end
+        end,
+        headerfunc = function(key)
+            return key
+        end,
+        orderfunc = function(keys)
+            util.mergesort(keys)
+            return keys
+        end,
+        comparefunc = function(task_x, _)
+            return not task.is_done(task_x)
+        end,
+    }
+end
+
+local function categorize(lines, categorizer)
     local tasks = util.filter(task.is_task, lines)
-    local groups = util.groupby(get_date_key, tasks)
-
-    local headers = {
-        ["undone:overdue"] = "overdue",
-        ["undone:today"] = "today",
-        ["undone:tomorrow"] = "tomorrow",
-        ["undone:next_7_days"] = "next_7_days",
-        ["undone:future"] = "future",
-        ["done"] = "done" ,
-    }
-
-    local presentation_order = {
-        "undone:overdue",
-        "undone:today",
-        "undone:tomorrow",
-        "undone:next_7_days",
-        "undone:future",
-        "done",
-    }
+    local groups = util.groupby(categorizer.keyfunc, tasks)
 
     local result = {}
     local function add_line(s)
@@ -55,12 +99,15 @@ local function categorize(lines, today)
         end
     end
 
-    for _, key in pairs(presentation_order) do
+    local order = categorizer.orderfunc(util.keys(groups))
+
+    for _, key in pairs(order) do
         local group_tasks = groups[key]
         if group_tasks ~= nil then
-            sort.by_priority_then_date(group_tasks)
+            util.mergesort(group_tasks, categorizer.comparefunc)
+            local header = categorizer.headerfunc(key)
 
-            add_line("-- " .. headers[key] .. " (" .. #group_tasks .. ")" .. " {{{")
+            add_line("-- " .. header .. " (" .. #group_tasks .. ")" .. " {{{")
             add_lines(group_tasks)
             add_line("-- }}}")
             add_line("")
@@ -89,16 +136,13 @@ local function extract_user_comments(lines)
     return {}
 end
 
-return function(lines, working_date)
-    assert(working_date ~= nil)
-
+function organize.organize(lines, categorizer)
     local head_comments = extract_user_comments(lines)
     local tail_comments = extract_user_comments(util.reverse(lines))
 
     local tasks = util.filter(task.is_task, lines)
     tasks = util.map(task.normalize, tasks)
-    sort.by_priority_then_date(tasks)
-    tasks = categorize(tasks, working_date)
+    tasks = categorize(tasks, categorizer)
 
     local result = {}
     if #head_comments > 0 then
@@ -115,3 +159,5 @@ return function(lines, working_date)
 
     return result
 end
+
+return organize

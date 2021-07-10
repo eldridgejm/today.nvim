@@ -43,7 +43,6 @@ function util.filter(predicate, iterable)
     return result
 end
 
-
 function util.groupby(keyfn, lst)
     local groups = {}
     for _, x in pairs(lst) do
@@ -58,6 +57,22 @@ function util.groupby(keyfn, lst)
     return groups
 end
 
+function util.keys(tbl)
+    local keys = {}
+    for key, _ in pairs(tbl) do
+        table.insert(keys, key)
+    end
+    return keys
+end
+
+function util.contains_value(tbl, x)
+    for _, y in pairs(tbl) do
+        if y == x then
+            return true
+        end
+    end
+    return false
+end
 
 --- Remove whitespace from the left of a string.
 -- @param s The string to strip.

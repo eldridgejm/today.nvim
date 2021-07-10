@@ -18,25 +18,22 @@ describe("util module", function()
             end
 
             local lst = {
-                'aaa',
-                'c',
-                'bb',
-                'bbb',
-                'ddd',
-                'ee',
-                'aaa'
+                "aaa",
+                "c",
+                "bb",
+                "bbb",
+                "ddd",
+                "ee",
+                "aaa",
             }
 
             local result = util.groupby(get_key, lst)
             local expected = {}
-            expected[3] = {'aaa', 'bbb', 'ddd', 'aaa'}
-            expected[1]= {'c'}
-            expected[2] = {'bb', 'ee'}
+            expected[3] = { "aaa", "bbb", "ddd", "aaa" }
+            expected[1] = { "c" }
+            expected[2] = { "bb", "ee" }
 
-            assert.are.same(
-                result,
-                expected
-            )
+            assert.are.same(result, expected)
         end)
     end)
 
