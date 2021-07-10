@@ -21,15 +21,14 @@ local function define_groups(today)
     groups["undone:overdue"] = {
         header = "overdue",
         filter = function(line)
-            return (not is_done(line)) and (get_datespec_safe(line):days_until_do() < 0)
+            return get_datespec_safe(line):days_until_do() < 0
         end,
     }
 
     groups["undone:today"] = {
         header = "today",
         filter = function(line)
-            return (not is_done(line))
-                and (get_datespec_safe(line):days_until_do() == 0)
+            return get_datespec_safe(line):days_until_do() == 0
         end,
     }
 
@@ -65,7 +64,16 @@ local function categorize(lines, today)
     lines = util.filter(task.is_task, lines)
     local groups = define_groups(today)
 
-    local order = {
+    local process_order = {
+        "done",
+        "undone:overdue",
+        "undone:today",
+        "undone:tomorrow",
+        "undone:next_7_days",
+        "undone:future",
+    }
+
+    local presentation_order = {
         "undone:overdue",
         "undone:today",
         "undone:tomorrow",
@@ -85,14 +93,25 @@ local function categorize(lines, today)
         end
     end
 
-    for _, key in pairs(order) do
-        local group = groups[key]
-        local group_lines = util.filter(group.filter, lines)
-        sort.by_priority_then_date(group_lines)
+    local remaining_lines = lines
+    local group_lines = {}
 
-        if #group_lines > 0 then
-            add_line("-- " .. group.header .. " (" .. #group_lines .. ")" .. " {{{")
-            add_lines(group_lines)
+    for _, key in pairs(process_order) do
+        local group = groups[key]
+        group_lines[key] = util.filter(group.filter, remaining_lines)
+        remaining_lines = util.filter(function(line)
+            return not group.filter(line)
+        end, remaining_lines)
+    end
+
+    for _, key in pairs(presentation_order) do
+        local group = groups[key]
+        local tasks = group_lines[key]
+        sort.by_priority_then_date(tasks)
+
+        if #tasks > 0 then
+            add_line("-- " .. group.header .. " (" .. #tasks .. ")" .. " {{{")
+            add_lines(tasks)
             add_line("-- }}}")
             add_line("")
         end
