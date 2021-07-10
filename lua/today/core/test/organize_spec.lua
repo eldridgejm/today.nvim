@@ -97,40 +97,13 @@ describe("organize", function()
         -- then
         local expected = {
             "-- future (2) {{{",
-            "[ ] <2021-02-11> but this isn't",
-            "[ ] <2021-02-12> undone",
+            "[ ] <10 days from now> but this isn't",
+            "[ ] <11 days from now> undone",
             "-- }}}",
             "",
             "-- done (2) {{{",
             "[x] <today> also done",
             "[x] <tomorrow> this is done",
-            "-- }}}",
-        }
-        assert.are.same(result, expected)
-    end)
-
-    it("should convert to absolute date is specified", function()
-        -- given
-        local lines = {
-            "[ ] undone <11 days from now>",
-            "[x] this is done <tomorrow>",
-            "[x] also done <today>",
-            "[ ] but this isn't <10 days from now>",
-        }
-
-        -- when
-        local result = organize(lines, "2021-02-01", { natural = false })
-
-        -- then
-        local expected = {
-            "-- future (2) {{{",
-            "[ ] <2021-02-11> but this isn't",
-            "[ ] <2021-02-12> undone",
-            "-- }}}",
-            "",
-            "-- done (2) {{{",
-            "[x] <2021-02-01> also done",
-            "[x] <2021-02-02> this is done",
             "-- }}}",
         }
         assert.are.same(result, expected)

@@ -37,34 +37,31 @@ ui.task_mark_undone = make_ranged_function(task.mark_undone)
 ui.task_toggle_done = make_ranged_function(task.toggle_done)
 ui.task_reschedule = make_ranged_function(task.set_do_date)
 ui.task_set_priority = make_ranged_function(task.set_priority)
-ui.task_make_datespec_absolute = make_ranged_function(task.make_datespec_absolute)
-ui.task_make_datespec_natural = make_ranged_function(task.make_datespec_natural)
 ui.task_set_do_date = make_ranged_function(task.set_do_date)
 
-local function apply_to_buffer(fn)
+ui.task_make_datespec_absolute = make_ranged_function(function(line)
+    return task.make_datespec_absolute(line, date(vim.b.today_working_date))
+end)
+
+ui.task_make_datespec_natural = make_ranged_function(function(line)
+    return task.make_datespec_natural(line, date(vim.b.today_working_date))
+end)
+
+function ui.organize()
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
-    vim.api.nvim_buf_set_lines(0, 0, -1, 0, fn(lines))
-end
-
-function ui.organize(today, natural)
-    if today == nil then
-        today = ui.get_current_time()
-    end
-
-    apply_to_buffer(function(lines)
-        return organize(lines, today, { natural = natural })
-    end)
+    lines = organize(lines, date(vim.b.today_working_date))
+    vim.api.nvim_buf_set_lines(0, 0, -1, 0, lines)
 end
 
 function ui.update_pre_write()
-    local today = date(vim.b.today_working_date)
-    ui.organize(today, false)
+    ui.organize()
+    ui.task_make_datespec_absolute(1, -1)
 end
 
 function ui.update_post_read()
-    local today = ui.get_current_time()
-    ui.organize(today, true)
-    vim.b.today_working_date = today:fmt("%Y-%m-%d")
+    vim.b.today_working_date = ui.get_current_time():fmt("%Y-%m-%d")
+    ui.organize()
+    ui.task_make_datespec_natural(1, -1)
 end
 
 local function is_today_buffer(bufnum)
@@ -79,10 +76,10 @@ function ui.refresh_all_buffers()
             return false
         end
 
-        local current_date = date(ui.get_current_time():getdate())
+        local actual_date = date(ui.get_current_time():getdate())
         local buffer_working_date = date(date(vim.b.today_working_date):getdate())
 
-        return current_date ~= buffer_working_date
+        return actual_date ~= buffer_working_date
     end
 
     local today_buffers = util.filter(is_today_buffer, vim.api.nvim_list_bufs())

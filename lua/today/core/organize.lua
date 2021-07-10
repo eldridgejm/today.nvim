@@ -107,19 +107,6 @@ local function categorize(lines, today)
     return result
 end
 
-local function make_datespec_standardizer(natural, today)
-    local datespec_standard
-    if natural then
-        datespec_standard = task.make_datespec_natural
-    else
-        datespec_standard = task.make_datespec_absolute
-    end
-
-    return function(line)
-        return datespec_standard(line, today)
-    end
-end
-
 local function extract_user_comments(lines)
     local comments = {}
 
@@ -133,23 +120,14 @@ local function extract_user_comments(lines)
     return {}
 end
 
-return function(lines, today, opts)
+return function(lines, today)
     assert(today ~= nil)
-
-    if opts == nil then
-        opts = {
-            natural = true,
-        }
-    end
-
-    local standardize_datespec = make_datespec_standardizer(opts.natural, today)
 
     local head_comments = extract_user_comments(lines)
     local tail_comments = extract_user_comments(util.reverse(lines))
 
     local tasks = util.filter(task.is_task, lines)
     tasks = util.map(task.normalize, tasks)
-    tasks = util.map(standardize_datespec, tasks)
     sort.by_priority_then_date(tasks)
     tasks = categorize(tasks, today)
 
