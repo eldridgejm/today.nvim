@@ -120,8 +120,8 @@ local function extract_user_comments(lines)
     return {}
 end
 
-return function(lines, today)
-    assert(today ~= nil)
+return function(lines, working_date)
+    assert(working_date ~= nil)
 
     local head_comments = extract_user_comments(lines)
     local tail_comments = extract_user_comments(util.reverse(lines))
@@ -129,14 +129,16 @@ return function(lines, today)
     local tasks = util.filter(task.is_task, lines)
     tasks = util.map(task.normalize, tasks)
     sort.by_priority_then_date(tasks)
-    tasks = categorize(tasks, today)
+    tasks = categorize(tasks, working_date)
 
     local result = {}
     if #head_comments > 0 then
         util.put_into(result, head_comments)
         table.insert(result, "")
     end
+
     util.put_into(result, tasks)
+
     if #tail_comments > 0 then
         table.insert(result, "")
         util.put_into(result, tail_comments)

@@ -102,6 +102,39 @@ describe("Today core module's", function()
         end)
     end)
 
+    describe("get_tags", function()
+        it("should retrieve all tags in order of appearance", function()
+            assert.are.same(
+                task.get_tags("testing #one #two is not #three"),
+                { "#one", "#two", "#three" }
+            )
+        end)
+        it("should allow numbers/hyphens/underscores in the tag", function()
+            assert.are.same(
+                task.get_tags("testing #one-same #two22 and this #three_ok"),
+                { "#one-same", "#two22", "#three_ok" }
+            )
+        end)
+        it("should normalize tags to lower case", function()
+            assert.are.same(
+                task.get_tags("testing #ONE #TwO is not #Three"),
+                { "#one", "#two", "#three" }
+            )
+        end)
+    end)
+
+    describe("get_first_tag", function()
+        it("should retrieve the first tag", function()
+            assert.are.equal(
+                task.get_first_tag("testing #one #two is not #three"),
+                "#one"
+            )
+        end)
+        it("should return nil if no tags", function()
+            assert.are.equal(task.get_first_tag("this has no tags!"), nil)
+        end)
+    end)
+
     describe("get_datespec_safe", function()
         it("should get the do_date as a DateSpec", function()
             local ds = task.get_datespec_safe("[x] tast <2021-07-5>", "2021-03-05")

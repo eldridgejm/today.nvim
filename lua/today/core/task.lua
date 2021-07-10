@@ -147,6 +147,30 @@ function task.get_description(line)
     return l
 end
 
+--- Retrieves a table of all of the task's tags.
+-- @param line The task string.
+-- @return A table of tags, as strings, each with `#` prepended.
+function task.get_tags(line)
+    line = " " .. line .. " "
+    local result = {}
+    for match in line:gmatch("%s(#[%w-_]+)") do
+        table.insert(result, match:lower())
+    end
+    return result
+end
+
+--- Retrieves the first tag, if it exists.
+-- @param line The task string.
+-- @return The first tag (with a `#` prepended), or `nil` if there is no tag.
+function task.get_first_tag(line)
+    local tags = task.get_tags(line)
+    if #tags == 0 then
+        return nil
+    else
+        return tags[1]
+    end
+end
+
 --- Priority
 -- @section priority
 
