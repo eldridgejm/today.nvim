@@ -7,7 +7,7 @@ test:
 		./lua/today/core/test/
 
 .PHONY: pre-commit
-pre-commit: test style check
+pre-commit: style check test
 
 .PHONY: docs
 docs:
