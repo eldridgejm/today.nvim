@@ -20,8 +20,8 @@ vnoremap <buffer> <localleader>rw :TodayReschedule next week<cr>
 nnoremap <buffer> <localleader>rr :TodayReschedule 
 vnoremap <buffer> <localleader>rr :TodayReschedule 
 
-nnoremap <buffer> <localleader>cd :TodayCategorize do_date<cr>
-nnoremap <buffer> <localleader>ct :TodayCategorize first_tag<cr>
+nnoremap <buffer> <localleader>cd :TodayCategorizeDoDate<cr>
+nnoremap <buffer> <localleader>ct :TodayCategorizeFirstTag<cr>
 
 
 command -buffer -range TodayMarkDone lua require('today.ui').task_mark_done(<line1>, <line2>)
@@ -31,7 +31,9 @@ command -buffer -range TodayMakeDatespecAbsolute lua require('today.ui').task_ma
 command -buffer -range TodayMakeDatespecNatural lua require('today.ui').task_make_datespec_natural(<line1>, <line2>)
 command -buffer -range -nargs=1 TodayReschedule lua require('today.ui').task_reschedule(<line1>, <line2>, "<args>")
 command -buffer -range -nargs=1 TodaySetPriority lua require('today.ui').task_set_priority(<line1>, <line2>, <args>)
-command -buffer -range -nargs=1 TodayCategorize let b:today_categorizer="<args>" <bar> lua require('today.ui').organize()
+command -buffer TodayOrganizeByDoDate lua require('today.ui').organize_by_do_date()
+command -buffer TodayOrganizeByFirstTag lua require('today.ui').organize_by_first_tag()
+command -buffer -nargs=* TodayFilterTags lua require('today.ui').set_filter_tags({<f-args>})
 
 
 augroup today

@@ -43,6 +43,12 @@ function util.filter(predicate, iterable)
     return result
 end
 
+function util.negate(predicate)
+    return function(...)
+        return not predicate(...)
+    end
+end
+
 function util.groupby(keyfn, lst)
     local groups = {}
     for _, x in pairs(lst) do

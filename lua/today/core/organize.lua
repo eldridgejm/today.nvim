@@ -128,12 +128,38 @@ local function extract_user_comments(lines)
     return {}
 end
 
-function organize.organize(lines, categorizer)
+function organize.tag_filterer(target_tags)
+    return function(t)
+        local task_tags = task.get_tags(t)
+        for _, tag in pairs(task_tags) do
+            if util.contains_value(target_tags, tag) then
+                return true
+            end
+        end
+
+        if (#task_tags == 0) and util.contains_value(target_tags, "none") then
+            return true
+        end
+
+        return false
+    end
+end
+
+function organize.organize(lines, categorizer, filterer)
     local head_comments = extract_user_comments(lines)
     local tail_comments = extract_user_comments(util.reverse(lines))
 
     local tasks = util.filter(task.is_task, lines)
     tasks = util.map(task.normalize, tasks)
+
+    local hidden_tasks
+
+    if filterer ~= nil then
+        local filtered = util.groupby(filterer, tasks)
+        tasks = filtered[true]
+        hidden_tasks = filtered[false]
+    end
+
     tasks = categorize(tasks, categorizer)
 
     local result = {}
@@ -143,6 +169,13 @@ function organize.organize(lines, categorizer)
     end
 
     util.put_into(result, tasks)
+
+    if hidden_tasks ~= nil then
+        table.insert(result, "")
+        table.insert(result, "-- hidden (" .. #hidden_tasks .. ") {{{")
+        util.put_into(result, hidden_tasks)
+        table.insert(result, "-- }}}")
+    end
 
     if #tail_comments > 0 then
         table.insert(result, "")

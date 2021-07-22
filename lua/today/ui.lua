@@ -9,6 +9,12 @@ local ui = {}
 ui.options = {
     -- the time at which the today buffer will be automatically refreshed
     automatic_refresh = true,
+    buffer = {
+        categorizer = {
+            active = "do_date",
+        },
+        filter_tags = nil,
+    },
 }
 
 --- Takes in a function `func` and makes a function which applies `func` to a
@@ -47,8 +53,18 @@ ui.task_make_datespec_natural = make_ranged_function(function(line)
     return task.make_datespec_natural(line, date(vim.b.today_working_date))
 end)
 
+function ui.get_buffer_options()
+    if vim.b.today == nil then
+        vim.b.today = vim.deepcopy(ui.options.buffer)
+    end
+
+    return vim.b.today
+end
+
 function ui.organize()
-    local categorizer = vim.b.today_categorizer
+    local was_modified = vim.api.nvim_buf_get_option(0, "modified")
+
+    local categorizer = ui.get_buffer_options().categorizer.active
     local working_date = date(vim.b.today_working_date)
 
     if (categorizer == nil) or (categorizer == "do_date") then
@@ -59,9 +75,36 @@ function ui.organize()
         error("Categorizer " .. categorizer .. " not known.")
     end
 
+    local filterer
+    if ui.get_buffer_options().filter_tags ~= nil then
+        filterer = organize.tag_filterer(vim.b.today.filter_tags)
+    end
+
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
-    lines = organize.organize(lines, categorizer)
+    lines = organize.organize(lines, categorizer, filterer)
     vim.api.nvim_buf_set_lines(0, 0, -1, 0, lines)
+    vim.api.nvim_buf_set_option(0, "modified", was_modified)
+end
+
+function ui.organize_by_first_tag()
+    local opts = vim.b.today
+    opts.categorizer.active = "first_tag"
+    vim.b.today = opts
+    ui.organize()
+end
+
+function ui.organize_by_do_date()
+    local opts = vim.b.today
+    opts.categorizer.active = "do_date"
+    vim.b.today = opts
+    ui.organize()
+end
+
+function ui.set_filter_tags(tags)
+    local opts = vim.b.today
+    opts.filter_tags = tags
+    vim.b.today = opts
+    ui.organize()
 end
 
 function ui.update_pre_write()
