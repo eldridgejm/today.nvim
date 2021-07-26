@@ -74,7 +74,7 @@ function ui.organize()
     elseif categorizer_key == "first_tag" then
         categorizer = organize.first_tag_categorizer(working_date)
     else
-        error("Categorizer " .. categorizer .. " not known.")
+        error("Categorizer " .. categorizer_key .. " not known.")
     end
 
     -- set up the filterer
