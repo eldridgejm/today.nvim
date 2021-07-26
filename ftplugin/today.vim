@@ -31,8 +31,8 @@ command -buffer -range TodayMakeDatespecAbsolute lua require('today.ui').task_ma
 command -buffer -range TodayMakeDatespecNatural lua require('today.ui').task_make_datespec_natural(<line1>, <line2>)
 command -buffer -range -nargs=1 TodayReschedule lua require('today.ui').task_reschedule(<line1>, <line2>, "<args>")
 command -buffer -range -nargs=1 TodaySetPriority lua require('today.ui').task_set_priority(<line1>, <line2>, <args>)
-command -buffer TodayOrganizeByDoDate lua require('today.ui').organize_by_do_date()
-command -buffer TodayOrganizeByFirstTag lua require('today.ui').organize_by_first_tag()
+command -buffer TodayCategorizeByDoDate lua require('today.ui').organize_by_do_date()
+command -buffer TodayCategorizeByFirstTag lua require('today.ui').organize_by_first_tag()
 command -buffer -nargs=* TodayFilterTags lua require('today.ui').set_filter_tags({<f-args>})
 
 

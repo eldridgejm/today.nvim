@@ -64,24 +64,35 @@ end
 function ui.organize()
     local was_modified = vim.api.nvim_buf_get_option(0, "modified")
 
-    local categorizer = ui.get_buffer_options().categorizer.active
     local working_date = date(vim.b.today_working_date)
 
-    if (categorizer == nil) or (categorizer == "do_date") then
+    -- set up the categorizer
+    local categorizer
+    local categorizer_key = ui.get_buffer_options().categorizer.active
+    if (categorizer_key == nil) or (categorizer_key == "do_date") then
         categorizer = organize.do_date_categorizer(working_date)
-    elseif categorizer == "first_tag" then
+    elseif categorizer_key == "first_tag" then
         categorizer = organize.first_tag_categorizer(working_date)
     else
         error("Categorizer " .. categorizer .. " not known.")
     end
 
+    -- set up the filterer
     local filterer
-    if ui.get_buffer_options().filter_tags ~= nil then
+    local filter_tags = ui.get_buffer_options().filter_tags
+    if (filter_tags ~= nil) and (#filter_tags > 0) then
         filterer = organize.tag_filterer(vim.b.today.filter_tags)
     end
 
+    -- set up the informer
+    local informer = organize.informer({
+        working_date = working_date,
+        categorizer = categorizer_key,
+        filter_tags = filter_tags,
+    })
+
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
-    lines = organize.organize(lines, categorizer, filterer)
+    lines = organize.organize(lines, categorizer, filterer, informer)
     vim.api.nvim_buf_set_lines(0, 0, -1, 0, lines)
     vim.api.nvim_buf_set_option(0, "modified", was_modified)
 end

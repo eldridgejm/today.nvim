@@ -23,3 +23,8 @@ check:
 		--exclude-files '**/vendor/*.lua' \
 		--exclude-files '**/test/*.lua' \
 		--ignore 'vim'
+
+.PHONY: init
+init:
+	echo "Installing pre-commit hooks"
+	echo "make pre-commit" > ./.git/hooks/pre-commit

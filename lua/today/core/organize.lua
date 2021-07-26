@@ -145,7 +145,26 @@ function organize.tag_filterer(target_tags)
     end
 end
 
-function organize.organize(lines, categorizer, filterer)
+function organize.informer(info)
+    return function()
+        local lines = {}
+
+        local working_date = info.working_date:fmt("%A %B %d")
+        table.insert(lines, "-- working date: " .. working_date)
+        table.insert(lines, "-- categorizer: " .. info.categorizer)
+
+        if (info.filter_tags ~= nil) and (#info.filter_tags > 0) then
+            local all_tags = table.concat(info.filter_tags, " ")
+            table.insert(lines, "-- filter tags: " .. all_tags)
+        end
+
+        table.insert(lines, "")
+
+        return lines
+    end
+end
+
+function organize.organize(lines, categorizer, filterer, informer)
     local head_comments = extract_user_comments(lines)
     local tail_comments = extract_user_comments(util.reverse(lines))
 
@@ -166,6 +185,11 @@ function organize.organize(lines, categorizer, filterer)
     if #head_comments > 0 then
         util.put_into(result, head_comments)
         table.insert(result, "")
+    end
+
+    if informer ~= nil then
+        local info_lines = informer()
+        util.put_into(result, info_lines)
     end
 
     util.put_into(result, tasks)
