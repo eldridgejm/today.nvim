@@ -160,6 +160,28 @@ describe("natural language to date", function()
             )
         end)
     end)
+
+    it("resolves yesterday", function()
+        assert.are.equal(
+            naturaldate.natural_to_absolute("yesterday", "2021-7-5"),
+            "2021-07-04"
+        )
+    end)
+
+    it("resolves dates in the past", function()
+        assert.are.equal(
+            naturaldate.natural_to_absolute("2 days ago", "2021-7-5"),
+            "2021-07-03"
+        )
+    end)
+
+    it("resolves dates in the distant past", function()
+        assert.are.equal(
+            naturaldate.natural_to_absolute("398 days ago", "2021-7-5"),
+            "2020-06-02"
+        )
+    end)
+
 end)
 
 describe("date to natural language", function()
@@ -202,6 +224,27 @@ describe("date to natural language", function()
         assert.are.equal(
             naturaldate.absolute_to_natural("2021-7-12", "2021-7-5"),
             "2021-07-12"
+        )
+    end)
+
+    it("converts yesterday", function()
+        assert.are.equal(
+            naturaldate.absolute_to_natural("2021-7-4", "2021-7-5"),
+            "yesterday"
+        )
+    end)
+
+    it("converts dates in the past", function()
+        assert.are.equal(
+            naturaldate.absolute_to_natural("2021-7-3", "2021-7-5"),
+            "2 days ago"
+        )
+    end)
+
+    it("converts dates in the distant past", function()
+        assert.are.equal(
+            naturaldate.absolute_to_natural("2020-6-2", "2021-7-5"),
+            "398 days ago"
         )
     end)
 end)

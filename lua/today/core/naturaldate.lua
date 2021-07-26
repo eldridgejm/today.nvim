@@ -69,6 +69,8 @@ RULES:add({
     end,
 })
 
+-- weekdays
+
 -- Do a prefix search in a table of strings.
 -- This will search the table for an target "x". "x" matches a table element if
 -- it is a prefix of the element.  If there is only one match, it is returned;
@@ -91,7 +93,6 @@ local function prefix_search(tbl, x)
     end
 end
 
--- weekdays
 local WEEKDAYS = {
     "sunday",
     "monday",
@@ -185,6 +186,41 @@ RULES:add({
                 m = 12
             end
             return date(y, m, 1)
+        end
+    end,
+})
+
+-- dates in the past
+
+-- yesterday
+RULES:add({
+    from_natural = function(s, today)
+        if s == "yesterday" then
+            return today:adddays(-1)
+        end
+    end,
+
+    from_absolute = function(d, today)
+        local diff = days_into_future(d, today)
+        if diff == -1 then
+            return "yesterday"
+        end
+    end,
+})
+
+-- k days ago
+RULES:add({
+    from_natural = function(s, today)
+        local match = s:match("(%d+) day[s]? ago")
+        if match ~= nil then
+            return today:adddays(-match)
+        end
+    end,
+
+    from_absolute = function(d, today)
+        local diff = days_into_future(d, today)
+        if diff < -1 then
+            return -diff .. " days ago"
         end
     end,
 })
