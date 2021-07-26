@@ -11,9 +11,7 @@ function organize.do_date_categorizer(working_date)
 
             if task.is_done(t) then
                 return "done"
-            elseif datespec:days_until_do() < 0 then
-                return "undone:overdue"
-            elseif datespec:days_until_do() == 0 then
+            elseif datespec:days_until_do() <= 0 then
                 return "undone:today"
             elseif datespec:days_until_do() == 1 then
                 return "undone:tomorrow"
@@ -25,7 +23,6 @@ function organize.do_date_categorizer(working_date)
         end,
         headerfunc = function(key)
             local mapping = {
-                ["undone:overdue"] = "overdue",
                 ["undone:today"] = "today",
                 ["undone:tomorrow"] = "tomorrow",
                 ["undone:next_7_days"] = "next_7_days",
@@ -36,7 +33,6 @@ function organize.do_date_categorizer(working_date)
         end,
         orderfunc = function(_)
             return {
-                "undone:overdue",
                 "undone:today",
                 "undone:tomorrow",
                 "undone:next_7_days",

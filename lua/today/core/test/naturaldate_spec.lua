@@ -181,7 +181,6 @@ describe("natural language to date", function()
             "2020-06-02"
         )
     end)
-
 end)
 
 describe("date to natural language", function()

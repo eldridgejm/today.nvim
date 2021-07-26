@@ -61,10 +61,10 @@ describe("organize", function()
             assert.are.same(result, expected)
         end)
 
-        it("should have overdue tasks at the top", function()
+        it("should have over-do tasks at top of today category", function()
             -- given
             local lines = {
-                "[ ] undone",
+                "[ ] undone <today>",
                 "[x] this is done",
                 "[ ] but this isn't <2021-01-01>",
             }
@@ -77,12 +77,9 @@ describe("organize", function()
 
             -- then
             local expected = {
-                "-- overdue (1) {{{",
+                "-- today (2) {{{",
                 "[ ] <2021-01-01> but this isn't",
-                "-- }}}",
-                "",
-                "-- today (1) {{{",
-                "[ ] undone",
+                "[ ] <today> undone",
                 "-- }}}",
                 "",
                 "-- done (1) {{{",
