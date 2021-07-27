@@ -19,39 +19,57 @@ ui.options = {
 
 --- Takes in a function `func` and makes a function which applies `func` to a
 -- range of lines.
-local function make_ranged_function(func)
+local function make_ranged_function(...)
+    local funcs = { ... }
+
     return function(start_row, end_row, ...)
         local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, 0)
+        local replacement_lines = {}
 
-        local transformed_lines = {}
         for _, line in pairs(lines) do
-            local result
             if not task.is_task(line) then
-                result = line
+                table.insert(replacement_lines, line)
             else
-                result = task.normalize(func(line, ...))
+                for _, func in pairs(funcs) do
+                    local transformed_line = func(line, ...)
+                    if transformed_line ~= nil then
+                        transformed_line = task.normalize(transformed_line)
+                        table.insert(replacement_lines, transformed_line)
+                    end
+                end
             end
-            table.insert(transformed_lines, result)
         end
 
-        vim.api.nvim_buf_set_lines(0, start_row - 1, end_row, 0, transformed_lines)
+        vim.api.nvim_buf_set_lines(0, start_row - 1, end_row, 0, replacement_lines)
     end
 end
 
-ui.task_mark_done = make_ranged_function(task.mark_done)
+local function with_working_date(func)
+    return function(line)
+        return func(line, date(vim.b.today_working_date))
+    end
+end
+
+ui.task_mark_done = make_ranged_function(
+    task.mark_done,
+    with_working_date(task.replace_datespec_with_next)
+)
+ui.task_toggle_done = make_ranged_function(
+    task.toggle_done,
+    with_working_date(task.replace_datespec_with_next)
+)
 ui.task_mark_undone = make_ranged_function(task.mark_undone)
-ui.task_toggle_done = make_ranged_function(task.toggle_done)
 ui.task_reschedule = make_ranged_function(task.set_do_date)
 ui.task_set_priority = make_ranged_function(task.set_priority)
 ui.task_set_do_date = make_ranged_function(task.set_do_date)
 
-ui.task_make_datespec_absolute = make_ranged_function(function(line)
-    return task.make_datespec_absolute(line, date(vim.b.today_working_date))
-end)
+ui.task_make_datespec_absolute = make_ranged_function(
+    with_working_date(task.make_datespec_absolute)
+)
 
-ui.task_make_datespec_natural = make_ranged_function(function(line)
-    return task.make_datespec_natural(line, date(vim.b.today_working_date))
-end)
+ui.task_make_datespec_natural = make_ranged_function(
+    with_working_date(task.make_datespec_natural)
+)
 
 function ui.get_buffer_options()
     if vim.b.today == nil then

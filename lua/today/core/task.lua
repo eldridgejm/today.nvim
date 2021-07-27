@@ -281,7 +281,7 @@ end
 --- Replaces a datespec with an absolute datespec. If there is no datespec,
 -- this leaves the task unchanged.
 -- @param line The task line.
--- @param today The date of today as a string in YYYY-MM-DD format or a dateObjecA.t
+-- @param today The date of today as a string in YYYY-MM-DD format or a dateObject
 function task.make_datespec_absolute(line, today)
     local ds = task.get_datespec_safe(line, today)
     if ds == nil then
@@ -293,7 +293,7 @@ end
 --- Replaces an absolute datespec with a natural datespec. If there is no datespec,
 -- this leaves the task unchanged.
 -- @param line The task line.
--- @param today The date of today as a string in YYYY-MM-DD format or a dateObjecA.t
+-- @param today The date of today as a string in YYYY-MM-DD format or a dateObject
 function task.make_datespec_natural(line, today)
     local ds = task.get_datespec_safe(line, today)
     if ds == nil then
@@ -320,6 +320,19 @@ function task.set_do_date(line, do_date)
     else
         return replace_datespec_string(line, "<" .. do_date .. ">")
     end
+end
+
+function task.replace_datespec_with_next(line, today)
+    if task.is_done(line) then
+        return nil
+    end
+
+    local ds = task.get_datespec_safe(line, today)
+    if ds.recur == nil then
+        return nil
+    end
+
+    return replace_datespec_string(line, ds:next():serialize())
 end
 
 return task

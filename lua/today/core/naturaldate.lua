@@ -3,6 +3,7 @@
 -- to the date in YYYY-MM-DD, and vice versa.
 
 local date = require("today.vendor.date")
+local util = require("today.core.util")
 
 local naturaldate = {}
 
@@ -71,28 +72,6 @@ RULES:add({
 
 -- weekdays
 
--- Do a prefix search in a table of strings.
--- This will search the table for an target "x". "x" matches a table element if
--- it is a prefix of the element.  If there is only one match, it is returned;
--- else "nil" is returned.
-local function prefix_search(tbl, x)
-    local matches = {}
-
-    local function _starts_with(s, pattern)
-        return s:sub(1, #pattern) == pattern
-    end
-
-    for ix, item in ipairs(tbl) do
-        if _starts_with(item, x) then
-            table.insert(matches, ix)
-        end
-    end
-
-    if #matches == 1 then
-        return matches[1]
-    end
-end
-
 local WEEKDAYS = {
     "sunday",
     "monday",
@@ -105,7 +84,7 @@ local WEEKDAYS = {
 
 RULES:add({
     from_natural = function(s, today)
-        local target_weekday = prefix_search(WEEKDAYS, s)
+        local target_weekday = util.prefix_search(WEEKDAYS, s)
 
         if target_weekday ~= nil then
             local todays_weekday = today:getweekday()

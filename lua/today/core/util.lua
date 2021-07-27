@@ -71,6 +71,15 @@ function util.keys(tbl)
     return keys
 end
 
+function util.contains_key(tbl, x)
+    for y, _ in pairs(tbl) do
+        if y == x then
+            return true
+        end
+    end
+    return false
+end
+
 function util.contains_value(tbl, x)
     for _, y in pairs(tbl) do
         if y == x then
@@ -110,9 +119,43 @@ function util.reverse(tbl)
     return result
 end
 
+function util.split(s, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+
+    local parts = {}
+    for match in s:gmatch("([^" .. sep .. "]+)") do
+        table.insert(parts, match)
+    end
+    return parts
+end
+
 function util.put_into(dst_tbl, src_tbl)
     for _, x in pairs(src_tbl) do
         table.insert(dst_tbl, x)
+    end
+end
+
+-- Do a prefix search in a table of strings.
+-- This will search the table for an target "x". "x" matches a table element if
+-- it is a prefix of the element.  If there is only one match, it is returned;
+-- else "nil" is returned.
+function util.prefix_search(tbl, x)
+    local matches = {}
+
+    local function _starts_with(s, pattern)
+        return s:sub(1, #pattern) == pattern
+    end
+
+    for ix, item in ipairs(tbl) do
+        if _starts_with(item, x) then
+            table.insert(matches, ix)
+        end
+    end
+
+    if #matches == 1 then
+        return matches[1]
     end
 end
 
