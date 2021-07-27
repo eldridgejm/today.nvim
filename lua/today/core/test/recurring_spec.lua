@@ -1,4 +1,4 @@
-local recurring = require("today.core.recurring")
+local recurring = require("today.core.datespec.recurring")
 
 describe("next", function()
     it("should recognize daily", function()

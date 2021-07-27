@@ -48,6 +48,11 @@ describe("datespec", function()
             local ds = DateSpec:new("<2021-07-01>", "2021-07-08")
             assert.are.equal(ds:days_until_do(), -7)
         end)
+
+        it("works with 'someday', and returns math.huge", function()
+            local ds = DateSpec:new("<someday>", "2021-07-08")
+            assert.are.equal(ds:days_until_do(), math.huge)
+        end)
     end)
 
     describe("serialize", function()

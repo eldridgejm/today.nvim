@@ -1,0 +1,6 @@
+--- A date object.
+--
+-- Represents a triple of (year, month, date). Also allows two special values: 
+-- infinite_future and infinite_past.
+--
+-- This is a thin wrapper around the luadate library.

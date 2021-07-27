@@ -1,8 +1,8 @@
 --- Higher-level natural date specification type with relative dates and recurring dates.
 
 local date = require("today.vendor.date")
-local naturaldate = require("today.core.naturaldate")
-local recurring = require("today.core.recurring")
+local naturaldate = require("today.core.datespec.natural")
+local recurring = require("today.core.datespec.recurring")
 local util = require("today.core.util")
 
 --- Parse a date spec string into its pieces: the do date and the recur string.
@@ -26,7 +26,12 @@ local function parse(spec, today)
     local do_date_string = parts[1]
     local recur_spec = parts[2]
 
-    local do_date = date(naturaldate.natural_to_absolute(do_date_string, today))
+    local do_date
+    if do_date_string == "someday" then
+        do_date = "someday"
+    else
+        do_date = date(naturaldate.natural_to_absolute(do_date_string, today))
+    end
 
     return do_date, recur_spec
 end
@@ -49,9 +54,6 @@ end
 function DateSpec._from_parts(self, do_date, recur_spec, today)
     today = date(today)
 
-    assert(do_date.getdate ~= nil, "do_date is not a date object")
-    assert(today.getdate ~= nil, "today is not a date object")
-
     local obj = { do_date = do_date, recur_spec = recur_spec, today = today }
     self.__index = self
     return setmetatable(obj, self)
@@ -60,6 +62,10 @@ end
 --- Compute how many days until the task is scheduled to be done.
 -- @return The number of days as an integer.
 function DateSpec:days_until_do()
+    if self.do_date == "someday" then
+        return math.huge
+    end
+
     return math.ceil(date.diff(self.do_date, self.today):spandays())
 end
 

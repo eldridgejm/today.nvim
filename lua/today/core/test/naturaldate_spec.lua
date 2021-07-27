@@ -1,4 +1,4 @@
-local naturaldate = require("today.core.naturaldate")
+local naturaldate = require("today.core.datespec.natural")
 
 describe("natural language to date", function()
     describe("today", function()
