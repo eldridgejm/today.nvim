@@ -17,6 +17,13 @@ describe("natural language to date", function()
                 "2021-07-06"
             )
         end)
+
+        it("converts tom to tomorrow", function()
+            assert.are.equal(
+                naturaldate.natural_to_absolute("tom", "2021-7-5"),
+                "2021-07-06"
+            )
+        end)
     end)
 
     describe("weekdays", function()

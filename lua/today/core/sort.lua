@@ -5,6 +5,9 @@ local task = require("today.core.task")
 
 local sort = {}
 
+--- Sorting Functions.
+-- @section
+
 -- Private helper function for mergesort.
 local function merge(left, right, lst, cmp)
     local left_ix = 1
@@ -44,7 +47,7 @@ end
 --- Sort a list in place with mergesort. This is a stable sort.
 -- This accepts a comparator. The comparator should be a function of two
 -- arguments, `cmp(x,y)`, returning true if x should come before y in
--- the result..
+-- the result.
 -- @param lst The table to sort.
 -- @param cmp The comparator.
 function sort.mergesort(lst, cmp)
@@ -68,6 +71,15 @@ function sort.mergesort(lst, cmp)
     merge(left, right, lst, cmp)
 end
 
+--- Comparators.
+-- @section
+
+--- Chain comparators to make a single comparator function.
+-- Comparators are called in sequence. If the first comparator returns nil (for instance,
+-- if there is a tie), the second comparator in called, and so forth. If the last
+-- comparator returns nil, then true is returned. This ensures stability.
+-- @param chain A list of comparator functions to chain.
+-- @return A new comparator function formed by chaining the input comparators.
 function sort.chain_comparators(chain)
     return function(x, y)
         for _, comparator in pairs(chain) do
@@ -83,7 +95,11 @@ function sort.chain_comparators(chain)
     end
 end
 
-function sort.datespec_comparator(working_date)
+--- Make a comparator that compares tasks according to their do dates, with earlier
+-- dates first.
+-- @param working_date The working date as a YYYY-MM-DD string or dateObject.
+-- @return The comparator function.
+function sort.make_do_date_comparator(working_date)
     assert(working_date ~= nil)
 
     local function comparator(task_x, task_y)
@@ -98,6 +114,10 @@ function sort.datespec_comparator(working_date)
     return comparator
 end
 
+--- Compare tasks according to whether or not they are completed, with completed first.
+-- @param task_x The first task.
+-- @param task_y The second task.
+-- @return The comparator function.
 function sort.completed_comparator(task_x, task_y)
     if task.is_done(task_x) == task.is_done(task_y) then
         return nil
@@ -105,6 +125,10 @@ function sort.completed_comparator(task_x, task_y)
     return not task.is_done(task_x)
 end
 
+--- Compare tasks according to priority, with higher priorities first.
+-- @param task_x The first task.
+-- @param task_y The second task.
+-- @return The comparator function.
 function sort.priority_comparator(task_x, task_y)
     local x_pr = task.get_priority(task_x)
     local y_pr = task.get_priority(task_y)

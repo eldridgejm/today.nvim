@@ -41,7 +41,7 @@ function organize.do_date_categorizer(working_date)
             }
         end,
         comparefunc = sort.chain_comparators({
-            sort.datespec_comparator(working_date),
+            sort.make_do_date_comparator(working_date),
             sort.priority_comparator,
         }),
     }
@@ -66,7 +66,7 @@ function organize.first_tag_categorizer(working_date)
         end,
         comparefunc = sort.chain_comparators({
             sort.completed_comparator,
-            sort.datespec_comparator(working_date),
+            sort.make_do_date_comparator(working_date),
             sort.priority_comparator,
         }),
     }

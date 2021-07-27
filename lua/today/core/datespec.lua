@@ -31,7 +31,7 @@ local function parse(spec, today)
     return do_date, recur_spec
 end
 
---- Representation of a datespec: a do date and recur pattern.
+--- Representation of a datespec: a do date and recur spec.
 -- @type DateSpec
 local DateSpec = {}
 

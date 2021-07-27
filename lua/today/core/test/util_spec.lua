@@ -11,6 +11,39 @@ describe("util module", function()
         end)
     end)
 
+    describe("prefix_search", function()
+        it("should return first match", function()
+            assert.are.equal(
+                util.prefix_search(
+                    { "this", "is", "a", "test", "of", "television" },
+                    "te"
+                ),
+                4
+            )
+        end)
+
+        it("should return nil on no match", function()
+            assert.are.equal(
+                util.prefix_search(
+                    { "this", "is", "a", "test", "of", "television" },
+                    "zzz"
+                ),
+                nil
+            )
+        end)
+
+        it("should return nil on multiple matches if require_unique is true", function()
+            assert.are.equal(
+                util.prefix_search(
+                    { "this", "is", "a", "test", "of", "television" },
+                    "zzz",
+                    true
+                ),
+                nil
+            )
+        end)
+    end)
+
     describe("groupby", function()
         it("creates a table of groups", function()
             local function get_key(s)
