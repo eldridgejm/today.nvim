@@ -57,7 +57,7 @@ RULES:add({
 -- tomorrow
 RULES:add({
     from_natural = function(s, today)
-        if s == "tomorrow" then
+        if (s == "tomorrow") or (s == "tom") then
             return today:adddays(1)
         end
     end,
