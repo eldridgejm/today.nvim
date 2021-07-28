@@ -1,4 +1,4 @@
---- Higher-level natural date specification type with relative dates and recurring dates.
+--- A high-level type representing a specification of a task's do date.
 
 local DateObj = require("today.core.datespec.dateobj")
 local naturaldate = require("today.core.datespec.natural")
@@ -8,8 +8,8 @@ local util = require("today.util")
 --- Parse a date spec string into its pieces: the do date and the recur string.
 -- If the spec is nil, the do date is assumed to be today, and the recur is set to nil.
 -- @param spec The specification string.
--- @param today Today's date as a dateObject.
--- @return A pair of the do date as a dateObject and the recur as a string.
+-- @param today Today's date as a DateObj.
+-- @return A pair of the do date as a DateObj and the recur as a string.
 local function parse(spec, today)
     if spec == nil then
         return today
@@ -36,9 +36,12 @@ end
 local DateSpec = {}
 
 --- Create a new DateSpec object from a datespec string.
+-- A spec string is of the form "< do date +recur spec >". The do date can be a date
+-- in YYYY-MM-DD format, or any of several natural forms, like "tomorrow" or
+-- "3 days from now".
 -- @param spec The specification string. This can be nil, in which case a DateSpec with
--- do date of today is created.
--- @param today The date of today as a dateObject or a string in YYYY-MM-DD format.
+-- a "do date" of today is created.
+-- @param today The date of today as a DateObj or a string in YYYY-MM-DD format.
 function DateSpec:new(spec, today)
     assert(today ~= nil)
 
@@ -86,16 +89,15 @@ function DateSpec:serialize(natural)
     return "<" .. table.concat(pieces, "") .. ">"
 end
 
--- Advance the datespec to the next date according to the recur_spec string.
+--- Advance the datespec to the next date according to the recur spec.
+-- If the recur spec is nil, then nil is returned.
+-- @return The new datespec.
 function DateSpec:next()
     if self.recur_spec == nil then
         return nil
     end
 
-    local next_do_date = DateObj:new(
-        recurring.next(self.do_date, self.recur_spec)
-    )
-
+    local next_do_date = DateObj:new(recurring.next(self.do_date, self.recur_spec))
     return DateSpec._from_parts(self, next_do_date, self.recur_spec, self.today)
 end
 

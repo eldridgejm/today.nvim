@@ -249,7 +249,7 @@ end
 --- Retrieve the datespec as a DateSpec object. If the task string has no datespec,
 -- this will return a "default" datespec with a do date of today.
 -- @param line The task string.
--- @param today The date of today as a dateObject or string in YYYY-MM-DD format.
+-- @param today The date of today as a string in YYYY-MM-DD format.
 -- @return The DateSpec for the task.
 function task.get_datespec_safe(line, today)
     assert(today ~= nil)
@@ -281,7 +281,7 @@ end
 --- Replaces a datespec with an absolute datespec. If there is no datespec,
 -- this leaves the task unchanged.
 -- @param line The task line.
--- @param today The date of today as a string in YYYY-MM-DD format or a dateObject
+-- @param today The date of today as a string in YYYY-MM-DD format
 function task.make_datespec_absolute(line, today)
     local ds = task.get_datespec_safe(line, today)
     if ds == nil then
@@ -293,7 +293,7 @@ end
 --- Replaces an absolute datespec with a natural datespec. If there is no datespec,
 -- this leaves the task unchanged.
 -- @param line The task line.
--- @param today The date of today as a string in YYYY-MM-DD format or a dateObject
+-- @param today The date of today as a string in YYYY-MM-DD format
 function task.make_datespec_natural(line, today)
     local ds = task.get_datespec_safe(line, today)
     if ds == nil then
@@ -312,7 +312,7 @@ end
 --- Set the do date part of a task's datespec.
 -- @param line The task string.
 -- @param do_date The do date as a string.
--- @return The new tasks string.
+-- @return The new task string.
 function task.set_do_date(line, do_date)
     local new_ds = "<" .. do_date .. ">"
     if line:match("<.*>") == nil then
@@ -322,6 +322,12 @@ function task.set_do_date(line, do_date)
     end
 end
 
+--- Replaces a recurring task's datespec with the next in the sequence.
+-- If the the task is done, this returns nil.
+-- If the task is not recurring, this returns nil.
+-- @param line The task string.
+-- @param today Today's date as a string in YYYY-MM-DD format.
+-- @return The new task string with the datespec replaced (or nil, see above).
 function task.replace_datespec_with_next(line, today)
     if task.is_done(line) then
         return nil

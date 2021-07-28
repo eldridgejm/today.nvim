@@ -9,7 +9,7 @@ local recurring = {}
 -- The "match" function should look at the recur specification and return
 -- nil if the rule does not apply. Otherwise, whatever the match function
 -- returns will be passed to the "advance" function, along with the date to
--- advance as a dateobj. It should return a dateobj representing the date,
+-- advance as a DateObj. It should return a DateObj representing the date,
 -- advanced to the next recurring date. This design makes it efficient
 -- to check the validity of a recur spec by looping through the "match"
 -- functions of each rule.
@@ -100,9 +100,9 @@ RULES:add({
 -- Valid recur specifications are "daily", "every day", "weekly", "every week", "monthly",
 -- "every month", and specifications of the form "every mon, wed, fri", "every tues".
 -- The latter do prefix matching, so the full day of the week does not need to be given.
--- @param today The current date as a dateObject or a YYYY-MM-DD string.
+-- @param today The current date as a DateObj or a YYYY-MM-DD string.
 -- @param recur_spec The recur specification. See above.
--- @return The next date as a YYYY-MM-DD string. However, if the recur_spec was invalid,
+-- @return The next date as DateObj. However, if the recur_spec was invalid,
 -- this will return nil.
 function recurring.next(today, recur_spec)
     if type(today) == "string" then
@@ -114,7 +114,9 @@ function recurring.next(today, recur_spec)
     for _, rule in ipairs(RULES) do
         local match = rule.match(recur_spec)
         if match ~= nil then
-            return tostring(rule.advance(today, match))
+            local result = rule.advance(today, match)
+            assert(result.class == "DateObj")
+            return result
         end
     end
 

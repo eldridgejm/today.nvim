@@ -19,9 +19,10 @@ local function both(lhs, rhs, value)
     return (lhs._date == value) and (rhs._date == value)
 end
 
---- Constructor for dateobjects.
--- @param date A date as a string in YYYY-MM-DD format, or another DateObject.
--- @return A new dateobject.
+--- Constructor for DateObjects.
+-- @param date A date as a string in YYYY-MM-DD format or "infinite_future",
+-- or another DateObject.
+-- @return A new DateObject.
 function DateObj:new(date)
     if type(date) == "string" then
         if date == "infinite_future" then
@@ -31,7 +32,7 @@ function DateObj:new(date)
     elseif date.class == "DateObj" then
         return DateObj._create(self, date._date)
     end
-    assert('Invalid date.', date)
+    assert("Invalid date.", date)
 end
 
 --- Create a DateObj from a year/month/day triple.
@@ -94,6 +95,7 @@ function DateObj._create(self, _date)
 end
 
 --- Get the year, month, and day of the month as a triple.
+-- @return A triple of integers, or nil if the date is the infinite future.
 function DateObj:ymd()
     if self._date == "infinite_future" then
         return nil
@@ -103,6 +105,8 @@ function DateObj:ymd()
 end
 
 --- Add days to the date, creating a new DateObj.
+-- If the current date is the infinite future, the return value will also be
+-- the infinite future.
 -- @param n The number of days to add. Can be negative.
 -- @return The new date.
 function DateObj:add_days(n)
@@ -115,6 +119,8 @@ function DateObj:add_days(n)
 end
 
 --- Calculate the number of days between dates.
+-- If both dates are the infinite future, nil is returned. Otherwise, if one of
+-- the dates is infinite and the other is finite, +/- math.huge is returned.
 -- @param other The other DateObj.
 -- @return The number of days from self to other as an integer. Can be negative, if other is
 -- in the past relative to self.
@@ -135,6 +141,7 @@ function DateObj:days_until(other)
 end
 
 --- The day of the week, as an integer starting with Sunday as 1, Monday as 2, etc.
+-- @return The day of the week as an integer, or nil if the date is infinite.
 function DateObj:day_of_the_week()
     if self._date == "infinite_future" then
         return nil
