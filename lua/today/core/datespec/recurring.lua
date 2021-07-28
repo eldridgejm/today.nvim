@@ -1,6 +1,6 @@
 --- Find the next date in a sequence of recurring dates.
 
-local date = require("today.vendor.date")
+local DateObj = require("today.core.datespec.dateobj")
 local util = require("today.util")
 
 local recurring = {}
@@ -38,7 +38,7 @@ RULES:add({
     match = string_matcher("daily", "every day"),
 
     advance = function(today)
-        return today:adddays(1)
+        return today:add_days(1)
     end,
 })
 
@@ -47,7 +47,7 @@ RULES:add({
     match = string_matcher("weekly", "every week"),
 
     advance = function(today)
-        return today:adddays(7)
+        return today:add_days(7)
     end,
 })
 
@@ -56,7 +56,7 @@ RULES:add({
     match = string_matcher("monthly", "every month"),
 
     advance = function(today)
-        return today:addmonths(1)
+        return today:add_days(31)
     end,
 })
 
@@ -84,12 +84,12 @@ RULES:add({
     end,
 
     advance = function(today, target_weekdays)
-        local advanced_date = today:adddays(1)
+        local advanced_date = today:add_days(1)
         while true do
-            if util.contains_value(target_weekdays, advanced_date:getweekday()) then
+            if util.contains_value(target_weekdays, advanced_date:day_of_the_week()) then
                 return advanced_date
             end
-            advanced_date = advanced_date:adddays(1)
+            advanced_date = advanced_date:add_days(1)
         end
     end,
 })
@@ -103,12 +103,16 @@ RULES:add({
 -- @return The next date as a YYYY-MM-DD string. However, if the recur_spec was invalid,
 -- this will return nil.
 function recurring.next(today, recur_spec)
-    today = date(today)
+    if type(today) == "string" then
+        today = DateObj:from_string(today)
+    else
+        today = DateObj:_from_luadate_object(today)
+    end
 
     for _, rule in ipairs(RULES) do
         local match = rule.match(recur_spec)
         if match ~= nil then
-            return rule.advance(today, match):fmt("%Y-%m-%d")
+            return tostring(rule.advance(today, match))
         end
     end
 

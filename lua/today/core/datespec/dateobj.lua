@@ -17,7 +17,7 @@ function DateObj:from_string(s)
     return DateObj._create(self, datelib(s))
 end
 
-function DateObj:_from_date(d)
+function DateObj:_from_luadate_object(d)
     assert(d ~= nil)
     return DateObj._create(self, datelib(d))
 end
@@ -92,7 +92,7 @@ function DateObj:add_days(n)
     end
 
     local new_date = self._date:copy():adddays(n)
-    return DateObj:_from_date(new_date)
+    return DateObj:_from_luadate_object(new_date)
 end
 
 function DateObj:days_until(other)
