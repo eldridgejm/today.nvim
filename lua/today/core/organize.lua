@@ -1,9 +1,16 @@
+--- Functions for organizing a buffer full of tasks.
+
 local task = require("today.core.task")
 local util = require("today.util")
 local sort = require("today.core.sort")
 
 local organize = {}
 
+--- Categorizers.
+-- @section
+
+--- Organizes tasks by do date first, then by priority.
+-- @param working_date The working date as a string in YYYY-MM-DD format.
 function organize.do_date_categorizer(working_date)
     return {
         keyfunc = function(t)
@@ -47,6 +54,8 @@ function organize.do_date_categorizer(working_date)
     }
 end
 
+--- Organizes tasks by the first tag present in the tag, then by do date, then priority.
+-- @param working_date The working date as a string in YYYY-MM-DD format.
 function organize.first_tag_categorizer(working_date)
     return {
         keyfunc = function(t)
@@ -111,19 +120,11 @@ local function categorize(lines, categorizer)
     return result
 end
 
-local function extract_user_comments(lines)
-    local comments = {}
+--- Filterers.
+-- @section
 
-    for _, line in pairs(lines) do
-        if util.startswith(line, "--:") then
-            table.insert(comments, line)
-        else
-            return comments
-        end
-    end
-    return {}
-end
-
+--- Filters by tags.
+-- @param target_tags A list of the tags to include.
 function organize.tag_filterer(target_tags)
     return function(t)
         local task_tags = task.get_tags(t)
@@ -141,7 +142,13 @@ function organize.tag_filterer(target_tags)
     end
 end
 
-function organize.informer(info)
+--- Informers.
+-- @section
+
+--- Displays basic information.
+-- @param info A table with information to display. Should have keys:
+--  "working_date", "categorizer" (a string), and "filter_tags" (a list of strings).
+function organize.basic_informer(info)
     return function()
         local lines = {}
 
@@ -160,6 +167,28 @@ function organize.informer(info)
     end
 end
 
+--- organize().
+-- @section
+
+local function extract_user_comments(lines)
+    local comments = {}
+
+    for _, line in pairs(lines) do
+        if util.startswith(line, "--:") then
+            table.insert(comments, line)
+        else
+            return comments
+        end
+    end
+    return {}
+end
+
+--- Organize a set of tasks for display or writing to a file.
+-- @param lines A list of lines to organize.
+-- @param categorize The categorizer used to group lines.
+-- @param filterer The filterer used to hide lines.
+-- @param informer The informer used to add information lines.
+-- @return The organized lines.
 function organize.organize(lines, categorizer, filterer, informer)
     local head_comments = extract_user_comments(lines)
     local tail_comments = extract_user_comments(util.reverse(lines))

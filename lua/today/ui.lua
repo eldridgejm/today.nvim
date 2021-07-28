@@ -14,6 +14,7 @@ ui.options = {
             active = "do_date",
         },
         filter_tags = nil,
+        show_empty_sections = true,
     },
 }
 
@@ -103,7 +104,7 @@ function ui.organize()
     end
 
     -- set up the informer
-    local informer = organize.informer({
+    local informer = organize.basic_informer({
         working_date = working_date,
         categorizer = categorizer_key,
         filter_tags = filter_tags,
