@@ -9,6 +9,14 @@ local datelib = require("today.vendor.date")
 
 local DateObj = {}
 
+local function either(lhs, rhs, value)
+    return (lhs._date == value) or (rhs._date == value)
+end
+
+local function both(lhs, rhs, value)
+    return (lhs._date == value) and (rhs._date == value)
+end
+
 function DateObj:from_ymd(year, month, day)
     return DateObj._create(self, datelib(year, month, day))
 end
@@ -30,16 +38,8 @@ function DateObj:infinite_past()
     return DateObj._create(self, "infinite_past")
 end
 
-local function either(lhs, rhs, value)
-    return (lhs._date == value) or (rhs._date == value)
-end
-
-local function both(lhs, rhs, value)
-    return (lhs._date == value) and (rhs._date == value)
-end
-
 function DateObj._create(self, _date)
-    local obj = { _date = _date }
+    local obj = { _date = _date, class = "DateObj" }
     self.__index = self
 
     self.__tostring = function()
@@ -49,6 +49,26 @@ function DateObj._create(self, _date)
         else
             return obj._date:fmt("%Y-%m-%d")
         end
+    end
+
+    self.__lt = function(lhs, rhs)
+        if both(lhs, rhs, "infinite_future") then
+            return false
+        end
+
+        if both(lhs, rhs, "infinite_past") then
+            return false
+        end
+
+        if (lhs._date ~= "infinite_future") and (rhs._date == "infinite_future") then
+            return true
+        end
+
+        if either(lhs, rhs, "infinite_past") then
+            return false
+        end
+
+        return lhs._date < rhs._date
     end
 
     self.__eq = function(lhs, rhs)

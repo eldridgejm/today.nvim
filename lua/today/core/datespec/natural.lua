@@ -2,7 +2,7 @@
 -- example, convert "natural" dates like "today", "tomorrow", "3 weeks from now"
 -- to the date in YYYY-MM-DD, and vice versa.
 
-local date = require("today.vendor.date")
+local DateObj = require("today.core.datespec.dateobj")
 local util = require("today.util")
 
 local naturaldate = {}
@@ -12,8 +12,7 @@ local naturaldate = {}
 -- @param today The date that should be used for today. String or dateObject.
 -- @returns An integer counting the difference in days.
 local function days_into_future(d, today)
-    local diff = math.ceil(date.diff(d, today):spandays())
-    return diff
+    return today:days_until(d)
 end
 
 -- The rules that are applied during conversion.
@@ -58,7 +57,7 @@ RULES:add({
 RULES:add({
     from_natural = function(s, today)
         if (s == "tomorrow") or (s == "tom") then
-            return today:adddays(1)
+            return today:add_days(1)
         end
     end,
 
@@ -87,20 +86,20 @@ RULES:add({
         local target_weekday = util.prefix_search(WEEKDAYS, s)
 
         if target_weekday ~= nil then
-            local todays_weekday = today:getweekday()
+            local todays_weekday = today:day_of_the_week()
 
             local delta = (target_weekday - todays_weekday) % 7
             if delta == 0 then
                 delta = 7
             end
-            return today:adddays(delta)
+            return today:add_days(delta)
         end
     end,
 
     from_absolute = function(d, today)
         local diff = days_into_future(d, today)
         if (diff > 1) and (diff < 7) then
-            local todays_weekday = today:getweekday()
+            local todays_weekday = today:day_of_the_week()
             local target_weekday = todays_weekday + diff
             if target_weekday > 7 then
                 target_weekday = target_weekday - 7
@@ -115,7 +114,7 @@ RULES:add({
     from_natural = function(s, today)
         local match = s:match("(%d+) day[s]? from now")
         if match ~= nil then
-            return today:adddays(match)
+            return today:add_days(match)
         end
     end,
 })
@@ -125,7 +124,7 @@ RULES:add({
     from_natural = function(s, today)
         local match = s:match("(%d+) week[s]? from now")
         if match ~= nil then
-            return today:adddays(7 * match)
+            return today:add_days(7 * match)
         end
     end,
 })
@@ -135,7 +134,7 @@ RULES:add({
     from_natural = function(s, today)
         local match = s:match("(%d+) month[s]? from now")
         if match ~= nil then
-            return today:adddays(30 * match)
+            return today:add_days(30 * match)
         end
     end,
 })
@@ -145,9 +144,9 @@ RULES:add({
     -- defaults to the next monday
     from_natural = function(s, today)
         if s == "next week" then
-            local d = today:adddays(1)
-            while d:getweekday() ~= 2 do
-                d = d:adddays(1)
+            local d = today:add_days(1)
+            while d:day_of_the_week() ~= 2 do
+                d = d:add_days(1)
             end
             return d
         end
@@ -159,12 +158,12 @@ RULES:add({
     -- defaults to the first day of next month
     from_natural = function(s, today)
         if s == "next month" then
-            local y, m, _ = today:getdate()
+            local y, m, _ = today:ymd()
             m = (m + 1) % 12
             if m == 0 then
                 m = 12
             end
-            return date(y, m, 1)
+            return DateObj:from_ymd(y, m, 1)
         end
     end,
 })
@@ -175,7 +174,7 @@ RULES:add({
 RULES:add({
     from_natural = function(s, today)
         if s == "yesterday" then
-            return today:adddays(-1)
+            return today:add_days(-1)
         end
     end,
 
@@ -192,7 +191,7 @@ RULES:add({
     from_natural = function(s, today)
         local match = s:match("(%d+) day[s]? ago")
         if match ~= nil then
-            return today:adddays(-match)
+            return today:add_days(-match)
         end
     end,
 
@@ -209,8 +208,6 @@ RULES:add({
 -- @param today The date used for today, as a YYYY-MM-DD string or a dateObject.
 -- @return The absolute date as a string in YYYY-MM-DD format.
 function naturaldate.natural_to_absolute(s, today)
-    -- Convert a natural date string to a YYYY-MM-DD date string
-    today = date(today)
     s = s:lower()
 
     for _, rule in ipairs(RULES) do
@@ -218,12 +215,12 @@ function naturaldate.natural_to_absolute(s, today)
             local result = rule.from_natural(s, today)
             -- if the result is nil, there is no rule
             if result ~= nil then
-                return result:fmt("%Y-%m-%d")
+                return tostring(result)
             end
         end
     end
 
-    return date(s):fmt("%Y-%m-%d")
+    return tostring(DateObj:from_string(s))
 end
 
 --- Convert an absolute date to a natural date.
@@ -233,8 +230,12 @@ end
 -- @param today The date used for today, as a YYYY-MM-DD string or a dateObject.
 -- @return The date in natural form as a string.
 function naturaldate.absolute_to_natural(s, today)
-    local d = date(s)
-    today = date(today)
+    local d = s
+    if type(s) == "string" then
+        d = DateObj:from_string(s)
+    end
+
+    assert(d.class == "DateObj")
 
     for _, rule in ipairs(RULES) do
         if rule.from_absolute ~= nil then
@@ -245,7 +246,7 @@ function naturaldate.absolute_to_natural(s, today)
         end
     end
 
-    return d:fmt("%Y-%m-%d")
+    return tostring(d)
 end
 
 return naturaldate

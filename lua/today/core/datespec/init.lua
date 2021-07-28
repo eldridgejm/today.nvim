@@ -1,6 +1,6 @@
 --- Higher-level natural date specification type with relative dates and recurring dates.
 
-local date = require("today.vendor.date")
+local DateObj = require("today.core.datespec.dateobj")
 local naturaldate = require("today.core.datespec.natural")
 local recurring = require("today.core.datespec.recurring")
 local util = require("today.util")
@@ -30,7 +30,9 @@ local function parse(spec, today)
     if do_date_string == "someday" then
         do_date = "someday"
     else
-        do_date = date(naturaldate.natural_to_absolute(do_date_string, today))
+        do_date = DateObj:from_string(
+            naturaldate.natural_to_absolute(do_date_string, today)
+        )
     end
 
     return do_date, recur_spec
@@ -45,14 +47,20 @@ local DateSpec = {}
 -- do date of today is created.
 -- @param today The date of today as a dateObject or a string in YYYY-MM-DD format.
 function DateSpec:new(spec, today)
-    -- luacheck: ignore self
-    today = date(today)
+    assert(today ~= nil)
+
+    if type(today) == "string" then
+        today = DateObj:from_string(today)
+    else
+        today = DateObj:_from_luadate_object(today)
+    end
+
     local do_date, recur_spec = parse(spec, today)
     return DateSpec._from_parts(self, do_date, recur_spec, today)
 end
 
 function DateSpec._from_parts(self, do_date, recur_spec, today)
-    today = date(today)
+    assert(today ~= nil)
 
     local obj = { do_date = do_date, recur_spec = recur_spec, today = today }
     self.__index = self
@@ -66,7 +74,7 @@ function DateSpec:days_until_do()
         return math.huge
     end
 
-    return math.ceil(date.diff(self.do_date, self.today):spandays())
+    return self.today:days_until(self.do_date)
 end
 
 --- Convert the datespec into a string.
@@ -76,7 +84,7 @@ end
 function DateSpec:serialize(natural)
     local pieces = {}
 
-    local do_date = self.do_date:fmt("%Y-%m-%d")
+    local do_date = tostring(self.do_date)
     if natural then
         do_date = naturaldate.absolute_to_natural(do_date, self.today)
     end
@@ -95,7 +103,9 @@ function DateSpec:next()
         return nil
     end
 
-    local next_do_date = date(recurring.next(self.do_date, self.recur_spec))
+    local next_do_date = DateObj:from_string(
+        recurring.next(self.do_date, self.recur_spec)
+    )
 
     return DateSpec._from_parts(self, next_do_date, self.recur_spec, self.today)
 end

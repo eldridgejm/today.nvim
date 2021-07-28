@@ -2,7 +2,7 @@ describe("datespec", function()
     DateSpec = require("today.core.datespec")
 
     local function assert_date_equals(dateobj, expected_date)
-        local y, m, d = dateobj:getdate()
+        local y, m, d = dateobj:ymd()
         assert.are.same({ y, m, d }, expected_date)
     end
 
@@ -57,7 +57,10 @@ describe("datespec", function()
 
     describe("serialize", function()
         it("converts a datespec to a string", function()
-            assert.are.equal(DateSpec:new("<2021-06-20>"):serialize(), "<2021-06-20>")
+            assert.are.equal(
+                DateSpec:new("<2021-06-20>", "2021-06-20"):serialize(),
+                "<2021-06-20>"
+            )
         end)
 
         it("converts to natural language", function()

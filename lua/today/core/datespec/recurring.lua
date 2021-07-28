@@ -86,7 +86,9 @@ RULES:add({
     advance = function(today, target_weekdays)
         local advanced_date = today:add_days(1)
         while true do
-            if util.contains_value(target_weekdays, advanced_date:day_of_the_week()) then
+            if
+                util.contains_value(target_weekdays, advanced_date:day_of_the_week())
+            then
                 return advanced_date
             end
             advanced_date = advanced_date:add_days(1)
@@ -105,9 +107,9 @@ RULES:add({
 function recurring.next(today, recur_spec)
     if type(today) == "string" then
         today = DateObj:from_string(today)
-    else
-        today = DateObj:_from_luadate_object(today)
     end
+
+    assert(today.class == "DateObj")
 
     for _, rule in ipairs(RULES) do
         local match = rule.match(recur_spec)
