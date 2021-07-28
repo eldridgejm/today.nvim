@@ -12,10 +12,9 @@ local organize = {}
 --- Organizes tasks by do date first, then by priority.
 -- @param working_date The working date as a string in YYYY-MM-DD format.
 function organize.do_date_categorizer(working_date, options)
-
     if options == nil then
         options = {
-            show_empty_sections = false
+            show_empty_sections = false,
         }
     end
 
@@ -46,7 +45,7 @@ function organize.do_date_categorizer(working_date, options)
             sort.make_do_date_comparator(working_date),
             sort.priority_comparator,
         }),
-        groupfunc = function (tasks)
+        groupfunc = function(tasks)
             local keyfunc = function(t)
                 local datespec = task.get_datespec_safe(t, working_date)
 
@@ -73,7 +72,7 @@ function organize.do_date_categorizer(working_date, options)
             end
 
             return groups
-        end
+        end,
     }
 end
 
@@ -81,7 +80,7 @@ end
 -- @param working_date The working date as a string in YYYY-MM-DD format.
 function organize.first_tag_categorizer(working_date)
     return {
-        groupfunc = function (tasks)
+        groupfunc = function(tasks)
             local keyfunc = function(t)
                 local first_tag = task.get_first_tag(t)
                 if first_tag ~= nil then

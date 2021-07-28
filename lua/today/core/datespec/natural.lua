@@ -86,6 +86,11 @@ local WEEKDAYS = {
 
 RULES:add({
     from_natural = function(s, today)
+        local week_adder = 0
+        if util.startswith(s, "next ") then
+            week_adder = 7
+            s = s:match("next (%w+)")
+        end
         local target_weekday = util.prefix_search(WEEKDAYS, s)
 
         if target_weekday ~= nil then
@@ -95,7 +100,7 @@ RULES:add({
             if delta == 0 then
                 delta = 7
             end
-            return today:add_days(delta)
+            return today:add_days(delta + week_adder)
         end
     end,
 

@@ -103,6 +103,68 @@ describe("natural language to date", function()
         end)
     end)
 
+    describe("next (weekday)", function()
+
+        -- for these tests, it is useful to know that 2021-04-04 was a Sunday
+
+        it("should use the second instance of the weekday", function()
+            assert.are.equal(
+                naturaldate.natural_to_absolute("next monday", DateObj:new("2021-07-04")),
+                DateObj:new("2021-07-12")
+            )
+        end)
+
+        it("should work with short names", function()
+            assert.are.equal(
+                naturaldate.natural_to_absolute("next mon", DateObj:new("2021-07-04")),
+                DateObj:new("2021-07-12")
+            )
+        end)
+
+        it("converts natural language to date", function()
+            assert.are.equal(
+                naturaldate.natural_to_absolute("next tuesday", DateObj:new("2021-07-4")),
+                DateObj:new("2021-07-13")
+            )
+        end)
+
+        it("converts natural language to date", function()
+            assert.are.equal(
+                naturaldate.natural_to_absolute("next wednesday", DateObj:new("2021-07-04")),
+                DateObj:new("2021-07-14")
+            )
+        end)
+
+        it("converts natural language to date", function()
+            assert.are.equal(
+                naturaldate.natural_to_absolute("next thursday", DateObj:new("2021-07-04")),
+                DateObj:new("2021-07-15")
+            )
+        end)
+
+        it("converts natural language to date", function()
+            assert.are.equal(
+                naturaldate.natural_to_absolute("next friday", DateObj:new("2021-07-04")),
+                DateObj:new("2021-07-16")
+            )
+        end)
+
+        it("converts natural language to date", function()
+            assert.are.equal(
+                naturaldate.natural_to_absolute("next saturday", DateObj:new("2021-07-04")),
+                DateObj:new("2021-07-17")
+            )
+        end)
+
+        it("converts natural language to date", function()
+            assert.are.equal(
+                naturaldate.natural_to_absolute("next sunday", DateObj:new("2021-07-4")),
+                DateObj:new("2021-07-18")
+            )
+        end)
+
+    end)
+
     describe("one week from now", function()
         it("converts 1 week from now", function()
             assert.are.equal(
