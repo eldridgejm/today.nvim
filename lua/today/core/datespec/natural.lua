@@ -7,21 +7,13 @@ local util = require("today.util")
 
 local naturaldate = {}
 
-local function ensure_dateobj(x)
-    if type(x) == "string" then
-        return DateObj:from_string(x)
-    else
-        return x
-    end
-end
-
 -- Count number of days the date is into the future.
 -- @param d The date in question. String or DateObj.
 -- @param today The date that should be used for today. String or DateObj.
 -- @returns An integer counting the difference in days.
 local function days_into_future(d, today)
-    d = ensure_dateobj(d)
-    today = ensure_dateobj(today)
+    d = DateObj:new(d)
+    today = DateObj:new(today)
 
     return today:days_until(d)
 end
@@ -248,7 +240,7 @@ function naturaldate.natural_to_absolute(s, today)
         end
     end
 
-    return DateObj:from_string(s)
+    return DateObj:new(s)
 end
 
 --- Convert an absolute date to a natural date.
@@ -258,8 +250,8 @@ end
 -- @param today The date used for today, as a YYYY-MM-DD string or a DateObj.
 -- @return The date in natural form as a string.
 function naturaldate.absolute_to_natural(s, today)
-    local d = ensure_dateobj(s)
-    today = ensure_dateobj(today)
+    local d = DateObj:new(s)
+    today = DateObj:new(today)
 
     assert(d.class == "DateObj")
     assert(today.class == "DateObj")

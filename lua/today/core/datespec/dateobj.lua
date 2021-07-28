@@ -19,6 +19,21 @@ local function both(lhs, rhs, value)
     return (lhs._date == value) and (rhs._date == value)
 end
 
+--- Constructor for dateobjects.
+-- @param date A date as a string in YYYY-MM-DD format, or another DateObject.
+-- @return A new dateobject.
+function DateObj:new(date)
+    if type(date) == "string" then
+        if date == "infinite_future" then
+            return DateObj:infinite_future()
+        end
+        return DateObj._create(self, datelib(date))
+    elseif date.class == "DateObj" then
+        return DateObj._create(self, date._date)
+    end
+    assert('Invalid date.', date)
+end
+
 --- Create a DateObj from a year/month/day triple.
 -- @param year The year as an integer.
 -- @param month The month as an integer.
@@ -26,13 +41,6 @@ end
 -- @return The DateObj.
 function DateObj:from_ymd(year, month, day)
     return DateObj._create(self, datelib(year, month, day))
-end
-
---- Create a DateObj from a YYYY-MM-DD string.
--- @param s The date in the form of YYYY-MM-DD.
--- @return The DateObj.
-function DateObj:from_string(s)
-    return DateObj._create(self, datelib(s))
 end
 
 function DateObj:_from_luadate_object(d)
@@ -49,7 +57,7 @@ function DateObj._create(self, _date)
     local obj = { _date = _date, class = "DateObj" }
     self.__index = self
 
-    self.__tostring = function (instance)
+    self.__tostring = function(instance)
         -- if this is infinite_future
         if type(instance._date) == "string" then
             return instance._date

@@ -106,7 +106,7 @@ RULES:add({
 -- this will return nil.
 function recurring.next(today, recur_spec)
     if type(today) == "string" then
-        today = DateObj:from_string(today)
+        today = DateObj:new(today)
     end
 
     assert(today.class == "DateObj")

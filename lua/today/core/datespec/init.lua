@@ -43,7 +43,7 @@ function DateSpec:new(spec, today)
     assert(today ~= nil)
 
     if type(today) == "string" then
-        today = DateObj:from_string(today)
+        today = DateObj:new(today)
     else
         today = DateObj:_from_luadate_object(today)
     end
@@ -92,7 +92,7 @@ function DateSpec:next()
         return nil
     end
 
-    local next_do_date = DateObj:from_string(
+    local next_do_date = DateObj:new(
         recurring.next(self.do_date, self.recur_spec)
     )
 
