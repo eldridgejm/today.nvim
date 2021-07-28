@@ -12,9 +12,11 @@ ui.options = {
     buffer = {
         categorizer = {
             active = "do_date",
+            options = {
+                show_empty_sections = true,
+            },
         },
         filter_tags = nil,
-        show_empty_sections = true,
     },
 }
 
@@ -89,7 +91,10 @@ function ui.organize()
     local categorizer
     local categorizer_key = ui.get_buffer_options().categorizer.active
     if (categorizer_key == nil) or (categorizer_key == "do_date") then
-        categorizer = organize.do_date_categorizer(working_date)
+        categorizer = organize.do_date_categorizer(
+            working_date,
+            ui.get_buffer_options().categorizer.options
+        )
     elseif categorizer_key == "first_tag" then
         categorizer = organize.first_tag_categorizer(working_date)
     else

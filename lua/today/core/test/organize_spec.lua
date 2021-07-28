@@ -150,6 +150,46 @@ describe("organize", function()
             }
             assert.are.same(result, expected)
         end)
+
+        it("should show empty sections if option given", function()
+            -- given
+            local lines = {
+                "[ ] undone",
+                "[x] this is done",
+                "[ ] but this isn't",
+            }
+
+            -- when
+            local result = organize.organize(
+                lines,
+                organize.do_date_categorizer(
+                    "2021-06-01",
+                    { show_empty_sections = true }
+                )
+            )
+
+            -- then
+            local expected = {
+                "-- today (2) {{{",
+                "[ ] undone",
+                "[ ] but this isn't",
+                "-- }}}",
+                "",
+                "-- tomorrow (0) {{{",
+                "-- }}}",
+                "",
+                "-- next 7 days (0) {{{",
+                "-- }}}",
+                "",
+                "-- future (0) {{{",
+                "-- }}}",
+                "",
+                "-- done (1) {{{",
+                "[x] this is done",
+                "-- }}}",
+            }
+            assert.are.same(result, expected)
+        end)
     end)
 
     describe("first_tag_categorizer", function()

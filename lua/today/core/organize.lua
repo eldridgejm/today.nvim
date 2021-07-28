@@ -11,46 +11,69 @@ local organize = {}
 
 --- Organizes tasks by do date first, then by priority.
 -- @param working_date The working date as a string in YYYY-MM-DD format.
-function organize.do_date_categorizer(working_date)
-    return {
-        keyfunc = function(t)
-            local datespec = task.get_datespec_safe(t, working_date)
+function organize.do_date_categorizer(working_date, options)
 
-            if task.is_done(t) then
-                return "done"
-            elseif datespec:days_until_do() <= 0 then
-                return "undone:today"
-            elseif datespec:days_until_do() == 1 then
-                return "undone:tomorrow"
-            elseif datespec:days_until_do() <= 7 then
-                return "undone:next_7_days"
-            else
-                return "undone:future"
-            end
-        end,
+    if options == nil then
+        options = {
+            show_empty_sections = false
+        }
+    end
+
+    local sections = {
+        ["undone:today"] = "today",
+        ["undone:tomorrow"] = "tomorrow",
+        ["undone:next_7_days"] = "next 7 days",
+        ["undone:future"] = "future",
+        ["done"] = "done",
+    }
+
+    local order = {
+        "undone:today",
+        "undone:tomorrow",
+        "undone:next_7_days",
+        "undone:future",
+        "done",
+    }
+
+    return {
         headerfunc = function(key)
-            local mapping = {
-                ["undone:today"] = "today",
-                ["undone:tomorrow"] = "tomorrow",
-                ["undone:next_7_days"] = "next_7_days",
-                ["undone:future"] = "future",
-                ["done"] = "done",
-            }
-            return mapping[key]
+            return sections[key]
         end,
         orderfunc = function(_)
-            return {
-                "undone:today",
-                "undone:tomorrow",
-                "undone:next_7_days",
-                "undone:future",
-                "done",
-            }
+            return order
         end,
         comparefunc = sort.chain_comparators({
             sort.make_do_date_comparator(working_date),
             sort.priority_comparator,
         }),
+        groupfunc = function (tasks)
+            local keyfunc = function(t)
+                local datespec = task.get_datespec_safe(t, working_date)
+
+                if task.is_done(t) then
+                    return "done"
+                elseif datespec:days_until_do() <= 0 then
+                    return "undone:today"
+                elseif datespec:days_until_do() == 1 then
+                    return "undone:tomorrow"
+                elseif datespec:days_until_do() <= 7 then
+                    return "undone:next_7_days"
+                else
+                    return "undone:future"
+                end
+            end
+            local groups = util.groupby(keyfunc, tasks)
+
+            if options.show_empty_sections then
+                for key, _ in pairs(sections) do
+                    if groups[key] == nil then
+                        groups[key] = {}
+                    end
+                end
+            end
+
+            return groups
+        end
     }
 end
 
@@ -58,14 +81,18 @@ end
 -- @param working_date The working date as a string in YYYY-MM-DD format.
 function organize.first_tag_categorizer(working_date)
     return {
-        keyfunc = function(t)
-            local first_tag = task.get_first_tag(t)
-            if first_tag ~= nil then
-                return first_tag
-            else
-                return "other"
+        groupfunc = function (tasks)
+            local keyfunc = function(t)
+                local first_tag = task.get_first_tag(t)
+                if first_tag ~= nil then
+                    return first_tag
+                else
+                    return "other"
+                end
             end
+            return util.groupby(keyfunc, tasks)
         end,
+
         headerfunc = function(key)
             return key
         end,
@@ -83,7 +110,7 @@ end
 
 local function categorize(lines, categorizer)
     local tasks = util.filter(task.is_task, lines)
-    local groups = util.groupby(categorizer.keyfunc, tasks)
+    local groups = categorizer.groupfunc(tasks)
 
     local result = {}
     local function add_line(s)
@@ -97,7 +124,6 @@ local function categorize(lines, categorizer)
     end
 
     local order = categorizer.orderfunc(util.keys(groups))
-
     for _, key in pairs(order) do
         local group_tasks = groups[key]
         if group_tasks ~= nil then
