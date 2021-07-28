@@ -3,7 +3,7 @@
 local date = require("today.vendor.date")
 local naturaldate = require("today.core.datespec.natural")
 local recurring = require("today.core.datespec.recurring")
-local util = require("today.core.util")
+local util = require("today.util")
 
 --- Parse a date spec string into its pieces: the do date and the recur string.
 -- If the spec is nil, the do date is assumed to be today, and the recur is set to nil.

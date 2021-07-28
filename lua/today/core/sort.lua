@@ -1,6 +1,6 @@
 --- Functions for sorting groups of tasks.
 
-local util = require("today.core.util")
+local util = require("today.util")
 local task = require("today.core.task")
 
 local sort = {}

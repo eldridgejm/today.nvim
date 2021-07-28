@@ -1,6 +1,6 @@
 local task = require("today.core.task")
 local organize = require("today.core.organize")
-local util = require("today.core.util")
+local util = require("today.util")
 
 local date = require("today.vendor.date")
 

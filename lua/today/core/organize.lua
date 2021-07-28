@@ -1,5 +1,5 @@
 local task = require("today.core.task")
-local util = require("today.core.util")
+local util = require("today.util")
 local sort = require("today.core.sort")
 
 local organize = {}

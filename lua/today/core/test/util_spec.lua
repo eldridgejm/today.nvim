@@ -1,5 +1,5 @@
 describe("util module", function()
-    util = require("today.core.util")
+    util = require("today.util")
 
     describe("slice", function()
         it("slices lists", function()

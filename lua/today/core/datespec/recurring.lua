@@ -1,7 +1,7 @@
 --- Find the next date in a sequence of recurring dates.
 
 local date = require("today.vendor.date")
-local util = require("today.core.util")
+local util = require("today.util")
 
 local recurring = {}
 

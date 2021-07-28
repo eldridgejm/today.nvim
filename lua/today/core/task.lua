@@ -1,6 +1,6 @@
 --- Functions for working with individual task strings.
 
-local util = require("today.core.util")
+local util = require("today.util")
 local DateSpec = require("today.core.datespec")
 
 local task = {}

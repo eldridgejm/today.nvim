@@ -5,27 +5,22 @@
 --
 -- This is a thin wrapper around the luadate library.
 
-local datelib = require('today.vendor.date')
-
+local datelib = require("today.vendor.date")
 
 local DateObj = {}
-
 
 function DateObj:from_ymd(year, month, day)
     return DateObj._create(self, datelib(year, month, day))
 end
 
-
 function DateObj:from_string(s)
     return DateObj._create(self, datelib(s))
 end
-
 
 function DateObj:_from_date(d)
     assert(d ~= nil)
     return DateObj._create(self, datelib(d))
 end
-
 
 function DateObj:infinite_future()
     return DateObj._create(self, "infinite_future")
@@ -42,7 +37,6 @@ end
 local function both(lhs, rhs, value)
     return (lhs._date == value) and (rhs._date == value)
 end
-
 
 function DateObj._create(self, _date)
     local obj = { _date = _date }
@@ -67,15 +61,14 @@ function DateObj._create(self, _date)
         end
 
         return (
-            (lhs._date:getyear() == rhs._date:getyear())
-            and (lhs._date:getmonth() == rhs._date:getmonth())
-            and (lhs._date:getday() == rhs._date:getday())
+                (lhs._date:getyear() == rhs._date:getyear())
+                and (lhs._date:getmonth() == rhs._date:getmonth())
+                and (lhs._date:getday() == rhs._date:getday())
             )
     end
 
     return setmetatable(obj, self)
 end
-
 
 function DateObj:ymd()
     if self:is_infinite() then
@@ -83,14 +76,11 @@ function DateObj:ymd()
     end
 
     return self._date:getyear(), self._date:getmonth(), self._date:getday()
-
 end
-
 
 function DateObj:is_infinite()
     return (self._date == "infinite_future") or (self._date == "infinite_past")
 end
-
 
 function DateObj:add_days(n)
     if self._date == "infinite_future" then
@@ -104,7 +94,6 @@ function DateObj:add_days(n)
     local new_date = self._date:copy():adddays(n)
     return DateObj:_from_date(new_date)
 end
-
 
 function DateObj:days_until(other)
     if both(self, other, "infinite_future") then

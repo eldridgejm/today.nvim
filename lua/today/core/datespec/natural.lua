@@ -3,7 +3,7 @@
 -- to the date in YYYY-MM-DD, and vice versa.
 
 local date = require("today.vendor.date")
-local util = require("today.core.util")
+local util = require("today.util")
 
 local naturaldate = {}
 
