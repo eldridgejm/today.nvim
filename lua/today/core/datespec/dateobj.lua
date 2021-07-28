@@ -49,12 +49,12 @@ function DateObj._create(self, _date)
     local obj = { _date = _date, class = "DateObj" }
     self.__index = self
 
-    self.__tostring = function()
+    self.__tostring = function (instance)
         -- if this is infinite_future
-        if type(obj._date) == "string" then
-            return obj._date
+        if type(instance._date) == "string" then
+            return instance._date
         else
-            return obj._date:fmt("%Y-%m-%d")
+            return instance._date:fmt("%Y-%m-%d")
         end
     end
 

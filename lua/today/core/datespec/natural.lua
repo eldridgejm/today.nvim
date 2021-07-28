@@ -7,11 +7,22 @@ local util = require("today.util")
 
 local naturaldate = {}
 
+local function ensure_dateobj(x)
+    if type(x) == "string" then
+        return DateObj:from_string(x)
+    else
+        return x
+    end
+end
+
 -- Count number of days the date is into the future.
--- @param d The date in question. String or dateObject.
--- @param today The date that should be used for today. String or dateObject.
+-- @param d The date in question. String or DateObj.
+-- @param today The date that should be used for today. String or DateObj.
 -- @returns An integer counting the difference in days.
 local function days_into_future(d, today)
+    d = ensure_dateobj(d)
+    today = ensure_dateobj(today)
+
     return today:days_until(d)
 end
 
@@ -19,11 +30,11 @@ end
 --
 -- A rule is itself a table containing two keys by convention: "from_natural"
 -- and "from_absolute". "from_natural" should be a function that takes a string
--- "s" and a dateObject "today" and returns a dateObject that is equivalent to
+-- "s" and a DateObj "today" and returns a DateObj that is equivalent to
 -- the natural date.
 --
 -- "from_absolute" should either be a function that accepts an absolute date as
--- a string in YYYY-MM-DD format and a dateObject "today" and returns a string
+-- a DateObj and a DateObj "today" and returns a string
 -- representing the date in natural format, or nil. A value of nil for this key
 -- signals that there is no conversion from the absolute date to a natural
 -- date.
@@ -168,6 +179,22 @@ RULES:add({
     end,
 })
 
+-- someday
+RULES:add({
+    -- defaults to the first day of next month
+    from_natural = function(s, _)
+        if s == "someday" then
+            return DateObj:infinite_future()
+        end
+    end,
+
+    from_absolute = function(d, _)
+        if tostring(d) == "infinite_future" then
+            return "someday"
+        end
+    end,
+})
+
 -- dates in the past
 
 -- yesterday
@@ -205,8 +232,8 @@ RULES:add({
 
 --- Convert a natural date into an absolute date.
 -- @param s The natural date as a string. Can be in any case.
--- @param today The date used for today, as a YYYY-MM-DD string or a dateObject.
--- @return The absolute date as a string in YYYY-MM-DD format.
+-- @param today The date used for today, as a YYYY-MM-DD string or a DateObj.
+-- @return The absolute date as a DateObj.
 function naturaldate.natural_to_absolute(s, today)
     s = s:lower()
 
@@ -215,27 +242,27 @@ function naturaldate.natural_to_absolute(s, today)
             local result = rule.from_natural(s, today)
             -- if the result is nil, there is no rule
             if result ~= nil then
-                return tostring(result)
+                assert(result.class == "DateObj")
+                return result
             end
         end
     end
 
-    return tostring(DateObj:from_string(s))
+    return DateObj:from_string(s)
 end
 
 --- Convert an absolute date to a natural date.
 -- If there is no valid conversion of the absolute date to a natural date,
 -- the date is left as a string in YYYY-MM-DD format.
--- @param s The absolute date as a string in YYYY-MM-DD format.
--- @param today The date used for today, as a YYYY-MM-DD string or a dateObject.
+-- @param s The absolute date as a DateObj or as a string in YYYY-MM-DD format.
+-- @param today The date used for today, as a YYYY-MM-DD string or a DateObj.
 -- @return The date in natural form as a string.
 function naturaldate.absolute_to_natural(s, today)
-    local d = s
-    if type(s) == "string" then
-        d = DateObj:from_string(s)
-    end
+    local d = ensure_dateobj(s)
+    today = ensure_dateobj(today)
 
     assert(d.class == "DateObj")
+    assert(today.class == "DateObj")
 
     for _, rule in ipairs(RULES) do
         if rule.from_absolute ~= nil then

@@ -9,7 +9,7 @@ describe("natural language to date", function()
                     "today",
                     DateObj:from_string("2021-7-5")
                 ),
-                "2021-07-05"
+                DateObj:from_string("2021-07-05")
             )
         end)
     end)
@@ -21,14 +21,23 @@ describe("natural language to date", function()
                     "tomorrow",
                     DateObj:from_string("2021-7-5")
                 ),
-                "2021-07-06"
+                DateObj:from_string("2021-07-06")
             )
         end)
 
         it("converts tom to tomorrow", function()
             assert.are.equal(
                 naturaldate.natural_to_absolute("tom", DateObj:from_string("2021-7-5")),
-                "2021-07-06"
+                DateObj:from_string("2021-07-06")
+            )
+        end)
+    end)
+
+    describe("someday", function()
+        it("converts natural language to date", function()
+            assert.are.equal(
+                naturaldate.natural_to_absolute("someday"),
+                DateObj:infinite_future()
             )
         end)
     end)
@@ -42,7 +51,7 @@ describe("natural language to date", function()
                     "tuesday",
                     DateObj:from_string("2021-07-5")
                 ),
-                "2021-07-06"
+                DateObj:from_string("2021-07-06")
             )
         end)
 
@@ -52,7 +61,7 @@ describe("natural language to date", function()
                     "wednesday",
                     DateObj:from_string("2021-07-05")
                 ),
-                "2021-07-07"
+                DateObj:from_string("2021-07-07")
             )
         end)
 
@@ -62,7 +71,7 @@ describe("natural language to date", function()
                     "thursday",
                     DateObj:from_string("2021-07-05")
                 ),
-                "2021-07-08"
+                DateObj:from_string("2021-07-08")
             )
         end)
 
@@ -72,7 +81,7 @@ describe("natural language to date", function()
                     "friday",
                     DateObj:from_string("2021-07-05")
                 ),
-                "2021-07-09"
+                DateObj:from_string("2021-07-09")
             )
         end)
 
@@ -82,7 +91,7 @@ describe("natural language to date", function()
                     "saturday",
                     DateObj:from_string("2021-07-05")
                 ),
-                "2021-07-10"
+                DateObj:from_string("2021-07-10")
             )
         end)
 
@@ -92,7 +101,7 @@ describe("natural language to date", function()
                     "sunday",
                     DateObj:from_string("2021-07-5")
                 ),
-                "2021-07-11"
+                DateObj:from_string("2021-07-11")
             )
         end)
 
@@ -102,21 +111,21 @@ describe("natural language to date", function()
                     "monday",
                     DateObj:from_string("2021-07-5")
                 ),
-                "2021-07-12"
+                DateObj:from_string("2021-07-12")
             )
         end)
 
         it("works with weekday abbreviations", function()
             assert.are.equal(
                 naturaldate.natural_to_absolute("m", DateObj:from_string("2021-07-5")),
-                "2021-07-12"
+                DateObj:from_string("2021-07-12")
             )
         end)
 
         it("works with weekday abbreviations", function()
             assert.are.equal(
                 naturaldate.natural_to_absolute("th", DateObj:from_string("2021-07-5")),
-                "2021-07-08"
+                DateObj:from_string("2021-07-08")
             )
         end)
     end)
@@ -128,7 +137,7 @@ describe("natural language to date", function()
                     "1 week from now",
                     DateObj:from_string("2021-7-5")
                 ),
-                "2021-07-12"
+                DateObj:from_string("2021-07-12")
             )
         end)
 
@@ -138,7 +147,7 @@ describe("natural language to date", function()
                     "2 weeks from now",
                     DateObj:from_string("2021-7-5")
                 ),
-                "2021-07-19"
+                DateObj:from_string("2021-07-19")
             )
         end)
     end)
@@ -151,7 +160,7 @@ describe("natural language to date", function()
                     "1 month from now",
                     DateObj:from_string("2021-7-5")
                 ),
-                "2021-08-04"
+                DateObj:from_string("2021-08-04")
             )
         end)
 
@@ -162,7 +171,7 @@ describe("natural language to date", function()
                     "2 months from now",
                     DateObj:from_string("2021-7-5")
                 ),
-                "2021-09-03"
+                DateObj:from_string("2021-09-03")
             )
         end)
     end)
@@ -174,7 +183,7 @@ describe("natural language to date", function()
                     "3 days from now",
                     DateObj:from_string("2021-7-5")
                 ),
-                "2021-07-08"
+                DateObj:from_string("2021-07-08")
             )
         end)
 
@@ -184,7 +193,7 @@ describe("natural language to date", function()
                     "1 day from now",
                     DateObj:from_string("2021-7-5")
                 ),
-                "2021-07-06"
+                DateObj:from_string("2021-07-06")
             )
         end)
 
@@ -194,7 +203,7 @@ describe("natural language to date", function()
                     "10 days from now",
                     DateObj:from_string("2021-7-5")
                 ),
-                "2021-07-15"
+                DateObj:from_string("2021-07-15")
             )
         end)
     end)
@@ -206,7 +215,7 @@ describe("natural language to date", function()
                     "next week",
                     DateObj:from_string("2021-7-5")
                 ),
-                "2021-07-12"
+                DateObj:from_string("2021-07-12")
             )
         end)
     end)
@@ -218,7 +227,7 @@ describe("natural language to date", function()
                     "next month",
                     DateObj:from_string("2021-7-5")
                 ),
-                "2021-08-01"
+                DateObj:from_string("2021-08-01")
             )
         end)
     end)
@@ -229,7 +238,7 @@ describe("natural language to date", function()
                 "yesterday",
                 DateObj:from_string("2021-7-5")
             ),
-            "2021-07-04"
+            DateObj:from_string("2021-07-04")
         )
     end)
 
@@ -239,7 +248,7 @@ describe("natural language to date", function()
                 "2 days ago",
                 DateObj:from_string("2021-7-5")
             ),
-            "2021-07-03"
+            DateObj:from_string("2021-07-03")
         )
     end)
 
@@ -249,7 +258,7 @@ describe("natural language to date", function()
                 "398 days ago",
                 DateObj:from_string("2021-7-5")
             ),
-            "2020-06-02"
+            DateObj:from_string("2020-06-02")
         )
     end)
 end)
@@ -321,6 +330,13 @@ describe("date to natural language", function()
         assert.are.equal(
             naturaldate.absolute_to_natural("2020-6-2", DateObj:from_string("2021-7-5")),
             "398 days ago"
+        )
+    end)
+
+    it("converts infinite_future to someday", function()
+        assert.are.equal(
+            naturaldate.absolute_to_natural(DateObj:infinite_future(), "2021-07-04"),
+            "someday"
         )
     end)
 end)

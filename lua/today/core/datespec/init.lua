@@ -26,14 +26,7 @@ local function parse(spec, today)
     local do_date_string = parts[1]
     local recur_spec = parts[2]
 
-    local do_date
-    if do_date_string == "someday" then
-        do_date = "someday"
-    else
-        do_date = DateObj:from_string(
-            naturaldate.natural_to_absolute(do_date_string, today)
-        )
-    end
+    local do_date = naturaldate.natural_to_absolute(do_date_string, today)
 
     return do_date, recur_spec
 end
@@ -70,10 +63,6 @@ end
 --- Compute how many days until the task is scheduled to be done.
 -- @return The number of days as an integer.
 function DateSpec:days_until_do()
-    if self.do_date == "someday" then
-        return math.huge
-    end
-
     return self.today:days_until(self.do_date)
 end
 
