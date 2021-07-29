@@ -222,7 +222,6 @@ RULES:add({
         m = util.index_of(months, m)
         return DateObj:from_ymd(y, m, d)
     end,
-
 })
 
 -- dates in the past
@@ -281,40 +280,41 @@ function naturaldate.natural_to_absolute(s, today)
     return DateObj:new(s)
 end
 
-
 --- Converts a date into a human datestamp of the form "mon jul 05 2021"
-local function to_human_datestamp(date)
-        local y, m, d = date:ymd()
-        local wd = date:day_of_the_week()
+function naturaldate.to_human_datestamp(date)
+    local y, m, d = date:ymd()
+    local wd = date:day_of_the_week()
 
-local days_of_the_week = {
-    "sun",
-    "mon",
-    "tue",
-    "wed",
-    "thu",
-    "fri",
-    "sat",
-}
+    local days_of_the_week = {
+        "sun",
+        "mon",
+        "tue",
+        "wed",
+        "thu",
+        "fri",
+        "sat",
+    }
 
+    wd = days_of_the_week[wd]
+    m = months[m]
 
-        wd = days_of_the_week[wd]
-        m = months[m]
-
-        return wd .. " " .. m .. " " .. d .. " " .. y
+    return wd .. " " .. m .. " " .. d .. " " .. y
 end
-
 
 --- Convert an absolute date to a natural date.
 -- If there is no valid conversion of the absolute date to a natural date,
 -- the date is left as a string in YYYY-MM-DD format.
 -- @param s The absolute date as a DateObj or as a string in YYYY-MM-DD format.
 -- @param today The date used for today, as a YYYY-MM-DD string or a DateObj.
+-- @param options An options dictionary. The only option currently is "default_format".
+-- This controls what happens if no natural date applies. If this is set to "YYYY-MM-DD",
+-- the date is serialized in YYYY-MM-DD format. If this is "human", it is serialized
+-- in the format of "mon jul 05 2021".
 -- @return The date in natural form as a string.
 function naturaldate.absolute_to_natural(s, today, options)
     if options == nil then
         options = {
-            fallback = "YYYY-MM-DD"
+            default_format = "YYYY-MM-DD",
         }
     end
 
@@ -333,10 +333,10 @@ function naturaldate.absolute_to_natural(s, today, options)
         end
     end
 
-    if options.fallback == "YYYY-MM-DD" then
+    if options.default_format == "YYYY-MM-DD" then
         return tostring(d)
-    elseif options.fallback == "human" then
-        return to_human_datestamp(d)
+    elseif options.default_format == "human" then
+        return naturaldate.to_human_datestamp(d)
     end
 end
 

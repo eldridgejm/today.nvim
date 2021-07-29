@@ -17,6 +17,7 @@ ui.options = {
             },
         },
         filter_tags = nil,
+        default_date_format = "human"
     },
 }
 
@@ -71,7 +72,16 @@ ui.task_make_datespec_absolute = make_ranged_function(
 )
 
 ui.task_make_datespec_natural = make_ranged_function(
-    with_working_date(task.make_datespec_natural)
+    function (line)
+        return task.make_datespec_natural(
+            line,
+            vim.b.today_working_date,
+            {
+                natural = true,
+                default_format = ui.get_buffer_options().default_date_format
+            }
+        )
+    end
 )
 
 function ui.get_buffer_options()

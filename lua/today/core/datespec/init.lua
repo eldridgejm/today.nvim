@@ -73,12 +73,22 @@ end
 -- @param natural Boolean: should we use natural language? If false, YYYY-MM-DD
 -- format is used.
 -- @return The datespec as a string, with angle brackets.
-function DateSpec:serialize(natural)
+function DateSpec:serialize(options)
+    if options == nil then
+        options = {
+            natural = false,
+            default_format = "YYYY-MM-DD",
+        }
+    end
     local pieces = {}
 
     local do_date = tostring(self.do_date)
-    if natural then
-        do_date = naturaldate.absolute_to_natural(do_date, self.today)
+    if options.natural then
+        do_date = naturaldate.absolute_to_natural(
+            do_date,
+            self.today,
+            { default_format = options.default_format }
+        )
     end
     table.insert(pieces, do_date)
 

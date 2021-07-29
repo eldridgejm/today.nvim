@@ -3,6 +3,11 @@
 local util = require("today.util")
 local DateSpec = require("today.core.datespec")
 
+local DEFAULT_SERIALIZE_OPTIONS = {
+    natural = true,
+    default_format = "YYYY-MM-DD"
+}
+
 local task = {}
 
 local function head(line)
@@ -283,23 +288,35 @@ end
 -- @param line The task line.
 -- @param today The date of today as a string in YYYY-MM-DD format
 function task.make_datespec_absolute(line, today)
+
     local ds = task.get_datespec_safe(line, today)
     if ds == nil then
         return line
     end
-    return replace_datespec_string(line, ds:serialize(false))
+    return replace_datespec_string(
+        line,
+        ds:serialize()
+    )
 end
 
 --- Replaces an absolute datespec with a natural datespec. If there is no datespec,
 -- this leaves the task unchanged.
 -- @param line The task line.
 -- @param today The date of today as a string in YYYY-MM-DD format
-function task.make_datespec_natural(line, today)
+-- @param serialize_options An options dictionary for DateSpec:serialize
+function task.make_datespec_natural(line, today, serialize_options)
+    if serialize_options == nil then
+        serialize_options = DEFAULT_SERIALIZE_OPTIONS
+    end
+
     local ds = task.get_datespec_safe(line, today)
     if ds == nil then
         return line
     end
-    return replace_datespec_string(line, ds:serialize(true))
+    return replace_datespec_string(
+        line,
+        ds:serialize(serialize_options)
+    )
 end
 
 --- Remove the datespec from a task string.
@@ -327,10 +344,15 @@ end
 -- If the task is not recurring, this returns nil.
 -- @param line The task string.
 -- @param today Today's date as a string in YYYY-MM-DD format.
+-- @param serialize_options An options dictionary for DateSpec:serialize
 -- @return The new task string with the datespec replaced (or nil, see above).
-function task.replace_datespec_with_next(line, today)
+function task.replace_datespec_with_next(line, today, serialize_options)
     if task.is_done(line) then
         return nil
+    end
+
+    if serialize_options == nil then
+        serialize_options = DEFAULT_SERIALIZE_OPTIONS
     end
 
     local ds = task.get_datespec_safe(line, today)
@@ -338,7 +360,10 @@ function task.replace_datespec_with_next(line, today)
         return nil
     end
 
-    local new_datespec = replace_datespec_string(line, ds:next():serialize(true))
+    local new_datespec = replace_datespec_string(
+        line,
+        ds:next():serialize(serialize_options)
+    )
     return task.normalize(new_datespec)
 end
 

@@ -65,14 +65,16 @@ describe("datespec", function()
 
         it("converts to natural language", function()
             assert.are.equal(
-                DateSpec:new("<2021-06-20>", "2021-06-20"):serialize(true),
+                DateSpec:new("<2021-06-20>", "2021-06-20"):serialize({ natural = true }),
                 "<today>"
             )
         end)
 
         it("preserves the recur string", function()
             assert.are.equal(
-                DateSpec:new("<2021-06-20 +daily>", "2021-06-20"):serialize(true),
+                DateSpec
+                    :new("<2021-06-20 +daily>", "2021-06-20")
+                    :serialize({ natural = true }),
                 "<today +daily>"
             )
         end)
