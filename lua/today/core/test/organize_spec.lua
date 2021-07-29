@@ -205,9 +205,7 @@ describe("organize", function()
             -- when
             local result = organize.organize(
                 lines,
-                organize.do_date_categorizer(
-                    "2021-06-01"
-                )
+                organize.do_date_categorizer("2021-06-01")
             )
 
             -- then

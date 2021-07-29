@@ -277,6 +277,32 @@ describe("natural language to date", function()
         end)
     end)
 
+    describe("human datestamp", function()
+        it("is case insensitive", function()
+            assert.are.equal(
+                naturaldate.natural_to_absolute("mon jul 05 2021", DateObj:new("2021-1-1")),
+                DateObj:new("2021-07-5")
+            )
+        end)
+
+        it("is case insensitive (capitalized)", function()
+            assert.are.equal(
+                naturaldate.natural_to_absolute("MoN jUl 05 2021", DateObj:new("2021-1-1")),
+                DateObj:new("2021-07-5")
+            )
+        end)
+
+        it("is doesnt care if the day of week is wrong", function()
+            -- july 4 was a sunday
+            assert.are.equal(
+                naturaldate.natural_to_absolute("mon jul 04 2021", DateObj:new("2021-1-1")),
+                DateObj:new("2021-07-4")
+            )
+        end)
+
+    end)
+
+    describe("past dates", function()
     it("resolves yesterday", function()
         assert.are.equal(
             naturaldate.natural_to_absolute("yesterday", DateObj:new("2021-7-5")),
@@ -297,6 +323,10 @@ describe("natural language to date", function()
             DateObj:new("2020-06-02")
         )
     end)
+
+    end)
+
+
 end)
 
 describe("date to natural language", function()
@@ -369,4 +399,19 @@ describe("date to natural language", function()
             "someday"
         )
     end)
+
+    it("uses YYYY-MM-DD as default fallback", function()
+        assert.are.equal(
+            naturaldate.absolute_to_natural("2021-08-10", "2021-07-04"),
+            "2021-08-10"
+        )
+    end)
+
+    it("uses has option to use human datestamp as fallback", function()
+        assert.are.equal(
+            naturaldate.absolute_to_natural("2021-08-10", "2021-07-04", { fallback = "human" }),
+            "tue aug 10 2021"
+        )
+    end)
+
 end)

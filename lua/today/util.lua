@@ -208,4 +208,23 @@ function util.prefix_search(lst, prefix, require_unique)
     end
 end
 
+--- Performs a linear search.
+-- @param lst The table to search.
+-- @param target The element to look for.
+-- @param cmp A comparator. If nil, == is used.
+-- @return The first index of the element, or nil if it does not appear.
+function util.index_of(lst, target, cmp)
+    if cmp == nil then
+        cmp = function(x)
+            return x == target
+        end
+    end
+
+    for i, x in ipairs(lst) do
+        if cmp(x) then
+            return i
+        end
+    end
+end
+
 return util
