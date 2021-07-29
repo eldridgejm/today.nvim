@@ -21,7 +21,8 @@ function organize.do_date_categorizer(working_date, options)
     local sections = {
         ["undone:today"] = "today",
         ["undone:tomorrow"] = "tomorrow",
-        ["undone:next_7_days"] = "next 7 days",
+        ["undone:this_week"] = "rest of the week",
+        ["undone:next_week"] = "next week",
         ["undone:future"] = "future",
         ["undone:someday"] = "someday",
         ["done"] = "done",
@@ -30,7 +31,8 @@ function organize.do_date_categorizer(working_date, options)
     local order = {
         "undone:today",
         "undone:tomorrow",
-        "undone:next_7_days",
+        "undone:this_week",
+        "undone:next_week",
         "undone:future",
         "undone:someday",
         "done",
@@ -57,8 +59,10 @@ function organize.do_date_categorizer(working_date, options)
                     return "undone:today"
                 elseif datespec:days_until_do() == 1 then
                     return "undone:tomorrow"
-                elseif datespec:days_until_do() <= 7 then
-                    return "undone:next_7_days"
+                elseif datespec:weeks_until_do() == 0 then
+                    return "undone:this_week"
+                elseif datespec:weeks_until_do() == 1 then
+                    return "undone:next_week"
                 elseif datespec:days_until_do() == math.huge then
                     return "undone:someday"
                 else

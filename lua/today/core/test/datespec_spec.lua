@@ -55,6 +55,39 @@ describe("datespec", function()
         end)
     end)
 
+    describe("weeks_until_do", function()
+        -- 2021-07-04 was a sunday
+        it("returns zero for current sunday", function()
+            local ds = DateSpec:new("<2021-07-04>", "2021-07-04")
+            assert.are.equal(ds:weeks_until_do(), 0)
+        end)
+
+        it("returns zero for monday", function()
+            local ds = DateSpec:new("<2021-07-05>", "2021-07-04")
+            assert.are.equal(ds:weeks_until_do(), 0)
+        end)
+
+        it("returns one for next sunday", function()
+            local ds = DateSpec:new("<2021-07-12>", "2021-07-04")
+            assert.are.equal(ds:weeks_until_do(), 1)
+        end)
+
+        it(", on monday, returns 0 for thursday", function()
+            local ds = DateSpec:new("<2021-07-08>", "2021-07-05")
+            assert.are.equal(ds:weeks_until_do(), 0)
+        end)
+
+        it(", on monday, returns 1 for next thursday", function()
+            local ds = DateSpec:new("<next thursday>", "2021-07-05")
+            assert.are.equal(ds:weeks_until_do(), 1)
+        end)
+
+        it("returns math.huge for someday", function()
+            local ds = DateSpec:new("<someday>", "2021-07-05")
+            assert.are.equal(ds:weeks_until_do(), math.huge)
+        end)
+    end)
+
     describe("serialize", function()
         it("converts a datespec to a string", function()
             assert.are.equal(

@@ -52,6 +52,11 @@ describe("next", function()
         assert.are.equal(result, DateObj:new("2021-07-07"))
     end)
 
+    it("should recognize every m,w,f from monday", function()
+        local result = recurring.next("2021-07-05", "every m,w,f")
+        assert.are.equal(result, DateObj:new("2021-07-07"))
+    end)
+
     it("should recognize every mon,wed,fri from friday", function()
         local result = recurring.next("2021-07-09", "every mon, wed,fri")
         assert.are.equal(result, DateObj:new("2021-07-12"))

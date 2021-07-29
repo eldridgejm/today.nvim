@@ -69,6 +69,23 @@ function DateSpec:days_until_do()
     return self.today:days_until(self.do_date)
 end
 
+function DateSpec:weeks_until_do()
+    if self.do_date == DateObj:infinite_future() then
+        return math.huge
+    end
+
+    local this_saturday = naturaldate.natural_to_absolute("saturday", self.today)
+    local n = 0
+    while true do
+        if self.do_date <= this_saturday then
+            return n
+        else
+            n = n + 1
+            this_saturday = this_saturday:add_days(7)
+        end
+    end
+end
+
 --- Convert the datespec into a string.
 -- @param natural Boolean: should we use natural language? If false, YYYY-MM-DD
 -- format is used.

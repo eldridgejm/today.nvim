@@ -5,7 +5,7 @@ local DateSpec = require("today.core.datespec")
 
 local DEFAULT_SERIALIZE_OPTIONS = {
     natural = true,
-    default_format = "YYYY-MM-DD"
+    default_format = "YYYY-MM-DD",
 }
 
 local task = {}
@@ -133,9 +133,9 @@ end
 function task.toggle_done(line)
     line = task.ensure_checkbox(line)
     if task.is_done(line) then
-        return "[ ] " .. tail(line)
+        return task.mark_undone(line)
     else
-        return "[x] " .. tail(line)
+        return task.mark_done(line)
     end
 end
 
@@ -288,15 +288,11 @@ end
 -- @param line The task line.
 -- @param today The date of today as a string in YYYY-MM-DD format
 function task.make_datespec_absolute(line, today)
-
     local ds = task.get_datespec_safe(line, today)
     if ds == nil then
         return line
     end
-    return replace_datespec_string(
-        line,
-        ds:serialize()
-    )
+    return replace_datespec_string(line, ds:serialize())
 end
 
 --- Replaces an absolute datespec with a natural datespec. If there is no datespec,
@@ -313,10 +309,7 @@ function task.make_datespec_natural(line, today, serialize_options)
     if ds == nil then
         return line
     end
-    return replace_datespec_string(
-        line,
-        ds:serialize(serialize_options)
-    )
+    return replace_datespec_string(line, ds:serialize(serialize_options))
 end
 
 --- Remove the datespec from a task string.

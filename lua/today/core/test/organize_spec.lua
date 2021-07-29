@@ -106,7 +106,7 @@ describe("organize", function()
 
             -- then
             local expected = {
-                "-- future (2) {{{",
+                "-- next week (2) {{{",
                 "[ ] <10 days from now> but this isn't",
                 "[ ] <11 days from now> undone",
                 "-- }}}",
@@ -114,6 +114,39 @@ describe("organize", function()
                 "-- done (2) {{{",
                 "[x] <today> also done",
                 "[x] <tomorrow> this is done",
+                "-- }}}",
+            }
+            assert.are.same(result, expected)
+        end)
+
+        it("should sort by do date into this week and next", function()
+            -- given
+            local lines = {
+                "[ ] undone <thursday>",
+                "[ ] this is done <tomorrow>",
+                "[ ] also done <next wednesday>",
+                "[ ] but this isn't <next friday>",
+            }
+
+            -- when
+            local result = organize.organize(
+                lines,
+                organize.do_date_categorizer("2021-07-04") -- a sunday
+            )
+
+            -- then
+            local expected = {
+                "-- tomorrow (1) {{{",
+                "[ ] <tomorrow> this is done",
+                "-- }}}",
+                "",
+                "-- rest of the week (1) {{{",
+                "[ ] <thursday> undone",
+                "-- }}}",
+                "",
+                "-- next week (2) {{{",
+                "[ ] <next wednesday> also done",
+                "[ ] <next friday> but this isn't",
                 "-- }}}",
             }
             assert.are.same(result, expected)
@@ -178,7 +211,10 @@ describe("organize", function()
                 "-- tomorrow (0) {{{",
                 "-- }}}",
                 "",
-                "-- next 7 days (0) {{{",
+                "-- rest of the week (0) {{{",
+                "-- }}}",
+                "",
+                "-- next week (0) {{{",
                 "-- }}}",
                 "",
                 "-- future (0) {{{",

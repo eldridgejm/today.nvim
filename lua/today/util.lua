@@ -150,7 +150,7 @@ end
 --- Remove whitespace from the right of a string.
 -- @param s The string to strip.
 function util.rstrip(s)
-    return s:match("^(.+%S)%s*$")
+    return s:match("^(.*%S+)%s*$")
 end
 
 --- Remove whitespace from the left and right of a string.

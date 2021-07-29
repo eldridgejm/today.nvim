@@ -97,22 +97,21 @@ RULES:add({
             local todays_weekday = today:day_of_the_week()
 
             local delta = (target_weekday - todays_weekday) % 7
-            if delta == 0 then
-                delta = 7
-            end
             return today:add_days(delta + week_adder)
         end
     end,
 
     from_absolute = function(d, today)
         local diff = days_into_future(d, today)
-        if (diff > 1) and (diff < 7) then
+        if (diff > 1) and (diff < 14) then
             local todays_weekday = today:day_of_the_week()
             local target_weekday = todays_weekday + diff
-            if target_weekday > 7 then
-                target_weekday = target_weekday - 7
-            end
-            return WEEKDAYS[target_weekday]
+            target_weekday = ((target_weekday - 1) % 7) + 1
+
+            local prefix
+            if diff >= 7 then prefix = "next " else prefix = "" end
+
+            return prefix .. WEEKDAYS[target_weekday]
         end
     end,
 })

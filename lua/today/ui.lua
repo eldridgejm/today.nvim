@@ -17,7 +17,7 @@ ui.options = {
             },
         },
         filter_tags = nil,
-        default_date_format = "human"
+        default_date_format = "human",
     },
 }
 
@@ -54,13 +54,19 @@ local function with_working_date(func)
     end
 end
 
-ui.task_mark_done = make_ranged_function(
-    task.mark_done,
-    with_working_date(task.replace_datespec_with_next)
-)
+local function replace_datespec_with_next(line)
+
+    return task.replace_datespec_with_next(line, vim.b.today_working_date, {
+        natural = true,
+        default_format = ui.get_buffer_options().default_date_format,
+    })
+end
+
+ui.task_mark_done = make_ranged_function(task.mark_done, replace_datespec_with_next)
+
 ui.task_toggle_done = make_ranged_function(
     task.toggle_done,
-    with_working_date(task.replace_datespec_with_next)
+    with_working_date(replace_datespec_with_next)
 )
 ui.task_mark_undone = make_ranged_function(task.mark_undone)
 ui.task_reschedule = make_ranged_function(task.set_do_date)
@@ -71,18 +77,12 @@ ui.task_make_datespec_absolute = make_ranged_function(
     with_working_date(task.make_datespec_absolute)
 )
 
-ui.task_make_datespec_natural = make_ranged_function(
-    function (line)
-        return task.make_datespec_natural(
-            line,
-            vim.b.today_working_date,
-            {
-                natural = true,
-                default_format = ui.get_buffer_options().default_date_format
-            }
-        )
-    end
-)
+ui.task_make_datespec_natural = make_ranged_function(function(line)
+    return task.make_datespec_natural(line, vim.b.today_working_date, {
+        natural = true,
+        default_format = ui.get_buffer_options().default_date_format,
+    })
+end)
 
 function ui.get_buffer_options()
     if vim.b.today == nil then
