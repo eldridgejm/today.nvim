@@ -184,6 +184,42 @@ describe("organize", function()
                 "-- future (0) {{{",
                 "-- }}}",
                 "",
+                "-- someday (0) {{{",
+                "-- }}}",
+                "",
+                "-- done (1) {{{",
+                "[x] this is done",
+                "-- }}}",
+            }
+            assert.are.same(result, expected)
+        end)
+
+        it("should have a 'someday' section", function()
+            -- given
+            local lines = {
+                "[ ] undone <someday>",
+                "[x] this is done",
+                "[ ] but this isn't",
+            }
+
+            -- when
+            local result = organize.organize(
+                lines,
+                organize.do_date_categorizer(
+                    "2021-06-01"
+                )
+            )
+
+            -- then
+            local expected = {
+                "-- today (1) {{{",
+                "[ ] but this isn't",
+                "-- }}}",
+                "",
+                "-- someday (1) {{{",
+                "[ ] <someday> undone",
+                "-- }}}",
+                "",
                 "-- done (1) {{{",
                 "[x] this is done",
                 "-- }}}",

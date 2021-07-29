@@ -334,11 +334,12 @@ function task.replace_datespec_with_next(line, today)
     end
 
     local ds = task.get_datespec_safe(line, today)
-    if ds.recur == nil then
+    if ds.recur_spec == nil then
         return nil
     end
 
-    return replace_datespec_string(line, ds:next():serialize())
+    local new_datespec = replace_datespec_string(line, ds:next():serialize(true))
+    return task.normalize(new_datespec)
 end
 
 return task

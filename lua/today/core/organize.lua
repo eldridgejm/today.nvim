@@ -23,6 +23,7 @@ function organize.do_date_categorizer(working_date, options)
         ["undone:tomorrow"] = "tomorrow",
         ["undone:next_7_days"] = "next 7 days",
         ["undone:future"] = "future",
+        ["undone:someday"] = "someday",
         ["done"] = "done",
     }
 
@@ -31,6 +32,7 @@ function organize.do_date_categorizer(working_date, options)
         "undone:tomorrow",
         "undone:next_7_days",
         "undone:future",
+        "undone:someday",
         "done",
     }
 
@@ -57,6 +59,8 @@ function organize.do_date_categorizer(working_date, options)
                     return "undone:tomorrow"
                 elseif datespec:days_until_do() <= 7 then
                     return "undone:next_7_days"
+                elseif datespec:days_until_do() == math.huge then
+                    return "undone:someday"
                 else
                     return "undone:future"
                 end
