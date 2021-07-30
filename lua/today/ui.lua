@@ -2,7 +2,6 @@ local task = require("today.core.task")
 local organize = require("today.core.organize")
 local util = require("today.util")
 local DateSpec = require("today.core.datespec")
-
 local date = require("today.vendor.date")
 
 local ui = {}

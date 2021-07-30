@@ -248,7 +248,7 @@ describe("Today core module's", function()
 
     describe("replace_datespec_with_next", function()
         it("should advance the date", function()
-            local line = "[ ] this is <2021-10-10 +daily> a datespec"
+            local line = "[ ] <2021-10-10 +daily> this is a datespec"
             assert.are.equal(
                 task.replace_datespec_with_next(line, "2020-10-01"),
                 "[ ] <2021-10-11 +daily> this is a datespec"
@@ -256,7 +256,7 @@ describe("Today core module's", function()
         end)
 
         it("should use natural dates", function()
-            local line = "[ ] this is <2021-10-10 +daily> a datespec"
+            local line = "[ ] <2021-10-10 +daily> this is a datespec"
             assert.are.equal(
                 task.replace_datespec_with_next(line, "2021-10-10"),
                 "[ ] <tomorrow +daily> this is a datespec"
