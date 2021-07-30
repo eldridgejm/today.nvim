@@ -1,6 +1,7 @@
 local task = require("today.core.task")
 local organize = require("today.core.organize")
 local util = require("today.util")
+local DateSpec = require('today.core.datespec')
 
 local date = require("today.vendor.date")
 
@@ -50,12 +51,11 @@ end
 
 local function with_working_date(func)
     return function(line)
-        return func(line, date(vim.b.today_working_date))
+        return func(line, vim.b.today_working_date)
     end
 end
 
 local function replace_datespec_with_next(line)
-
     return task.replace_datespec_with_next(line, vim.b.today_working_date, {
         natural = true,
         default_format = ui.get_buffer_options().default_date_format,
@@ -84,6 +84,25 @@ ui.task_make_datespec_natural = make_ranged_function(function(line)
     })
 end)
 
+
+function ui.recur(recur_spec, start_row, end_row)
+    local datespec = DateSpec:first_in_sequence(vim.b.today_working_date, recur_spec)
+
+    local function paint_datespec(line)
+        local datespec_as_string = datespec:serialize({
+            natural = true,
+            default_format = ui.get_buffer_options().default_date_format
+        })
+        local result = task.set_do_date(line, datespec_as_string)
+        datespec = datespec:next()
+        return result
+    end
+
+    local func = make_ranged_function(paint_datespec)
+    return func(start_row, end_row)
+end
+
+
 function ui.get_buffer_options()
     if vim.b.today == nil then
         vim.b.today = vim.deepcopy(ui.options.buffer)
@@ -94,8 +113,7 @@ end
 
 function ui.organize()
     local was_modified = vim.api.nvim_buf_get_option(0, "modified")
-
-    local working_date = date(vim.b.today_working_date)
+    local working_date = vim.b.today_working_date
 
     -- set up the categorizer
     local categorizer

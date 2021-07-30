@@ -218,7 +218,17 @@ describe("Today core module's", function()
     describe("set_do_date", function()
         it("should add a datespec if one does not already exist", function()
             local result = task.set_do_date("[x] task", "tomorrow")
-            assert.are.equal(result, "[x] task <tomorrow>")
+            assert.are.equal(result, "[x] <tomorrow> task")
+        end)
+
+        it("should preserve any recur spec", function()
+            local result = task.set_do_date("[x] <today +every day> task", "tomorrow")
+            assert.are.equal(result, "[x] <tomorrow +every day> task")
+        end)
+
+        it("should normalize", function()
+            local result = task.set_do_date("<today +every day> task", "tomorrow")
+            assert.are.equal(result, "[ ] <tomorrow +every day> task")
         end)
     end)
 

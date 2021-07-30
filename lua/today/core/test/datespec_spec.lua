@@ -7,6 +7,12 @@ describe("datespec", function()
     end
 
     describe("new", function()
+        it("returns today if spec is nil", function()
+            assert_date_equals(
+                DateSpec:new(nil, "2021-01-01").do_date,
+                { 2021, 01, 01 }
+            )
+        end)
         it("reads natural language for today", function()
             local ds = DateSpec:new("<today>", "2021-02-01")
             assert_date_equals(ds.do_date, { 2021, 2, 1 })
@@ -14,6 +20,18 @@ describe("datespec", function()
 
         it("reads natural language for tomorrow", function()
             local ds = DateSpec:new("<tomorrow>", "2021-02-01")
+            assert_date_equals(ds.do_date, { 2021, 2, 2 })
+        end)
+    end)
+
+    describe("from_parts", function()
+        it("reads natural language for today", function()
+            local ds = DateSpec:from_parts("today", nil, "2021-02-01")
+            assert_date_equals(ds.do_date, { 2021, 2, 1 })
+        end)
+
+        it("reads natural language for tomorrow", function()
+            local ds = DateSpec:from_parts("tomorrow", nil, "2021-02-01")
             assert_date_equals(ds.do_date, { 2021, 2, 2 })
         end)
     end)
@@ -169,6 +187,13 @@ describe("datespec", function()
                 local ds = DateSpec:new("<2021-07-04 +every monday>", "2021-07-01")
                 assert_date_equals(ds:next().do_date, { 2021, 7, 5 })
             end)
+        end)
+    end)
+
+    describe("first_in_sequence", function()
+        it("should return the first datespec in the sequence", function()
+            local ds = DateSpec:first_in_sequence("2021-07-04", "every tuesday")
+            assert.are.equal(tostring(ds.do_date), "2021-07-06")
         end)
     end)
 end)

@@ -5,32 +5,6 @@ local naturaldate = require("today.core.datespec.natural")
 local recurring = require("today.core.datespec.recurring")
 local util = require("today.util")
 
---- Parse a date spec string into its pieces: the do date and the recur string.
--- If the spec is nil, the do date is assumed to be today, and the recur is set to nil.
--- @param spec The specification string.
--- @param today Today's date as a DateObj.
--- @return A pair of the do date as a DateObj and the recur as a string.
-local function parse(spec, today)
-    if spec == nil then
-        return today
-    end
-
-    local contents = spec:match("<(.*)>")
-    if contents == nil then
-        error("Date spec " .. spec .. " is not valid")
-    end
-
-    local parts = util.split(contents, "+")
-    parts = util.map(util.strip, parts)
-
-    local do_date_string = parts[1]
-    local recur_spec = parts[2]
-
-    local do_date = naturaldate.natural_to_absolute(do_date_string, today)
-
-    return do_date, recur_spec
-end
-
 --- Representation of a datespec: a do date and recur spec.
 -- @type DateSpec
 local DateSpec = {}
@@ -45,20 +19,36 @@ local DateSpec = {}
 function DateSpec:new(spec, today)
     assert(today ~= nil)
 
-    if type(today) == "string" then
-        today = DateObj:new(today)
-    else
-        today = DateObj:_from_luadate_object(today)
+    if spec == nil then
+        spec = "<today>"
     end
 
-    local do_date, recur_spec = parse(spec, today)
-    return DateSpec._from_parts(self, do_date, recur_spec, today)
+    local contents = spec:match("<(.*)>")
+    if contents == nil then
+        error("Date spec " .. spec .. " is not valid")
+    end
+
+    local parts = util.split(contents, "+")
+    parts = util.map(util.strip, parts)
+
+    local do_date_string = parts[1]
+    local recur_spec = parts[2]
+
+    return DateSpec.from_parts(self, do_date_string, recur_spec, today)
 end
 
-function DateSpec._from_parts(self, do_date, recur_spec, today)
+function DateSpec:from_parts(do_date, recur_spec, today)
+    assert(do_date ~= nil)
     assert(today ~= nil)
 
-    local obj = { do_date = do_date, recur_spec = recur_spec, today = today }
+    today = DateObj:new(today)
+
+    if type(do_date) == "string" then
+        do_date = naturaldate.natural_to_absolute(do_date, today)
+    end
+    assert(do_date.class == "DateObj")
+
+    local obj = { do_date = do_date, recur_spec = recur_spec, today = today, class = "DateSpec" }
     self.__index = self
     return setmetatable(obj, self)
 end
@@ -125,7 +115,13 @@ function DateSpec:next()
     end
 
     local next_do_date = DateObj:new(recurring.next(self.do_date, self.recur_spec))
-    return DateSpec._from_parts(self, next_do_date, self.recur_spec, self.today)
+    return DateSpec.from_parts(self, next_do_date, self.recur_spec, self.today)
+end
+
+function DateSpec:first_in_sequence(today, recur_spec)
+    today = DateObj:new(today)
+    local yesterday = today:add_days(-1)
+    return self:from_parts(yesterday, recur_spec, today):next()
 end
 
 return DateSpec

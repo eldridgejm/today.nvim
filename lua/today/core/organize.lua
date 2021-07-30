@@ -124,6 +124,7 @@ local function categorize(lines, categorizer)
         table.insert(result, s)
     end
 
+
     local function add_lines(to_add)
         for _, line in pairs(to_add) do
             table.insert(result, line)
@@ -185,7 +186,7 @@ function organize.basic_informer(info)
     return function()
         local lines = {}
 
-        local working_date = info.working_date:fmt("%A %B %d")
+        local working_date = info.working_date
         table.insert(lines, "-- working date: " .. working_date)
         table.insert(lines, "-- categorizer: " .. info.categorizer)
 

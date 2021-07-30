@@ -109,7 +109,11 @@ RULES:add({
             target_weekday = ((target_weekday - 1) % 7) + 1
 
             local prefix
-            if diff >= 7 then prefix = "next " else prefix = "" end
+            if diff >= 7 then
+                prefix = "next "
+            else
+                prefix = ""
+            end
 
             return prefix .. WEEKDAYS[target_weekday]
         end
