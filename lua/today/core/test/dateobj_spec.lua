@@ -1,4 +1,4 @@
-DateObj = require("today.core.datespec.dateobj")
+DateObj = require("today.core.dates.dateobj")
 
 describe("dateobj", function()
     it("should be creatable from y, m, d", function()
