@@ -69,15 +69,11 @@ function DateObj._create(self, _date)
     end
 
     self.__lt = function(lhs, rhs)
-        if both(lhs, rhs, "infinite_future") then
-            return false
-        end
-
-        if (lhs._date ~= "infinite_future") and (rhs._date == "infinite_future") then
+        local n = lhs:days_until(rhs)
+        if n == nil then
             return true
         end
-
-        return lhs._date < rhs._date
+        return n > 0
     end
 
     self.__eq = function(lhs, rhs)
@@ -141,6 +137,35 @@ function DateObj:days_until(other)
     return math.ceil(datelib.diff(other._date, self._date):spandays())
 end
 
+--- Calculate the number of times we see midnight Sunday between now and the other date.
+-- If both dates are the infinite future, nil is returned. Otherwise, if now is finite and
+-- the other date is infinite, returns math.huge. Note that the other date must be in
+-- the future.
+-- @param other The other DateObj.
+-- @return The number of days from self to other as an integer.
+function DateObj:weeks_until(other)
+    if other == DateObj:infinite_future() then
+        return math.huge
+    end
+
+    assert(self <= other)
+
+    -- find this saturday
+    local todays_weekday = self:day_of_the_week()
+    local delta = (7 - todays_weekday) % 7
+    local this_saturday = self:add_days(delta)
+
+    local n = 0
+    while true do
+        if other <= this_saturday then
+            return n
+        else
+            n = n + 1
+            this_saturday = this_saturday:add_days(7)
+        end
+    end
+end
+
 --- The day of the week, as an integer starting with Sunday as 1, Monday as 2, etc.
 -- @return The day of the week as an integer, or nil if the date is infinite.
 function DateObj:day_of_the_week()
@@ -149,5 +174,7 @@ function DateObj:day_of_the_week()
     end
     return self._date:getweekday()
 end
+
+
 
 return DateObj
