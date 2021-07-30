@@ -1,5 +1,7 @@
+local DateObj = require("today.core.datespec.dateobj")
+
 describe("Today core module's", function()
-    task = require("today.core.task")
+    local task = require("today.core.task")
 
     describe("is_done", function()
         it("should consider a task without a checkbox to be undone", function()
@@ -258,6 +260,65 @@ describe("Today core module's", function()
             assert.are.equal(
                 task.replace_datespec_with_next(line, "2021-10-10"),
                 "[ ] <tomorrow +daily> this is a datespec"
+            )
+        end)
+    end)
+
+
+    describe("get_datespec_string_parts", function()
+
+        it("returns nil if there is no datespec", function()
+            assert.are.equal(
+                task.get_datespec_string_parts("[ ] this has no datespec"),
+                nil
+            )
+        end)
+
+        it("returns parts as strings with no parsing", function()
+            assert.are.same(
+                task.get_datespec_string_parts("[ ] <tomorrow +every day> this has a datespec"),
+                { do_date = "tomorrow", recur_pattern = "every day" }
+            )
+        end)
+
+
+        it("returns nil for recur if there is none", function()
+            assert.are.same(
+                task.get_datespec_string_parts("[ ] <2021-10-10> this has a datespec"),
+                { do_date = "2021-10-10", recur_pattern = nil }
+            )
+        end)
+    end)
+
+
+    describe("parse_datespec", function()
+        it("returns nil if there is no datespec", function()
+            assert.are.equal(
+                task.parse_datespec("[ ] this should return nil"),
+                nil
+            )
+        end)
+
+        it("returns the do date as a DateObj, recur pattern as string", function()
+            assert.are.same(
+                task.parse_datespec("[ ] <2021-10-10 +every week> this has a datespec"),
+                { do_date = DateObj:new("2021-10-10"), recur_pattern = "every week" }
+            )
+        end)
+
+
+        it("returns nil for recur if it is missing", function()
+            assert.are.same(
+                task.parse_datespec("[ ] <2021-10-10> this has a datespec"),
+                { do_date = DateObj:new("2021-10-10"), recur_pattern = nil}
+            )
+        end)
+
+
+        it("works for natural do dates", function()
+            assert.are.same(
+                task.parse_datespec("[ ] <tomorrow> this has a datespec", "2021-07-04"),
+                { do_date = DateObj:new("2021-07-05"), recur_pattern = nil}
             )
         end)
     end)

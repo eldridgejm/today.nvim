@@ -2,6 +2,7 @@
 
 local util = require("today.util")
 local DateSpec = require("today.core.datespec")
+local DateObj = require("today.core.datespec.dateobj")
 
 local DEFAULT_SERIALIZE_OPTIONS = {
     natural = true,
@@ -273,6 +274,36 @@ end
 -- no datespec.
 function task.get_datespec_as_string(line)
     return line:match("(<.*>)")
+end
+
+
+function task.get_datespec_string_parts(line)
+    local datespec = task.get_datespec_as_string(line)
+    if datespec == nil then
+        return nil
+    end
+
+    local contents = datespec:match("<(.*)>")
+    local groups = util.map(util.strip, util.split(contents, "+"))
+    return { do_date = groups[1], recur_pattern = groups[2] }
+end
+
+
+--- Retrieve the parsed parts of the datespec, if it exists.
+-- @param line The task string.
+-- @return A table of the parts of the datespec, including a "do_date" as a DateObj
+-- and a "recur_pattern" as a string. If the datespec has no recur pattern, this
+-- entry of the table will be nil. If the task itself has no datespec, nil is returned.
+function task.parse_datespec(line)
+    local parts = task.get_datespec_string_parts(line)
+    if parts == nil then
+        return nil
+    end
+
+    return {
+        do_date = DateObj:new(parts["do_date"]),
+        recur_pattern = parts["recur_pattern"]
+    }
 end
 
 --- Helper function which replaces a datespec string with a new one.
