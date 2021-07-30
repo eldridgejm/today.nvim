@@ -314,7 +314,7 @@ end
 -- the date is serialized in YYYY-MM-DD format. If this is "human", it is serialized
 -- in the format of "mon jul 05 2021".
 -- @return The date in natural form as a string.
-function naturaldate.absolute_to_natural(s, today, options)
+function naturaldate.to_natural(s, today, options)
     if options == nil then
         options = {
             default_format = "YYYY-MM-DD",

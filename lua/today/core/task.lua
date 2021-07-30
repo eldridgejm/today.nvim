@@ -429,7 +429,7 @@ function task.replace_datespec_with_next(line, working_date, serialize_options)
     end
 
     local new_do_date = dates.next(ds.do_date, ds.recur_pattern)
-    local new_do_date_string = dates.absolute_to_natural(new_do_date, working_date)
+    local new_do_date_string = dates.to_natural(new_do_date, working_date)
 
     return task.replace_datespec_string_parts(
         line,

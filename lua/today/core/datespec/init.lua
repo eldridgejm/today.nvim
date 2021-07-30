@@ -96,7 +96,7 @@ function DateSpec:serialize(options)
 
     local do_date = tostring(self.do_date)
     if options.natural then
-        do_date = naturaldate.absolute_to_natural(
+        do_date = naturaldate.to_natural(
             do_date,
             self.today,
             { default_format = options.default_format }
