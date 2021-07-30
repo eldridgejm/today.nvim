@@ -266,7 +266,7 @@ RULES:add({
 -- @param s The natural date as a string. Can be in any case.
 -- @param today The date used for today, as a YYYY-MM-DD string or a DateObj.
 -- @return The absolute date as a DateObj.
-function naturaldate.natural_to_absolute(s, today)
+function naturaldate.from_natural(s, today)
     s = s:lower()
 
     for _, rule in ipairs(RULES) do

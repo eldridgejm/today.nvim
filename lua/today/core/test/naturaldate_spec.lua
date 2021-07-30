@@ -5,7 +5,7 @@ describe("natural language to date", function()
     describe("today", function()
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("today", DateObj:new("2021-7-5")),
+                dateslib.from_natural("today", DateObj:new("2021-7-5")),
                 DateObj:new("2021-07-05")
             )
         end)
@@ -14,14 +14,14 @@ describe("natural language to date", function()
     describe("tomorrow", function()
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("tomorrow", DateObj:new("2021-7-5")),
+                dateslib.from_natural("tomorrow", DateObj:new("2021-7-5")),
                 DateObj:new("2021-07-06")
             )
         end)
 
         it("converts tom to tomorrow", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("tom", DateObj:new("2021-7-5")),
+                dateslib.from_natural("tom", DateObj:new("2021-7-5")),
                 DateObj:new("2021-07-06")
             )
         end)
@@ -30,7 +30,7 @@ describe("natural language to date", function()
     describe("someday", function()
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("someday", DateObj:new("2021-7-5")),
+                dateslib.from_natural("someday", DateObj:new("2021-7-5")),
                 DateObj:infinite_future()
             )
         end)
@@ -41,35 +41,35 @@ describe("natural language to date", function()
 
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("tuesday", DateObj:new("2021-07-5")),
+                dateslib.from_natural("tuesday", DateObj:new("2021-07-5")),
                 DateObj:new("2021-07-06")
             )
         end)
 
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("wednesday", DateObj:new("2021-07-05")),
+                dateslib.from_natural("wednesday", DateObj:new("2021-07-05")),
                 DateObj:new("2021-07-07")
             )
         end)
 
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("thursday", DateObj:new("2021-07-05")),
+                dateslib.from_natural("thursday", DateObj:new("2021-07-05")),
                 DateObj:new("2021-07-08")
             )
         end)
 
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("friday", DateObj:new("2021-07-05")),
+                dateslib.from_natural("friday", DateObj:new("2021-07-05")),
                 DateObj:new("2021-07-09")
             )
         end)
 
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("saturday", DateObj:new("2021-07-05")),
+                dateslib.from_natural("saturday", DateObj:new("2021-07-05")),
                 DateObj:new("2021-07-10")
             )
         end)
@@ -77,28 +77,28 @@ describe("natural language to date", function()
         it("considers sunday to be today", function()
             -- 7/4 was a sunday
             assert.are.equal(
-                dateslib.natural_to_absolute("sunday", DateObj:new("2021-07-4")),
+                dateslib.from_natural("sunday", DateObj:new("2021-07-4")),
                 DateObj:new("2021-07-4")
             )
         end)
 
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("monday", DateObj:new("2021-07-4")),
+                dateslib.from_natural("monday", DateObj:new("2021-07-4")),
                 DateObj:new("2021-07-5")
             )
         end)
 
         it("works with weekday abbreviations", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("m", DateObj:new("2021-07-4")),
+                dateslib.from_natural("m", DateObj:new("2021-07-4")),
                 DateObj:new("2021-07-5")
             )
         end)
 
         it("works with weekday abbreviations", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("th", DateObj:new("2021-07-5")),
+                dateslib.from_natural("th", DateObj:new("2021-07-5")),
                 DateObj:new("2021-07-08")
             )
         end)
@@ -108,35 +108,35 @@ describe("natural language to date", function()
         -- for these tests, it is useful to know that 2021-04-04 was a Sunday
         it("should consider next sunday to be a week away", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("next sunday", DateObj:new("2021-07-04")),
+                dateslib.from_natural("next sunday", DateObj:new("2021-07-04")),
                 DateObj:new("2021-07-11")
             )
         end)
 
         it("should use the second instance of the weekday", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("next monday", DateObj:new("2021-07-04")),
+                dateslib.from_natural("next monday", DateObj:new("2021-07-04")),
                 DateObj:new("2021-07-12")
             )
         end)
 
         it("should work with short names", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("next mon", DateObj:new("2021-07-04")),
+                dateslib.from_natural("next mon", DateObj:new("2021-07-04")),
                 DateObj:new("2021-07-12")
             )
         end)
 
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("next tuesday", DateObj:new("2021-07-4")),
+                dateslib.from_natural("next tuesday", DateObj:new("2021-07-4")),
                 DateObj:new("2021-07-13")
             )
         end)
 
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute(
+                dateslib.from_natural(
                     "next wednesday",
                     DateObj:new("2021-07-04")
                 ),
@@ -146,28 +146,28 @@ describe("natural language to date", function()
 
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("next thursday", DateObj:new("2021-07-04")),
+                dateslib.from_natural("next thursday", DateObj:new("2021-07-04")),
                 DateObj:new("2021-07-15")
             )
         end)
 
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("next friday", DateObj:new("2021-07-04")),
+                dateslib.from_natural("next friday", DateObj:new("2021-07-04")),
                 DateObj:new("2021-07-16")
             )
         end)
 
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("next saturday", DateObj:new("2021-07-04")),
+                dateslib.from_natural("next saturday", DateObj:new("2021-07-04")),
                 DateObj:new("2021-07-17")
             )
         end)
 
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("next sunday", DateObj:new("2021-07-4")),
+                dateslib.from_natural("next sunday", DateObj:new("2021-07-4")),
                 DateObj:new("2021-07-11")
             )
         end)
@@ -176,14 +176,14 @@ describe("natural language to date", function()
     describe("one week from now", function()
         it("converts 1 week from now", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("1 week from now", DateObj:new("2021-7-5")),
+                dateslib.from_natural("1 week from now", DateObj:new("2021-7-5")),
                 DateObj:new("2021-07-12")
             )
         end)
 
         it("converts 2 weeks from now", function()
             assert.are.equal(
-                dateslib.natural_to_absolute(
+                dateslib.from_natural(
                     "2 weeks from now",
                     DateObj:new("2021-7-5")
                 ),
@@ -196,7 +196,7 @@ describe("natural language to date", function()
         it("converts 1 month from now", function()
             -- adds 30 days
             assert.are.equal(
-                dateslib.natural_to_absolute(
+                dateslib.from_natural(
                     "1 month from now",
                     DateObj:new("2021-7-5")
                 ),
@@ -207,7 +207,7 @@ describe("natural language to date", function()
         it("converts 2 months from now", function()
             -- adds 60 days
             assert.are.equal(
-                dateslib.natural_to_absolute(
+                dateslib.from_natural(
                     "2 months from now",
                     DateObj:new("2021-7-5")
                 ),
@@ -219,21 +219,21 @@ describe("natural language to date", function()
     describe("k days from now", function()
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("3 days from now", DateObj:new("2021-7-5")),
+                dateslib.from_natural("3 days from now", DateObj:new("2021-7-5")),
                 DateObj:new("2021-07-08")
             )
         end)
 
         it("works with day singular", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("1 day from now", DateObj:new("2021-7-5")),
+                dateslib.from_natural("1 day from now", DateObj:new("2021-7-5")),
                 DateObj:new("2021-07-06")
             )
         end)
 
         it("works with lots of days", function()
             assert.are.equal(
-                dateslib.natural_to_absolute(
+                dateslib.from_natural(
                     "10 days from now",
                     DateObj:new("2021-7-5")
                 ),
@@ -245,7 +245,7 @@ describe("natural language to date", function()
     describe("next week", function()
         it("resolves to next monday", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("next week", DateObj:new("2021-7-5")),
+                dateslib.from_natural("next week", DateObj:new("2021-7-5")),
                 DateObj:new("2021-07-12")
             )
         end)
@@ -254,7 +254,7 @@ describe("natural language to date", function()
     describe("next month", function()
         it("resolves to first day of next month", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("next month", DateObj:new("2021-7-5")),
+                dateslib.from_natural("next month", DateObj:new("2021-7-5")),
                 DateObj:new("2021-08-01")
             )
         end)
@@ -263,14 +263,14 @@ describe("natural language to date", function()
     describe("human datestamp", function()
         it("is case insensitive", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("mon jul 05 2021", DateObj:new("2021-1-1")),
+                dateslib.from_natural("mon jul 05 2021", DateObj:new("2021-1-1")),
                 DateObj:new("2021-07-5")
             )
         end)
 
         it("is case insensitive (capitalized)", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("MoN jUl 05 2021", DateObj:new("2021-1-1")),
+                dateslib.from_natural("MoN jUl 05 2021", DateObj:new("2021-1-1")),
                 DateObj:new("2021-07-5")
             )
         end)
@@ -278,7 +278,7 @@ describe("natural language to date", function()
         it("is doesnt care if the day of week is wrong", function()
             -- july 4 was a sunday
             assert.are.equal(
-                dateslib.natural_to_absolute("mon jul 04 2021", DateObj:new("2021-1-1")),
+                dateslib.from_natural("mon jul 04 2021", DateObj:new("2021-1-1")),
                 DateObj:new("2021-07-4")
             )
         end)
@@ -287,21 +287,21 @@ describe("natural language to date", function()
     describe("past dates", function()
         it("resolves yesterday", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("yesterday", DateObj:new("2021-7-5")),
+                dateslib.from_natural("yesterday", DateObj:new("2021-7-5")),
                 DateObj:new("2021-07-04")
             )
         end)
 
         it("resolves dates in the past", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("2 days ago", DateObj:new("2021-7-5")),
+                dateslib.from_natural("2 days ago", DateObj:new("2021-7-5")),
                 DateObj:new("2021-07-03")
             )
         end)
 
         it("resolves dates in the distant past", function()
             assert.are.equal(
-                dateslib.natural_to_absolute("398 days ago", DateObj:new("2021-7-5")),
+                dateslib.from_natural("398 days ago", DateObj:new("2021-7-5")),
                 DateObj:new("2020-06-02")
             )
         end)

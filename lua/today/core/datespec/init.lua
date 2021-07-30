@@ -44,7 +44,7 @@ function DateSpec:from_parts(do_date, recur_spec, today)
     today = DateObj:new(today)
 
     if type(do_date) == "string" then
-        do_date = naturaldate.natural_to_absolute(do_date, today)
+        do_date = naturaldate.from_natural(do_date, today)
     end
     assert(do_date.class == "DateObj")
 
@@ -69,7 +69,7 @@ function DateSpec:weeks_until_do()
         return math.huge
     end
 
-    local this_saturday = naturaldate.natural_to_absolute("saturday", self.today)
+    local this_saturday = naturaldate.from_natural("saturday", self.today)
     local n = 0
     while true do
         if self.do_date <= this_saturday then

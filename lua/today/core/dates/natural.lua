@@ -267,7 +267,7 @@ RULES:add({
 -- @param s The natural date as a string. Can be in any case.
 -- @param today The date used for today, as a YYYY-MM-DD string or a DateObj.
 -- @return The absolute date as a DateObj.
-function M.natural_to_absolute(s, today)
+function M.from_natural(s, today)
     assert(today ~= nil)
 
     if type(today) == "string" then

@@ -262,6 +262,14 @@ describe("Today core module's", function()
                 "[ ] <tomorrow +daily> this is a datespec"
             )
         end)
+
+        it("should use natural dates options", function()
+            local line = "[ ] <2021-10-10 +every month> this is a datespec"
+            assert.are.equal(
+                task.replace_datespec_with_next(line, "2021-10-10", { default_format = "human" }),
+                "[ ] <wed nov 10 2021 +every month> this is a datespec"
+            )
+        end)
     end)
 
     describe("get_datespec_string_parts", function()

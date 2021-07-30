@@ -4,6 +4,10 @@ local util = require("today.util")
 local dates = require("today.core.dates")
 local DateSpec = require("today.core.datespec")
 
+local DEFAULT_TO_NATURAL_OPTIONS = {
+    default_format = "YYYY-MM-DD",
+}
+
 local DEFAULT_SERIALIZE_OPTIONS = {
     natural = true,
     default_format = "YYYY-MM-DD",
@@ -302,7 +306,7 @@ function task.parse_datespec(line, working_date)
     end
 
     return {
-        do_date = dates.natural_to_absolute(parts["do_date"], working_date),
+        do_date = dates.from_natural(parts["do_date"], working_date),
         recur_pattern = parts["recur_pattern"],
     }
 end
@@ -330,7 +334,7 @@ end
 
 --- Given datespec parts, replaces the current datespec with the new datespec.
 -- @param line The task line.
--- @datespec A table of datespec parts as strings. These will replace the previous 
+-- @datespec A table of datespec parts as strings. These will replace the previous
 -- datespec parts verbatim.
 -- @return The new task line with datespec replaced.
 function task.replace_datespec_string_parts(line, datespec)
@@ -412,15 +416,15 @@ end
 -- If the task is not recurring, this returns nil.
 -- @param line The task string.
 -- @param working_date The working date as a string in YYYY-MM-DD format.
--- @param serialize_options A dictionary of options for core.dates.to_natural
+-- @param to_natural_options A dictionary of options for core.dates.to_natural
 -- @return The new task string with the datespec replaced (or nil, see above).
-function task.replace_datespec_with_next(line, working_date, serialize_options)
+function task.replace_datespec_with_next(line, working_date, to_natural_options)
     if task.is_done(line) then
         return nil
     end
 
-    if options == nil then
-        options = DEFAULT_SERIALIZE_OPTIONS
+    if to_natural_options == nil then
+        to_natural_options = DEFAULT_TO_NATURAL_OPTIONS
     end
 
     local ds = task.parse_datespec_safe(line, working_date)
@@ -429,7 +433,7 @@ function task.replace_datespec_with_next(line, working_date, serialize_options)
     end
 
     local new_do_date = dates.next(ds.do_date, ds.recur_pattern)
-    local new_do_date_string = dates.to_natural(new_do_date, working_date)
+    local new_do_date_string = dates.to_natural(new_do_date, working_date, to_natural_options)
 
     return task.replace_datespec_string_parts(
         line,
