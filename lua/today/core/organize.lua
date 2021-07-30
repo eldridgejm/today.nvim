@@ -124,7 +124,6 @@ local function categorize(lines, categorizer)
         table.insert(result, s)
     end
 
-
     local function add_lines(to_add)
         for _, line in pairs(to_add) do
             table.insert(result, line)

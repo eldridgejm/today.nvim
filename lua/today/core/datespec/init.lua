@@ -48,7 +48,12 @@ function DateSpec:from_parts(do_date, recur_spec, today)
     end
     assert(do_date.class == "DateObj")
 
-    local obj = { do_date = do_date, recur_spec = recur_spec, today = today, class = "DateSpec" }
+    local obj = {
+        do_date = do_date,
+        recur_spec = recur_spec,
+        today = today,
+        class = "DateSpec",
+    }
     self.__index = self
     return setmetatable(obj, self)
 end

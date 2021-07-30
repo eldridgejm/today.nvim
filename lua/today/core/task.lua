@@ -342,7 +342,9 @@ function task.set_do_date(line, do_date)
     if line:match("<.*>") == nil then
         return task.normalize(line .. " " .. "<" .. do_date .. ">")
     else
-        return task.normalize(replace_datespec_string(line, "<" .. do_date .. recur_spec .. ">"))
+        return task.normalize(
+            replace_datespec_string(line, "<" .. do_date .. recur_spec .. ">")
+        )
     end
 end
 

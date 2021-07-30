@@ -1,7 +1,7 @@
 local task = require("today.core.task")
 local organize = require("today.core.organize")
 local util = require("today.util")
-local DateSpec = require('today.core.datespec')
+local DateSpec = require("today.core.datespec")
 
 local date = require("today.vendor.date")
 
@@ -84,14 +84,13 @@ ui.task_make_datespec_natural = make_ranged_function(function(line)
     })
 end)
 
-
 function ui.recur(recur_spec, start_row, end_row)
     local datespec = DateSpec:first_in_sequence(vim.b.today_working_date, recur_spec)
 
     local function paint_datespec(line)
         local datespec_as_string = datespec:serialize({
             natural = true,
-            default_format = ui.get_buffer_options().default_date_format
+            default_format = ui.get_buffer_options().default_date_format,
         })
         local result = task.set_do_date(line, datespec_as_string)
         datespec = datespec:next()
@@ -101,7 +100,6 @@ function ui.recur(recur_spec, start_row, end_row)
     local func = make_ranged_function(paint_datespec)
     return func(start_row, end_row)
 end
-
 
 function ui.get_buffer_options()
     if vim.b.today == nil then
