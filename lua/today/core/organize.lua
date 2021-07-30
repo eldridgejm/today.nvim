@@ -3,6 +3,7 @@
 local task = require("today.core.task")
 local util = require("today.util")
 local sort = require("today.core.sort")
+local dates = require("today.core.dates")
 
 local organize = {}
 
@@ -12,6 +13,8 @@ local organize = {}
 --- Organizes tasks by do date first, then by priority.
 -- @param working_date The working date as a string in YYYY-MM-DD format.
 function organize.do_date_categorizer(working_date, options)
+    working_date = dates.DateObj:new(working_date)
+
     if options == nil then
         options = {
             show_empty_sections = false,
@@ -51,19 +54,22 @@ function organize.do_date_categorizer(working_date, options)
         }),
         groupfunc = function(tasks)
             local keyfunc = function(t)
-                local datespec = task.get_datespec_safe(t, working_date)
+                local datespec = task.parse_datespec_safe(t, working_date)
+
+                local days_until_do = working_date:days_until(datespec.do_date)
+                local weeks_until_do = working_date:weeks_until(datespec.do_date)
 
                 if task.is_done(t) then
                     return "done"
-                elseif datespec:days_until_do() <= 0 then
+                elseif days_until_do <= 0 then
                     return "undone:today"
-                elseif datespec:days_until_do() == 1 then
+                elseif days_until_do == 1 then
                     return "undone:tomorrow"
-                elseif datespec:weeks_until_do() == 0 then
+                elseif weeks_until_do == 0 then
                     return "undone:this_week"
-                elseif datespec:weeks_until_do() == 1 then
+                elseif weeks_until_do == 1 then
                     return "undone:next_week"
-                elseif datespec:days_until_do() == math.huge then
+                elseif days_until_do == math.huge then
                     return "undone:someday"
                 else
                     return "undone:future"

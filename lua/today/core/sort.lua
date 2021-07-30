@@ -103,8 +103,8 @@ function sort.make_do_date_comparator(working_date)
     assert(working_date ~= nil)
 
     local function comparator(task_x, task_y)
-        local x_ds = task.get_datespec_safe(task_x, working_date).do_date
-        local y_ds = task.get_datespec_safe(task_y, working_date).do_date
+        local x_ds = task.parse_datespec_safe(task_x, working_date).do_date
+        local y_ds = task.parse_datespec_safe(task_y, working_date).do_date
         if x_ds == y_ds then
             return nil
         end

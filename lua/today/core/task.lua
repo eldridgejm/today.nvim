@@ -307,6 +307,15 @@ function task.parse_datespec(line, working_date)
     }
 end
 
+function task.parse_datespec_safe(line, working_date)
+    local ds = task.parse_datespec(line, working_date)
+    if ds == nil then
+        return { do_date = working_date, recur_pattern = nil }
+    else
+        return ds
+    end
+end
+
 --- Helper function which replaces a datespec string with a new one.
 local function replace_datespec_string(line, new_spec)
     local second_space = " "

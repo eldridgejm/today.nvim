@@ -148,7 +148,7 @@ function DateObj:weeks_until(other)
         return math.huge
     end
 
-    assert(self <= other)
+    if self > other then return nil end
 
     -- find this saturday
     local todays_weekday = self:day_of_the_week()
@@ -174,7 +174,5 @@ function DateObj:day_of_the_week()
     end
     return self._date:getweekday()
 end
-
-
 
 return DateObj
