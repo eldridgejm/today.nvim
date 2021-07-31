@@ -13,6 +13,27 @@ local organize = {}
 --- Organizes tasks by do date first, then by priority.
 -- @param working_date The working date as a string in YYYY-MM-DD format.
 
+function make_categorizer(components)
+    return function(lines)
+        local groups = components.grouper(lines)
+
+        local headers = util.keys(groups)
+        sort.mergesort(headers, components.header_comparator)
+
+        local result = {}
+        for _, header in ipairs(headers) do
+            group_tasks = groups[header]
+            sort.mergesort(group_tasks, components.task_comparator)
+            local group = {
+                header = header,
+                tasks = group_tasks,
+            }
+            table.insert(result, group)
+        end
+        return result
+    end
+end
+
 function organize.do_date_categorizer(working_date, options)
     working_date = dates.DateObj:new(working_date)
 
@@ -32,99 +53,77 @@ function organize.do_date_categorizer(working_date, options)
         "done",
     }
 
+    return make_categorizer({
+        grouper = function(tasks)
+            local keyfunc = function(t)
+                local datespec = task.parse_datespec_safe(t, working_date)
 
-    return function (lines)
-        local keyfunc = function(t)
-            local datespec = task.parse_datespec_safe(t, working_date)
+                local days_until_do = working_date:days_until(datespec.do_date)
+                local weeks_until_do = working_date:weeks_until(datespec.do_date)
 
-            local days_until_do = working_date:days_until(datespec.do_date)
-            local weeks_until_do = working_date:weeks_until(datespec.do_date)
-
-            if task.is_done(t) then
-                return "done"
-            elseif days_until_do <= 0 then
-                return "today"
-            elseif days_until_do == 1 then
-                return "tomorrow"
-            elseif weeks_until_do == 0 then
-                return "this week"
-            elseif weeks_until_do == 1 then
-                return "next week"
-            elseif days_until_do == math.huge then
-                return "someday"
-            else
-                return "future"
-            end
-        end
-
-        local groups = util.groupby(keyfunc, lines)
-
-        if options.show_empty_sections then
-            for key, _ in pairs(order) do
-                if groups[key] == nil then
-                    groups[key] = {}
+                if task.is_done(t) then
+                    return "done"
+                elseif days_until_do <= 0 then
+                    return "today"
+                elseif days_until_do == 1 then
+                    return "tomorrow"
+                elseif weeks_until_do == 0 then
+                    return "this week"
+                elseif weeks_until_do == 1 then
+                    return "next week"
+                elseif days_until_do == math.huge then
+                    return "someday"
+                else
+                    return "future"
                 end
             end
-        end
 
-        comparefunc = sort.chain_comparators({
+            local groups = util.groupby(keyfunc, tasks)
+
+            if options.show_empty_sections then
+                for _, key in pairs(order) do
+                    if groups[key] == nil then
+                        groups[key] = {}
+                    end
+                end
+            end
+
+            return groups
+        end,
+
+        header_comparator = sort.make_order_comparator(order),
+
+        task_comparator = sort.chain_comparators({
             sort.make_do_date_comparator(working_date),
             sort.priority_comparator,
-        })
-
-        local result = {}
-        for _, key in ipairs(order) do
-            group_tasks = groups[key]
-            if group_tasks ~= nil then
-                sort.mergesort(group_tasks, comparefunc)
-                local group = {
-                    header = key,
-                    tasks = group_tasks
-                }
-                table.insert(result, group)
-            end
-        end
-        return result
-    end
+        }),
+    })
 end
 
 --- Organizes tasks by the first tag present in the tag, then by do date, then priority.
 -- @param working_date The working date as a string in YYYY-MM-DD format.
 function organize.first_tag_categorizer(working_date)
-    return function (tasks)
-        local keyfunc = function(t)
-            local first_tag = task.get_first_tag(t)
-            if first_tag ~= nil then
-                return first_tag
-            else
-                return "other"
+    return make_categorizer({
+        grouper = function(tasks)
+            local keyfunc = function(line)
+                local first_tag = task.get_first_tag(line)
+                if first_tag ~= nil then
+                    return first_tag
+                else
+                    return "other"
+                end
             end
-        end
+            return util.groupby(keyfunc, tasks)
+        end,
 
-        local groups = util.groupby(keyfunc, tasks)
+        header_comparator = nil,
 
-        local cmp = sort.chain_comparators({
+        task_comparator = sort.chain_comparators({
             sort.completed_comparator,
             sort.make_do_date_comparator(working_date),
             sort.priority_comparator,
-        })
-
-        local keys = util.keys(groups)
-        sort.mergesort(keys)
-
-        local result = {}
-        for _, key in pairs(keys) do
-            local group_tasks = groups[key]
-            sort.mergesort(group_tasks, cmp)
-            local group = {
-                header = key,
-                tasks = group_tasks
-            }
-            table.insert(result, group)
-        end
-
-        return result
-    end
+        }),
+    })
 end
 
 local function categorize(lines, categorizer)

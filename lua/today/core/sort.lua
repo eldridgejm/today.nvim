@@ -138,4 +138,10 @@ function sort.priority_comparator(task_x, task_y)
     return x_pr > y_pr
 end
 
+function sort.make_order_comparator(order)
+    return function(x, y)
+        return util.index_of(order, x) < util.index_of(order, y)
+    end
+end
+
 return sort

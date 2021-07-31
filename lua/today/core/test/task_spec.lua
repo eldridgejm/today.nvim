@@ -366,15 +366,11 @@ describe("Today core module's", function()
 
         it("should replace existing datespecs", function()
             assert.are.same(
-                task.paint_recur_pattern(
-                    {
-                        "[ ] <tomorrow> one",
-                        "[ ] <next week +daily> two",
-                        "[ ] <yesterday> three",
-                    },
-                    "every m,w,f",
-                    "2021-07-04"
-                ),
+                task.paint_recur_pattern({
+                    "[ ] <tomorrow> one",
+                    "[ ] <next week +daily> two",
+                    "[ ] <yesterday> three",
+                }, "every m,w,f", "2021-07-04"),
                 {
                     "[ ] <2021-07-05> one",
                     "[ ] <2021-07-07> two",

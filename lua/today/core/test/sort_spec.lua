@@ -58,4 +58,20 @@ describe("core.sort", function()
             assert.are.equal(chain({ 1, 2, 3 }, { 1, 2, 3 }), true)
         end)
     end)
+
+    describe("make_order_comparator", function()
+        local order = { "beta", "gamma", "alpha", "epsilon" }
+
+        describe("it places alpha after gamma", function()
+            assert.is.falsy(sort.make_order_comparator(order)("alpha", "gamma"))
+        end)
+
+        describe("it places alpha before epsilon", function()
+            assert.is.truthy(sort.make_order_comparator(order)("alpha", "epsilon"))
+        end)
+
+        describe("it does not place alpha before alpha", function()
+            assert.is.falsy(sort.make_order_comparator(order)("alpha", "alpha"))
+        end)
+    end)
 end)
