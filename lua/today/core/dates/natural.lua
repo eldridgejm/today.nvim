@@ -319,6 +319,8 @@ end
 -- in the format of "mon jul 05 2021".
 -- @return The date in natural form as a string.
 function M.to_natural(s, today, options)
+    assert(today ~= nil)
+
     if options == nil then
         options = {
             default_format = "YYYY-MM-DD",

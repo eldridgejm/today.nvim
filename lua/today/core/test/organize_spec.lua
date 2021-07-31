@@ -136,11 +136,8 @@ describe("organize", function()
 
             -- then
             local expected = {
-                "-- tomorrow (1) {{{",
+                "-- this week (2) {{{",
                 "[ ] <tomorrow> this is done",
-                "-- }}}",
-                "",
-                "-- rest of the week (1) {{{",
                 "[ ] <thursday> undone",
                 "-- }}}",
                 "",
@@ -164,7 +161,7 @@ describe("organize", function()
             -- when
             local result = organize.organize(
                 lines,
-                organize.do_date_categorizer("2021-02-01", { natural = false })
+                organize.do_date_categorizer("2021-02-01" )
             )
 
             -- then
@@ -197,7 +194,7 @@ describe("organize", function()
                 lines,
                 organize.do_date_categorizer(
                     "2021-06-01",
-                    { show_empty_sections = true }
+                    { show_empty_sections = true, view = "weekly" }
                 )
             )
 
@@ -208,10 +205,7 @@ describe("organize", function()
                 "[ ] but this isn't",
                 "-- }}}",
                 "",
-                "-- tomorrow (0) {{{",
-                "-- }}}",
-                "",
-                "-- rest of the week (0) {{{",
+                "-- this week (0) {{{",
                 "-- }}}",
                 "",
                 "-- next week (0) {{{",
@@ -261,26 +255,26 @@ describe("organize", function()
             assert.are.same(result, expected)
         end)
 
-        describe("agenda view", function()
+        describe("daily view", function()
             it("should organize into days for two weeks from working date", function()
                 -- given
                 local lines = {
-                    "[ ] <2021-06-01> task 1",
-                    "[ ] <2021-06-02> task 2",
-                    "[ ] <2021-06-03> task 3",
-                    "[ ] <2021-06-04> task 4",
-                    "[ ] <2021-06-05> task 5",
-                    "[ ] <2021-06-06> task 6",
-                    "[ ] <2021-06-07> task 7",
-                    "[ ] <2021-06-08> task 8",
-                    "[ ] <2021-06-09> task 9",
-                    "[ ] <2021-06-10> task 10",
+                    "[ ] <2021-07-01> task 1",
+                    "[ ] <2021-07-02> task 2",
+                    "[ ] <2021-07-03> task 3",
+                    "[ ] <2021-07-04> task 4",
+                    "[ ] <2021-07-05> task 5",
+                    "[ ] <2021-07-06> task 6",
+                    "[ ] <2021-07-07> task 7",
+                    "[ ] <2021-07-08> task 8",
+                    "[ ] <2021-07-09> task 9",
+                    "[ ] <2021-07-10> task 10",
                 }
 
                 -- when
                 local result = organize.organize(
                     lines,
-                    organize.do_date_categorizer("2021-06-01", { view = "agenda" })
+                    organize.do_date_categorizer("2021-07-01", { show_empty_sections = true, view = "daily" })
                 )
 
                 -- then
@@ -289,32 +283,62 @@ describe("organize", function()
                     "-- today (1) {{{",
                     "[ ] <2021-07-01> task 1",
                     "-- }}}",
+                    "",
                     "-- tomorrow (1) {{{",
                     "[ ] <2021-07-02> task 2",
                     "-- }}}",
+                    "",
                     "-- saturday (1) {{{",
                     "[ ] <2021-07-03> task 3",
                     "-- }}}",
+                    "",
                     "-- sunday (1) {{{",
                     "[ ] <2021-07-04> task 4",
                     "-- }}}",
+                    "",
                     "-- monday (1) {{{",
                     "[ ] <2021-07-05> task 5",
                     "-- }}}",
+                    "",
                     "-- tuesday (1) {{{",
                     "[ ] <2021-07-06> task 6",
                     "-- }}}",
+                    "",
                     "-- wednesday (1) {{{",
                     "[ ] <2021-07-07> task 7",
                     "-- }}}",
+                    "",
                     "-- next thursday (1) {{{",
                     "[ ] <2021-07-08> task 8",
                     "-- }}}",
+                    "",
                     "-- next friday (1) {{{",
                     "[ ] <2021-07-09> task 9",
                     "-- }}}",
+                    "",
                     "-- next saturday (1) {{{",
                     "[ ] <2021-07-10> task 10",
+                    "-- }}}",
+                    "",
+                    "-- next sunday (0) {{{",
+                    "-- }}}",
+                    "",
+                    "-- next monday (0) {{{",
+                    "-- }}}",
+                    "",
+                    "-- next tuesday (0) {{{",
+                    "-- }}}",
+                    "",
+                    "-- next wednesday (0) {{{",
+                    "-- }}}",
+                    "",
+                    "-- future (0) {{{",
+                    "-- }}}",
+                    "",
+                    "-- someday (0) {{{",
+                    "-- }}}",
+                    "",
+                    "-- done (0) {{{",
                     "-- }}}",
                 }
                 assert.are.same(result, expected)
@@ -331,7 +355,7 @@ describe("organize", function()
                 -- when
                 local result = organize.organize(
                     lines,
-                    organize.do_date_categorizer("2021-06-01", { view = "agenda" })
+                    organize.do_date_categorizer("2021-06-01", { show_empty_sections = false, view = "daily" })
                 )
 
                 -- then

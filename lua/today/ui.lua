@@ -12,7 +12,8 @@ ui.options = {
         categorizer = {
             active = "do_date",
             options = {
-                show_empty_sections = true,
+                show_empty_sections = false,
+                view = "daily"
             },
         },
         filter_tags = nil,
@@ -60,10 +61,10 @@ local function replace_datespec_with_next(line)
     })
 end
 
-ui.task_mark_done = make_ranged_function(task.mark_done, replace_datespec_with_next)
+ui.task_mark_done = make_ranged_function(with_working_date(task.mark_done_with_do_date), replace_datespec_with_next)
 
 ui.task_toggle_done = make_ranged_function(
-    task.toggle_done,
+    with_working_date(task.toggle_done_with_do_date),
     with_working_date(replace_datespec_with_next)
 )
 ui.task_mark_undone = make_ranged_function(task.mark_undone)

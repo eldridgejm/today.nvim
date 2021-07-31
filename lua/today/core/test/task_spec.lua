@@ -9,6 +9,15 @@ describe("Today core module's", function()
         end)
     end)
 
+    describe("mark_done_with_do_date", function()
+        it("should add a datespec if none present", function()
+            assert.is.equal(
+                task.mark_done_with_do_date("[ ] testing", "2021-07-04"),
+                "[x] <2021-07-04> testing"
+            )
+        end)
+    end)
+
     describe("set_priority", function()
         it("should add priority to end if nonexistant", function()
             assert.are.equal(task.set_priority("testing", 2), "testing !!")

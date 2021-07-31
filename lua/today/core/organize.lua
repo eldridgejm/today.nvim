@@ -35,11 +35,10 @@ function make_categorizer(components)
 end
 
 
-function make_default_do_date_view(working_date, options)
+function make_weekly_view(working_date, options)
 
-    local default_order = {
+    local weekly_order = {
         "today",
-        "tomorrow",
         "this week",
         "next week",
         "future",
@@ -48,7 +47,7 @@ function make_default_do_date_view(working_date, options)
     }
 
     return {
-        order = default_order,
+        order = weekly_order,
         grouper = function(tasks)
             local keyfunc = function(t)
                 local datespec = task.parse_datespec_safe(t, working_date)
@@ -60,8 +59,6 @@ function make_default_do_date_view(working_date, options)
                     return "done"
                 elseif days_until_do <= 0 then
                     return "today"
-                elseif days_until_do == 1 then
-                    return "tomorrow"
                 elseif weeks_until_do == 0 then
                     return "this week"
                 elseif weeks_until_do == 1 then
@@ -76,7 +73,7 @@ function make_default_do_date_view(working_date, options)
             local groups = util.groupby(keyfunc, tasks)
 
             if options.show_empty_sections then
-                for _, key in pairs(default_order) do
+                for _, key in pairs(weekly_order) do
                     if groups[key] == nil then
                         groups[key] = {}
                     end
@@ -88,16 +85,73 @@ function make_default_do_date_view(working_date, options)
     }
 end
 
+
+function make_daily_view(working_date, options)
+
+    local daily_order = {}
+    for i=0,13 do
+        local header = dates.to_natural(working_date:add_days(i), working_date)
+        table.insert(daily_order, header)
+    end
+    util.put_into(daily_order, {
+        "future",
+        "someday",
+        "done",
+    })
+
+    return {
+        order = daily_order,
+        grouper = function(tasks)
+            local keyfunc = function(t)
+                local datespec = task.parse_datespec_safe(t, working_date)
+                local days_until_do = working_date:days_until(datespec.do_date)
+
+                if task.is_done(t) then
+                    return "done"
+                elseif days_until_do <= 0 then
+                    return "today"
+                elseif days_until_do == math.huge then
+                    return "someday"
+                elseif days_until_do > 13 then
+                    return "future"
+                else
+                    return dates.to_natural(working_date:add_days(days_until_do), working_date)
+                end
+
+            end
+
+            local groups = util.groupby(keyfunc, tasks)
+
+            if options.show_empty_sections then
+                for _, key in pairs(daily_order) do
+                    if groups[key] == nil then
+                        groups[key] = {}
+                    end
+                end
+            end
+
+            return groups
+        end
+    }
+end
+
+
+
 function organize.do_date_categorizer(working_date, options)
     working_date = dates.DateObj:new(working_date)
 
     if options == nil then
         options = {
             show_empty_sections = false,
+            view = "weekly"
         }
     end
 
-    local view = make_default_do_date_view(working_date, options)
+    local view_lookup = {
+        weekly = make_weekly_view,
+        daily = make_daily_view
+    }
+    local view = view_lookup[options.view](working_date, options)
 
     return make_categorizer({
         grouper = view.grouper,

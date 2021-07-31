@@ -116,6 +116,17 @@ function task.mark_done(line)
     return "[x] " .. tail(line)
 end
 
+--- Mark a task as done with a do date of the working date.
+-- If the line has no checkbox, one is added at the beginning.
+-- @param line The task string.
+-- @param do_date The date that will be used as the do date. DateObj or string.
+-- @return The new task string.
+function task.mark_done_with_do_date(line, do_date)
+    line = task.ensure_checkbox(line)
+    line = "[x] " .. tail(line)
+    return task.normalize(task.set_do_date(line, tostring(do_date)))
+end
+
 --- Mark a task as undone.
 -- If the line has no checkbox, one is added at the beginning.
 -- @param line The task string.
@@ -138,6 +149,19 @@ function task.toggle_done(line)
     end
 end
 
+--- Toggle a tasks checkmark and adds a do date.
+-- If the line has no checkbox, one is added at the beginning.
+-- @param line The task string.
+-- @param do_date The date that will be used as the do date. DateObj or string.
+-- @return The new task string.
+function task.toggle_done_with_do_date(line, do_date)
+    line = task.ensure_checkbox(line)
+    if task.is_done(line) then
+        return task.mark_undone(line)
+    else
+        return task.mark_done_with_do_date(line, do_date)
+    end
+end
 --- Description and Tags
 -- @section description
 
