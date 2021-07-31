@@ -183,11 +183,16 @@ function organize.first_tag_categorizer(working_date)
 
         header_comparator = nil,
 
-        task_comparator = sort.chain_comparators({
+        task_comparator = function (x, y) 
+            local cmp = sort.chain_comparators({
             sort.completed_comparator,
             sort.make_do_date_comparator(working_date),
             sort.priority_comparator,
-        }),
+        })
+            return cmp(x, y)
+        end
+
+        ,
     })
 end
 

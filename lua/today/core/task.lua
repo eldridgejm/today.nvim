@@ -313,10 +313,14 @@ function task.parse_datespec(line, working_date)
     }
 end
 
+--- Retrieve the parsed parts of the datespec. As opposed to the "regular" parse_datespec,
+-- this will not return nil if there is no datespec, instead, it will return a table
+-- where the "do_date" is a DateObj representing the working date, and the recur pattern
+-- is nil. Otherwise, the behavior is the same.
 function task.parse_datespec_safe(line, working_date)
     local ds = task.parse_datespec(line, working_date)
     if ds == nil then
-        return { do_date = working_date, recur_pattern = nil }
+        return { do_date = dates.DateObj:new(working_date), recur_pattern = nil }
     else
         return ds
     end

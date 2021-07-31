@@ -357,6 +357,15 @@ describe("Today core module's", function()
         end)
     end)
 
+    describe("parse_datespec_safe", function()
+        it("returns a table if there is no datespec", function()
+            assert.are.same(
+                task.parse_datespec_safe("[ ] this should not return nil", "2021-07-04"),
+                { do_date = DateObj:new("2021-07-04"), recur_pattern = nil }
+            )
+        end)
+    end)
+
     describe("paint_recur_pattern", function()
         it("should paint a recur pattern over a list of lines", function()
             assert.are.same(
