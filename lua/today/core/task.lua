@@ -2,7 +2,6 @@
 
 local util = require("today.util")
 local dates = require("today.core.dates")
-local DateSpec = require("today.core.datespec")
 
 local DEFAULT_TO_NATURAL_OPTIONS = {
     default_format = "YYYY-MM-DD",
@@ -255,22 +254,6 @@ end
 
 --- Datespec
 -- @section datespec
-
---- Retrieve the datespec as a DateSpec object. If the task string has no datespec,
--- this will return a "default" datespec with a do date of working_date.
--- @param line The task string.
--- @param working_date The date of working_date as a string in YYYY-MM-DD format.
--- @return The DateSpec for the task.
-function task.get_datespec_safe(line, working_date)
-    assert(type(working_date) == "string")
-
-    local ds = task.get_datespec_as_string(line)
-    -- this implicitly creates a DateSpec with a do-date of working_date if
-    -- there is no datespec string present.
-    local parsed_ds = DateSpec:new(ds, working_date)
-    assert(parsed_ds.class == "DateSpec")
-    return parsed_ds
-end
 
 --- Retrieve the datespec as a string from the task string.
 -- @param line The task string.

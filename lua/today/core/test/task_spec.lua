@@ -1,4 +1,4 @@
-local DateObj = require("today.core.datespec.dateobj")
+local DateObj = require("today.core.dates").DateObj
 
 describe("Today core module's", function()
     local task = require("today.core.task")
@@ -134,20 +134,6 @@ describe("Today core module's", function()
         end)
         it("should return nil if no tags", function()
             assert.are.equal(task.get_first_tag("this has no tags!"), nil)
-        end)
-    end)
-
-    describe("get_datespec_safe", function()
-        it("should get the do_date as a DateSpec", function()
-            local ds = task.get_datespec_safe("[x] tast <2021-07-5>", "2021-03-05")
-            local y, m, d = ds.do_date:ymd()
-            assert.are.same({ y, m, d }, { 2021, 7, 5 })
-        end)
-
-        it("should return today if there is not date string", function()
-            local ds = task.get_datespec_safe("[x] tast", "2021-03-05")
-            local y, m, d = ds.do_date:ymd()
-            assert.are.same({ y, m, d }, { 2021, 3, 5 })
         end)
     end)
 
