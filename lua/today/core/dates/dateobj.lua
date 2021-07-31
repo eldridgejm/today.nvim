@@ -21,13 +21,16 @@ local function both(lhs, rhs, value)
 end
 
 --- Constructor for DateObjects.
--- @param date A date as a string in YYYY-MM-DD format or "infinite_future",
--- or another DateObject.
+-- @param date A date as a string in YYYY-MM-DD format or "infinite_future"/
+-- "infinite_past", or another DateObject.
 -- @return A new DateObject.
 function DateObj:new(date)
     if type(date) == "string" then
         if date == "infinite_future" then
             return DateObj:infinite_future()
+        end
+        if date == "infinite_past" then
+            return DateObj:infinite_past()
         end
         return DateObj._create(self, datelib(date))
     elseif date.class == "DateObj" then
@@ -55,12 +58,17 @@ function DateObj:infinite_future()
     return DateObj._create(self, "infinite_future")
 end
 
+--- Create a DateObj representing a date in the infinite past.
+function DateObj:infinite_past()
+    return DateObj._create(self, "infinite_past")
+end
+
 function DateObj._create(self, _date)
     local obj = { _date = _date, class = "DateObj" }
     self.__index = self
 
     self.__tostring = function(instance)
-        -- if this is infinite_future
+        -- if this is infinite_future/past
         if type(instance._date) == "string" then
             return instance._date
         else
@@ -81,6 +89,10 @@ function DateObj._create(self, _date)
             return both(lhs, rhs, "infinite_future")
         end
 
+        if either(lhs, rhs, "infinite_past") then
+            return both(lhs, rhs, "infinite_past")
+        end
+
         return (
                 (lhs._date:getyear() == rhs._date:getyear())
                 and (lhs._date:getmonth() == rhs._date:getmonth())
@@ -91,10 +103,14 @@ function DateObj._create(self, _date)
     return setmetatable(obj, self)
 end
 
+function DateObj:is_infinite()
+    return (self._date == "infinite_future") or (self._date == "infinite_past")
+end
+
 --- Get the year, month, and day of the month as a triple.
--- @return A triple of integers, or nil if the date is the infinite future.
+-- @return A triple of integers, or nil if the date is the infinite future/past.
 function DateObj:ymd()
-    if self._date == "infinite_future" then
+    if self:is_infinite() then
         return nil
     end
 
@@ -109,6 +125,10 @@ end
 function DateObj:add_days(n)
     if self._date == "infinite_future" then
         return DateObj:infinite_future()
+    end
+
+    if self._date == "infinite_past" then
+        return DateObj:infinite_past()
     end
 
     local new_date = self._date:copy():adddays(n)
@@ -126,11 +146,15 @@ function DateObj:days_until(other)
         return nil
     end
 
-    if self._date == "infinite_future" then
+    if both(self, other, "infinite_past") then
+        return nil
+    end
+
+    if (self._date == "infinite_future") or (other._date == "infinite_past") then
         return -math.huge
     end
 
-    if other._date == "infinite_future" then
+    if (other._date == "infinite_future") or (self._date == "infinite_past") then
         return math.huge
     end
 
@@ -144,7 +168,7 @@ end
 -- @param other The other DateObj.
 -- @return The number of days from self to other as an integer.
 function DateObj:weeks_until(other)
-    if other == DateObj:infinite_future() then
+    if (other == DateObj:infinite_future()) or (self == DateObj:infinite_past()) then
         return math.huge
     end
 
@@ -171,7 +195,7 @@ end
 --- The day of the week, as an integer starting with Sunday as 1, Monday as 2, etc.
 -- @return The day of the week as an integer, or nil if the date is infinite.
 function DateObj:day_of_the_week()
-    if self._date == "infinite_future" then
+    if self:is_infinite() then
         return nil
     end
     return self._date:getweekday()

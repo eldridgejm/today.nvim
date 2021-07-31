@@ -37,7 +37,7 @@ describe("organize", function()
                     -- given
                     local lines = {
                         "[ ] undone",
-                        "[x] this is done",
+                        "[x] <today> this is done",
                         "[ ] but this isn't",
                     }
 
@@ -55,7 +55,7 @@ describe("organize", function()
                         "-- today (3) {{{",
                         "[ ] undone",
                         "[ ] but this isn't",
-                        "[x] this is done",
+                        "[x] <today> this is done",
                         "-- }}}",
                     }
                     assert.are.same(result, expected)
@@ -90,6 +90,40 @@ describe("organize", function()
                         "",
                         "-- done (1) {{{",
                         "[x] <yesterday> this is done",
+                        "-- }}}",
+                    }
+                    assert.are.same(result, expected)
+                end
+            )
+
+            it(
+                "should put done tasks in done section if move_to_done_immediately=false but they are undated",
+                function()
+                    -- given
+                    local lines = {
+                        "[ ] undone",
+                        "[x]  this is done",
+                        "[ ] but this isn't",
+                    }
+
+                    -- when
+                    local result = organize.organize(
+                        lines,
+                        organize.do_date_categorizer(
+                            "2021-06-01",
+                            { move_to_done_immediately = false }
+                        )
+                    )
+
+                    -- then
+                    local expected = {
+                        "-- today (2) {{{",
+                        "[ ] undone",
+                        "[ ] but this isn't",
+                        "-- }}}",
+                        "",
+                        "-- done (1) {{{",
+                        "[x] this is done",
                         "-- }}}",
                     }
                     assert.are.same(result, expected)
@@ -419,7 +453,7 @@ describe("organize", function()
                     -- given
                     local lines = {
                         "[ ] undone",
-                        "[x] this is done",
+                        "[x] <today> this is done",
                         "[ ] but this isn't",
                     }
 
@@ -437,7 +471,7 @@ describe("organize", function()
                         "-- today (3) {{{",
                         "[ ] undone",
                         "[ ] but this isn't",
-                        "[x] this is done",
+                        "[x] <today> this is done",
                         "-- }}}",
                     }
                     assert.are.same(result, expected)
@@ -472,6 +506,40 @@ describe("organize", function()
                         "",
                         "-- done (1) {{{",
                         "[x] <yesterday> this is done",
+                        "-- }}}",
+                    }
+                    assert.are.same(result, expected)
+                end
+            )
+
+            it(
+                "should put done tasks in done section if move_to_done_immediately=false but they are undated",
+                function()
+                    -- given
+                    local lines = {
+                        "[ ] undone",
+                        "[x] this is done",
+                        "[ ] but this isn't",
+                    }
+
+                    -- when
+                    local result = organize.organize(
+                        lines,
+                        organize.do_date_categorizer(
+                            "2021-06-01",
+                            { view = "daily", move_to_done_immediately = false }
+                        )
+                    )
+
+                    -- then
+                    local expected = {
+                        "-- today (2) {{{",
+                        "[ ] undone",
+                        "[ ] but this isn't",
+                        "-- }}}",
+                        "",
+                        "-- done (1) {{{",
+                        "[x] this is done",
                         "-- }}}",
                     }
                     assert.are.same(result, expected)

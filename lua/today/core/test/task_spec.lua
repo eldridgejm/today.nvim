@@ -368,7 +368,7 @@ describe("Today core module's", function()
         it("returns a table if there is no datespec", function()
             assert.are.same(
                 task.parse_datespec_safe("[ ] this should not return nil", "2021-07-04"),
-                { do_date = DateObj:new("2021-07-04"), recur_pattern = nil }
+                { do_date = DateObj:new("infinite_past"), recur_pattern = nil }
             )
         end)
     end)
