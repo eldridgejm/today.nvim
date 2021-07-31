@@ -82,21 +82,15 @@ ui.task_make_datespec_natural = make_ranged_function(function(line)
     })
 end)
 
-function ui.recur(recur_spec, start_row, end_row)
-    local datespec = DateSpec:first_in_sequence(vim.b.today_working_date, recur_spec)
+ui.task_expand_recur = make_ranged_function(
+    task.remove_recur_pattern,
+    with_working_date(replace_datespec_with_next)
+    )
 
-    local function paint_datespec(line)
-        local datespec_as_string = datespec:serialize({
-            natural = true,
-            default_format = ui.get_buffer_options().default_date_format,
-        })
-        local result = task.set_do_date(line, datespec_as_string)
-        datespec = datespec:next()
-        return result
-    end
-
-    local func = make_ranged_function(paint_datespec)
-    return func(start_row, end_row)
+function ui.paint_recur_pattern(recur_pattern, start_row, end_row)
+    local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, 0)
+    local new_lines = task.paint_recur_pattern(lines, recur_pattern, vim.b.today_working_date)
+    vim.api.nvim_buf_set_lines(0, start_row - 1, end_row, 0, new_lines)
 end
 
 function ui.get_buffer_options()

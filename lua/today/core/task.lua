@@ -7,11 +7,6 @@ local DEFAULT_TO_NATURAL_OPTIONS = {
     default_format = "YYYY-MM-DD",
 }
 
-local DEFAULT_SERIALIZE_OPTIONS = {
-    natural = true,
-    default_format = "YYYY-MM-DD",
-}
-
 local task = {}
 
 local function head(line)
@@ -446,6 +441,29 @@ function task.replace_datespec_with_next(line, working_date, to_natural_options)
         line,
         { do_date = new_do_date_string, recur_pattern = ds.recur_pattern }
     )
+end
+
+
+--- "Paint" a recur pattern over a list of tasks.
+-- This iterates through a sequence of datespecs, assigning each to the next task
+-- in the list.
+-- @param lines The task lines as a list.
+-- @param recur The recur pattern.
+-- @param working_date The working date.
+-- @return A list of the tasks with new datespecs.
+function task.paint_recur_pattern(lines, recur, working_date)
+    local cursor_date = dates.DateObj:new(working_date):add_days(-1)
+    lines = util.filter(task.is_task, lines)
+
+    local result = {}
+    for _, line in ipairs(lines) do
+            cursor_date = dates.next(cursor_date, recur)
+            local new_line = task.set_do_date(line, tostring(cursor_date))
+            new_line = task.remove_recur_pattern(new_line)
+            table.insert(result, task.normalize(new_line))
+    end
+
+    return result
 end
 
 return task

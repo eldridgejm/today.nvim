@@ -34,6 +34,7 @@ command -buffer -range -nargs=1 TodaySetPriority lua require('today.ui').task_se
 command -buffer TodayCategorizeByDoDate lua require('today.ui').organize_by_do_date()
 command -buffer TodayCategorizeByFirstTag lua require('today.ui').organize_by_first_tag()
 command -buffer -nargs=* TodayFilterTags lua require('today.ui').set_filter_tags({<f-args>})
+command -buffer -range -nargs=1 TodayPaintRecurPattern lua require('today.ui').paint_recur_pattern("<args>", <line1>, <line2>)
 
 
 augroup today

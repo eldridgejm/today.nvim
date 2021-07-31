@@ -346,4 +346,30 @@ describe("Today core module's", function()
             )
         end)
     end)
+
+    describe("paint_recur_pattern", function()
+
+        it("should paint a recur pattern over a list of lines", function()
+            assert.are.same(
+                task.paint_recur_pattern({ "[ ] one", "[ ] two", "[ ] three"}, "every m,w,f", "2021-07-04"),
+                { 
+                    "[ ] <2021-07-05> one",
+                    "[ ] <2021-07-07> two",
+                    "[ ] <2021-07-09> three",
+                }
+            )
+        end)
+
+        it("should replace existing datespecs", function()
+            assert.are.same(
+                task.paint_recur_pattern({ "[ ] <tomorrow> one", "[ ] <next week +daily> two", "[ ] <yesterday> three"}, "every m,w,f", "2021-07-04"),
+                { 
+                    "[ ] <2021-07-05> one",
+                    "[ ] <2021-07-07> two",
+                    "[ ] <2021-07-09> three",
+                }
+            )
+        end)
+
+    end)
 end)
