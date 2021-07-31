@@ -13,7 +13,7 @@ local organize = {}
 --- Organizes tasks by do date first, then by priority.
 -- @param working_date The working date as a string in YYYY-MM-DD format.
 
-function make_categorizer(components)
+function organize.make_categorizer_from_components(components)
     return function(lines)
         local groups = components.grouper(lines)
 
@@ -22,7 +22,7 @@ function make_categorizer(components)
 
         local result = {}
         for _, header in ipairs(headers) do
-            group_tasks = groups[header]
+            local group_tasks = groups[header]
             sort.mergesort(group_tasks, components.task_comparator)
             local group = {
                 header = header,
@@ -34,9 +34,7 @@ function make_categorizer(components)
     end
 end
 
-
-function make_weekly_view(working_date, options)
-
+local function make_weekly_view(working_date, options)
     local weekly_order = {
         "today",
         "this week",
@@ -81,15 +79,13 @@ function make_weekly_view(working_date, options)
             end
 
             return groups
-        end
+        end,
     }
 end
 
-
-function make_daily_view(working_date, options)
-
+local function make_daily_view(working_date, options)
     local daily_order = {}
-    for i=0,13 do
+    for i = 0, 13 do
         local header = dates.to_natural(working_date:add_days(i), working_date)
         table.insert(daily_order, header)
     end
@@ -115,9 +111,11 @@ function make_daily_view(working_date, options)
                 elseif days_until_do > 13 then
                     return "future"
                 else
-                    return dates.to_natural(working_date:add_days(days_until_do), working_date)
+                    return dates.to_natural(
+                        working_date:add_days(days_until_do),
+                        working_date
+                    )
                 end
-
             end
 
             local groups = util.groupby(keyfunc, tasks)
@@ -131,11 +129,9 @@ function make_daily_view(working_date, options)
             end
 
             return groups
-        end
+        end,
     }
 end
-
-
 
 function organize.do_date_categorizer(working_date, options)
     working_date = dates.DateObj:new(working_date)
@@ -143,17 +139,17 @@ function organize.do_date_categorizer(working_date, options)
     if options == nil then
         options = {
             show_empty_sections = false,
-            view = "weekly"
+            view = "weekly",
         }
     end
 
     local view_lookup = {
         weekly = make_weekly_view,
-        daily = make_daily_view
+        daily = make_daily_view,
     }
     local view = view_lookup[options.view](working_date, options)
 
-    return make_categorizer({
+    return organize.make_categorizer_from_components({
         grouper = view.grouper,
 
         header_comparator = sort.make_order_comparator(view.order),
@@ -168,7 +164,7 @@ end
 --- Organizes tasks by the first tag present in the tag, then by do date, then priority.
 -- @param working_date The working date as a string in YYYY-MM-DD format.
 function organize.first_tag_categorizer(working_date)
-    return make_categorizer({
+    return organize.make_categorizer_from_components({
         grouper = function(tasks)
             local keyfunc = function(line)
                 local first_tag = task.get_first_tag(line)
@@ -183,16 +179,15 @@ function organize.first_tag_categorizer(working_date)
 
         header_comparator = nil,
 
-        task_comparator = function (x, y) 
+        task_comparator = function(x, y)
             local cmp = sort.chain_comparators({
-            sort.completed_comparator,
-            sort.make_do_date_comparator(working_date),
-            sort.priority_comparator,
-        })
+                sort.completed_comparator,
+                sort.make_do_date_comparator(working_date),
+                sort.priority_comparator,
+            })
             return cmp(x, y)
         end
-
-        ,
+,
     })
 end
 

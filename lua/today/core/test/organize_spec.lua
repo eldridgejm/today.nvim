@@ -161,7 +161,7 @@ describe("organize", function()
             -- when
             local result = organize.organize(
                 lines,
-                organize.do_date_categorizer("2021-02-01" )
+                organize.do_date_categorizer("2021-02-01")
             )
 
             -- then
@@ -274,7 +274,10 @@ describe("organize", function()
                 -- when
                 local result = organize.organize(
                     lines,
-                    organize.do_date_categorizer("2021-07-01", { show_empty_sections = true, view = "daily" })
+                    organize.do_date_categorizer(
+                        "2021-07-01",
+                        { show_empty_sections = true, view = "daily" }
+                    )
                 )
 
                 -- then
@@ -355,7 +358,10 @@ describe("organize", function()
                 -- when
                 local result = organize.organize(
                     lines,
-                    organize.do_date_categorizer("2021-06-01", { show_empty_sections = false, view = "daily" })
+                    organize.do_date_categorizer(
+                        "2021-06-01",
+                        { show_empty_sections = false, view = "daily" }
+                    )
                 )
 
                 -- then

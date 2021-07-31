@@ -116,14 +116,25 @@ function task.mark_done(line)
     return "[x] " .. tail(line)
 end
 
---- Mark a task as done with a do date of the working date.
+--- Mark a task as done with a natural do date of the working date.
 -- If the line has no checkbox, one is added at the beginning.
 -- @param line The task string.
--- @param do_date The date that will be used as the do date. DateObj or string.
+-- @param do_date The date that will be used as the do date. DateObj or string
+-- in YYYY-MM-DD format..
+-- @param working_date The current working date. If this is nil, this is assumed
+-- to be the same as do_date, since that will be the most common case.
 -- @return The new task string.
-function task.mark_done_with_do_date(line, do_date)
+function task.mark_done_with_do_date(line, do_date, working_date)
+    do_date = dates.DateObj:new(do_date)
+
+    if working_date == nil then
+        working_date = do_date
+    end
+
     line = task.ensure_checkbox(line)
     line = "[x] " .. tail(line)
+
+    do_date = dates.to_natural(do_date, working_date)
     return task.normalize(task.set_do_date(line, tostring(do_date)))
 end
 

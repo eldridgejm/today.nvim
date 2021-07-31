@@ -13,7 +13,14 @@ describe("Today core module's", function()
         it("should add a datespec if none present", function()
             assert.is.equal(
                 task.mark_done_with_do_date("[ ] testing", "2021-07-04"),
-                "[x] <2021-07-04> testing"
+                "[x] <today> testing"
+            )
+        end)
+
+        it("should accept an optional working date", function()
+            assert.is.equal(
+                task.mark_done_with_do_date("[ ] testing", "2021-07-04", "2021-07-03"),
+                "[x] <tomorrow> testing"
             )
         end)
     end)

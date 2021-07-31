@@ -13,7 +13,7 @@ ui.options = {
             active = "do_date",
             options = {
                 show_empty_sections = false,
-                view = "daily"
+                view = "weekly",
             },
         },
         filter_tags = nil,
@@ -61,7 +61,10 @@ local function replace_datespec_with_next(line)
     })
 end
 
-ui.task_mark_done = make_ranged_function(with_working_date(task.mark_done_with_do_date), replace_datespec_with_next)
+ui.task_mark_done = make_ranged_function(
+    with_working_date(task.mark_done_with_do_date),
+    replace_datespec_with_next
+)
 
 ui.task_toggle_done = make_ranged_function(
     with_working_date(task.toggle_done_with_do_date),
@@ -101,6 +104,8 @@ end
 function ui.get_buffer_options()
     if vim.b.today == nil then
         vim.b.today = vim.deepcopy(ui.options.buffer)
+    else
+        vim.b.today = vim.tbl_deep_extend("keep", vim.b.today, ui.options.buffer)
     end
 
     return vim.b.today
@@ -108,6 +113,8 @@ end
 
 function ui.organize()
     local was_modified = vim.api.nvim_buf_get_option(0, "modified")
+    -- note: the working date will not be set if this is called before ui.update_post_read,
+    -- as is the case when called from an ftplugin
     local working_date = vim.b.today_working_date
 
     -- set up the categorizer
@@ -144,22 +151,27 @@ function ui.organize()
     vim.api.nvim_buf_set_option(0, "modified", was_modified)
 end
 
-function ui.organize_by_first_tag()
-    local opts = vim.b.today
+function ui.categorize_by_first_tag()
+    local opts = ui.get_buffer_options()
     opts.categorizer.active = "first_tag"
     vim.b.today = opts
     ui.organize()
 end
 
-function ui.organize_by_do_date()
-    local opts = vim.b.today
+function ui.categorize_by_do_date(view)
+    -- will be the empty string if no argument is provided
+    if (view == "") or (view == nil) then
+        view = "weekly"
+    end
+    local opts = ui.get_buffer_options()
     opts.categorizer.active = "do_date"
+    opts.categorizer.options.view = view
     vim.b.today = opts
     ui.organize()
 end
 
 function ui.set_filter_tags(tags)
-    local opts = vim.b.today
+    local opts = ui.get_buffer_options()
     opts.filter_tags = tags
     vim.b.today = opts
     ui.organize()
@@ -198,7 +210,6 @@ function ui.refresh_all_buffers()
     local reload_buffers = util.filter(needs_reload, today_buffers)
 
     for _, buffer in pairs(reload_buffers) do
-        print("today buffers refreshed due to date change")
         vim.api.nvim_buf_call(buffer, function()
             vim.cmd("e")
         end)
