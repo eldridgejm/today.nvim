@@ -227,9 +227,11 @@ describe("Today core module's", function()
         end)
 
         it("should change the recur pattern", function()
-            local result = task.set_recur_pattern("[ ] <today +every day> task", "daily")
+            local result = task.set_recur_pattern(
+                "[ ] <today +every day> task",
+                "daily"
+            )
             assert.are.equal(result, "[ ] <today +daily> task")
-
         end)
     end)
     describe("remove_datespec", function()
@@ -253,7 +255,6 @@ describe("Today core module's", function()
         it("should delete the recur pattern", function()
             local result = task.remove_recur_pattern("[ ] <today +every day> task")
             assert.are.equal(result, "[ ] <today> task")
-
         end)
     end)
     describe("replace_datespec_with_next", function()
@@ -348,11 +349,14 @@ describe("Today core module's", function()
     end)
 
     describe("paint_recur_pattern", function()
-
         it("should paint a recur pattern over a list of lines", function()
             assert.are.same(
-                task.paint_recur_pattern({ "[ ] one", "[ ] two", "[ ] three"}, "every m,w,f", "2021-07-04"),
-                { 
+                task.paint_recur_pattern(
+                    { "[ ] one", "[ ] two", "[ ] three" },
+                    "every m,w,f",
+                    "2021-07-04"
+                ),
+                {
                     "[ ] <2021-07-05> one",
                     "[ ] <2021-07-07> two",
                     "[ ] <2021-07-09> three",
@@ -362,14 +366,21 @@ describe("Today core module's", function()
 
         it("should replace existing datespecs", function()
             assert.are.same(
-                task.paint_recur_pattern({ "[ ] <tomorrow> one", "[ ] <next week +daily> two", "[ ] <yesterday> three"}, "every m,w,f", "2021-07-04"),
-                { 
+                task.paint_recur_pattern(
+                    {
+                        "[ ] <tomorrow> one",
+                        "[ ] <next week +daily> two",
+                        "[ ] <yesterday> three",
+                    },
+                    "every m,w,f",
+                    "2021-07-04"
+                ),
+                {
                     "[ ] <2021-07-05> one",
                     "[ ] <2021-07-07> two",
                     "[ ] <2021-07-09> three",
                 }
             )
         end)
-
     end)
 end)

@@ -12,6 +12,7 @@ local organize = {}
 
 --- Organizes tasks by do date first, then by priority.
 -- @param working_date The working date as a string in YYYY-MM-DD format.
+
 function organize.do_date_categorizer(working_date, options)
     working_date = dates.DateObj:new(working_date)
 

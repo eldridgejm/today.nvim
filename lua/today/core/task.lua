@@ -313,7 +313,6 @@ local function replace_datespec_string(line, new_spec)
     return util.rstrip(new_line)
 end
 
-
 --- Given datespec parts, replaces the current datespec with the new datespec.
 -- @param line The task line.
 -- @param datespec A table of datespec parts as strings. These will replace the previous
@@ -378,7 +377,9 @@ end
 -- @return The new task string.
 function task.remove_recur_pattern(line)
     local old_ds = task.get_datespec_string_parts(line)
-    if old_ds == nil then return line end
+    if old_ds == nil then
+        return line
+    end
     old_ds.recur_pattern = nil
     return task.replace_datespec_string_parts(line, old_ds)
 end
@@ -395,7 +396,10 @@ function task.set_do_date(line, do_date)
     if old_ds == nil then
         old_ds = { do_date = nil, recur_pattern = nil }
     end
-    return task.replace_datespec_string_parts(line, { do_date = do_date, recur_pattern = old_ds.recur_pattern })
+    return task.replace_datespec_string_parts(
+        line,
+        { do_date = do_date, recur_pattern = old_ds.recur_pattern }
+    )
 end
 
 --- Set the recur_pattern part of a task's datespec.
@@ -410,7 +414,10 @@ function task.set_recur_pattern(line, recur_pattern)
     if old_ds == nil then
         return nil
     end
-    return task.replace_datespec_string_parts(line, { do_date = old_ds.do_date, recur_pattern = recur_pattern })
+    return task.replace_datespec_string_parts(
+        line,
+        { do_date = old_ds.do_date, recur_pattern = recur_pattern }
+    )
 end
 
 --- Replaces a recurring task's datespec with the next in the sequence.
@@ -435,14 +442,17 @@ function task.replace_datespec_with_next(line, working_date, to_natural_options)
     end
 
     local new_do_date = dates.next(ds.do_date, ds.recur_pattern)
-    local new_do_date_string = dates.to_natural(new_do_date, working_date, to_natural_options)
+    local new_do_date_string = dates.to_natural(
+        new_do_date,
+        working_date,
+        to_natural_options
+    )
 
     return task.replace_datespec_string_parts(
         line,
         { do_date = new_do_date_string, recur_pattern = ds.recur_pattern }
     )
 end
-
 
 --- "Paint" a recur pattern over a list of tasks.
 -- This iterates through a sequence of datespecs, assigning each to the next task
@@ -457,10 +467,10 @@ function task.paint_recur_pattern(lines, recur, working_date)
 
     local result = {}
     for _, line in ipairs(lines) do
-            cursor_date = dates.next(cursor_date, recur)
-            local new_line = task.set_do_date(line, tostring(cursor_date))
-            new_line = task.remove_recur_pattern(new_line)
-            table.insert(result, task.normalize(new_line))
+        cursor_date = dates.next(cursor_date, recur)
+        local new_line = task.set_do_date(line, tostring(cursor_date))
+        new_line = task.remove_recur_pattern(new_line)
+        table.insert(result, task.normalize(new_line))
     end
 
     return result

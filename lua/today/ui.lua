@@ -85,11 +85,15 @@ end)
 ui.task_expand_recur = make_ranged_function(
     task.remove_recur_pattern,
     with_working_date(replace_datespec_with_next)
-    )
+)
 
 function ui.paint_recur_pattern(recur_pattern, start_row, end_row)
     local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, 0)
-    local new_lines = task.paint_recur_pattern(lines, recur_pattern, vim.b.today_working_date)
+    local new_lines = task.paint_recur_pattern(
+        lines,
+        recur_pattern,
+        vim.b.today_working_date
+    )
     vim.api.nvim_buf_set_lines(0, start_row - 1, end_row, 0, new_lines)
 end
 

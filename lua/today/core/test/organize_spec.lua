@@ -260,6 +260,99 @@ describe("organize", function()
             }
             assert.are.same(result, expected)
         end)
+
+        describe("agenda view", function()
+
+        it("should organize into days for two weeks from working date", function()
+            -- given
+            local lines = {
+                "[ ] <2021-06-01> task 1",
+                "[ ] <2021-06-02> task 2",
+                "[ ] <2021-06-03> task 3",
+                "[ ] <2021-06-04> task 4",
+                "[ ] <2021-06-05> task 5",
+                "[ ] <2021-06-06> task 6",
+                "[ ] <2021-06-07> task 7",
+                "[ ] <2021-06-08> task 8",
+                "[ ] <2021-06-09> task 9",
+                "[ ] <2021-06-10> task 10",
+            }
+
+            -- when
+            local result = organize.organize(
+                lines,
+                organize.do_date_categorizer("2021-06-01", { view = "agenda" })
+            )
+
+            -- then
+            -- July 01 was a Thursday
+            local expected = {
+                "-- today (1) {{{",
+                "[ ] <2021-07-01> task 1",
+                "-- }}}",
+                "-- tomorrow (1) {{{",
+                "[ ] <2021-07-02> task 2",
+                "-- }}}",
+                "-- saturday (1) {{{",
+                "[ ] <2021-07-03> task 3",
+                "-- }}}",
+                "-- sunday (1) {{{",
+                "[ ] <2021-07-04> task 4",
+                "-- }}}",
+                "-- monday (1) {{{",
+                "[ ] <2021-07-05> task 5",
+                "-- }}}",
+                "-- tuesday (1) {{{",
+                "[ ] <2021-07-06> task 6",
+                "-- }}}",
+                "-- wednesday (1) {{{",
+                "[ ] <2021-07-07> task 7",
+                "-- }}}",
+                "-- next thursday (1) {{{",
+                "[ ] <2021-07-08> task 8",
+                "-- }}}",
+                "-- next friday (1) {{{",
+                "[ ] <2021-07-09> task 9",
+                "-- }}}",
+                "-- next saturday (1) {{{",
+                "[ ] <2021-07-10> task 10",
+                "-- }}}",
+            }
+            assert.are.same(result, expected)
+        end)
+
+
+        it("should have a 'someday' section", function()
+            -- given
+            local lines = {
+                "[ ] undone <someday>",
+                "[x] this is done",
+                "[ ] but this isn't",
+            }
+
+            -- when
+            local result = organize.organize(
+                lines,
+                organize.do_date_categorizer("2021-06-01", { view = "agenda" })
+            )
+
+            -- then
+            local expected = {
+                "-- today (1) {{{",
+                "[ ] but this isn't",
+                "-- }}}",
+                "",
+                "-- someday (1) {{{",
+                "[ ] <someday> undone",
+                "-- }}}",
+                "",
+                "-- done (1) {{{",
+                "[x] this is done",
+                "-- }}}",
+            }
+            assert.are.same(result, expected)
+        end)
+    end)
     end)
 
     describe("first_tag_categorizer", function()
