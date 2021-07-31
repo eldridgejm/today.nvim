@@ -257,17 +257,17 @@ end
 -- @section datespec
 
 --- Retrieve the datespec as a DateSpec object. If the task string has no datespec,
--- this will return a "default" datespec with a do date of today.
+-- this will return a "default" datespec with a do date of working_date.
 -- @param line The task string.
--- @param today The date of today as a string in YYYY-MM-DD format.
+-- @param working_date The date of working_date as a string in YYYY-MM-DD format.
 -- @return The DateSpec for the task.
-function task.get_datespec_safe(line, today)
-    assert(type(today) == "string")
+function task.get_datespec_safe(line, working_date)
+    assert(type(working_date) == "string")
 
     local ds = task.get_datespec_as_string(line)
-    -- this implicitly creates a DateSpec with a do-date of today if
+    -- this implicitly creates a DateSpec with a do-date of working_date if
     -- there is no datespec string present.
-    local parsed_ds = DateSpec:new(ds, today)
+    local parsed_ds = DateSpec:new(ds, working_date)
     assert(parsed_ds.class == "DateSpec")
     return parsed_ds
 end
@@ -322,6 +322,10 @@ end
 
 --- Helper function which replaces a datespec string with a new one.
 local function replace_datespec_string(line, new_spec)
+    if task.get_datespec_as_string(line) == nil then
+        line = line .. " < >"
+    end
+
     local second_space = " "
     if new_spec == "" then
         second_space = ""
@@ -334,9 +338,10 @@ end
 
 --- Given datespec parts, replaces the current datespec with the new datespec.
 -- @param line The task line.
--- @datespec A table of datespec parts as strings. These will replace the previous
+-- @param datespec A table of datespec parts as strings. These will replace the previous
 -- datespec parts verbatim.
--- @return The new task line with datespec replaced.
+-- @return The new task line with datespec replaced. If there was originally no datespec,
+-- one is inserted.
 function task.replace_datespec_string_parts(line, datespec)
     local recur_string
     if datespec.recur_pattern == nil then
@@ -352,30 +357,34 @@ end
 --- Replaces a datespec with an absolute datespec. If there is no datespec,
 -- this leaves the task unchanged.
 -- @param line The task line.
--- @param today The date of today as a string in YYYY-MM-DD format
-function task.make_datespec_absolute(line, today)
-    local ds = task.get_datespec_safe(line, today)
+-- @param working_date The date of working_date as a string in YYYY-MM-DD format
+function task.make_datespec_absolute(line, working_date)
+    local ds = task.parse_datespec(line, working_date)
     if ds == nil then
         return line
     end
-    return replace_datespec_string(line, ds:serialize())
+
+    ds.do_date = tostring(ds.do_date)
+    return task.replace_datespec_string_parts(line, ds)
 end
 
 --- Replaces an absolute datespec with a natural datespec. If there is no datespec,
 -- this leaves the task unchanged.
 -- @param line The task line.
--- @param today The date of today as a string in YYYY-MM-DD format
--- @param serialize_options An options dictionary for DateSpec:serialize
-function task.make_datespec_natural(line, today, serialize_options)
-    if serialize_options == nil then
-        serialize_options = DEFAULT_SERIALIZE_OPTIONS
+-- @param working_date The date of working_date as a string in YYYY-MM-DD format
+-- @param to_natural_options An options dictionary for dates.to_natural
+function task.make_datespec_natural(line, working_date, to_natural_options)
+    if to_natural_options == nil then
+        to_natural_options = DEFAULT_TO_NATURAL_OPTIONS
     end
 
-    local ds = task.get_datespec_safe(line, today)
+    local ds = task.parse_datespec(line, working_date)
     if ds == nil then
         return line
     end
-    return replace_datespec_string(line, ds:serialize(serialize_options))
+
+    ds.do_date = dates.to_natural(ds.do_date, working_date, to_natural_options)
+    return task.replace_datespec_string_parts(line, ds)
 end
 
 --- Remove the datespec from a task string.
@@ -385,30 +394,45 @@ function task.remove_datespec(line)
     return util.strip(replace_datespec_string(line, ""))
 end
 
+--- Remove the recur pattern from a task string.
+-- If there was no recur pattern or no datespec, the line is simply returned.
+-- @param line The task string.
+-- @return The new task string.
+function task.remove_recur_pattern(line)
+    local old_ds = task.get_datespec_string_parts(line)
+    if old_ds == nil then return line end
+    old_ds.recur_pattern = nil
+    return task.replace_datespec_string_parts(line, old_ds)
+end
+
 --- Set the do date part of a task's datespec.
+-- If there was no datespec, a datespec is added.
 -- @param line The task string.
 -- @param do_date The do date as a string. This will replace the do date part of
--- the datespec verbatim. For instance, if "today" is given, the new datespec will
--- be <today ...>
+-- the datespec verbatim. For instance, if "working_date" is given, the new datespec will
+-- be <working_date ...>
 -- @return The new task string. The recur spec, if any, is preserved.
 function task.set_do_date(line, do_date)
-    local old_ds = task.get_datespec_as_string(line)
-    local recur_spec
-    if old_ds ~= nil then
-        recur_spec = old_ds:match("( +(.*))>")
+    local old_ds = task.get_datespec_string_parts(line)
+    if old_ds == nil then
+        old_ds = { do_date = nil, recur_pattern = nil }
     end
+    return task.replace_datespec_string_parts(line, { do_date = do_date, recur_pattern = old_ds.recur_pattern })
+end
 
-    if recur_spec == nil then
-        recur_spec = ""
+--- Set the recur_pattern part of a task's datespec.
+-- If there was no datespec, a datespec is added.
+-- @param line The task string.
+-- @param recur_pattern The do date as a string. This will replace the do date part of
+-- the datespec verbatim. For instance, if "working_date" is given, the new datespec will
+-- be <working_date ...>
+-- @return The new task string. The recur spec, if any, is preserved.
+function task.set_recur_pattern(line, recur_pattern)
+    local old_ds = task.get_datespec_string_parts(line)
+    if old_ds == nil then
+        return nil
     end
-
-    if line:match("<.*>") == nil then
-        return task.normalize(line .. " " .. "<" .. do_date .. ">")
-    else
-        return task.normalize(
-            replace_datespec_string(line, "<" .. do_date .. recur_spec .. ">")
-        )
-    end
+    return task.replace_datespec_string_parts(line, { do_date = old_ds.do_date, recur_pattern = recur_pattern })
 end
 
 --- Replaces a recurring task's datespec with the next in the sequence.

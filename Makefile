@@ -11,7 +11,7 @@ pre-commit: test check style
 
 .PHONY: docs
 docs:
-	ldoc lua/ --ignore
+	ldoc .
 
 .PHONY: style
 style:

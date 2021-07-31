@@ -220,7 +220,7 @@ describe("Today core module's", function()
     describe("set_do_date", function()
         it("should add a datespec if one does not already exist", function()
             local result = task.set_do_date("[x] task", "tomorrow")
-            assert.are.equal(result, "[x] <tomorrow> task")
+            assert.are.equal(result, "[x] task <tomorrow>")
         end)
 
         it("should preserve any recur spec", function()
@@ -229,11 +229,23 @@ describe("Today core module's", function()
         end)
 
         it("should normalize", function()
-            local result = task.set_do_date("<today +every day> task", "tomorrow")
+            local result = task.set_do_date("[ ] <today +every day> task", "tomorrow")
             assert.are.equal(result, "[ ] <tomorrow +every day> task")
         end)
     end)
 
+    describe("set_recur_pattern", function()
+        it("should return nil if no datespec exists", function()
+            local result = task.set_recur_pattern("[x] task", "daily")
+            assert.are.equal(result, nil)
+        end)
+
+        it("should change the recur pattern", function()
+            local result = task.set_recur_pattern("[ ] <today +every day> task", "daily")
+            assert.are.equal(result, "[ ] <today +daily> task")
+
+        end)
+    end)
     describe("remove_datespec", function()
         it("should remove datespec at end of line", function()
             local line = "[x] this is <2021-10-10>"
@@ -246,6 +258,18 @@ describe("Today core module's", function()
         end)
     end)
 
+    describe("remove_recur_pattern", function()
+        it("should do nothing if there was no datespec", function()
+            local result = task.remove_recur_pattern("[x] hello")
+            assert.are.equal(result, "[x] hello")
+        end)
+
+        it("should delete the recur pattern", function()
+            local result = task.remove_recur_pattern("[ ] <today +every day> task")
+            assert.are.equal(result, "[ ] <today> task")
+
+        end)
+    end)
     describe("replace_datespec_with_next", function()
         it("should advance the date", function()
             local line = "[ ] <2021-10-10 +daily> this is a datespec"
@@ -266,7 +290,11 @@ describe("Today core module's", function()
         it("should use natural dates options", function()
             local line = "[ ] <2021-10-10 +every month> this is a datespec"
             assert.are.equal(
-                task.replace_datespec_with_next(line, "2021-10-10", { default_format = "human" }),
+                task.replace_datespec_with_next(
+                    line,
+                    "2021-10-10",
+                    { default_format = "human" }
+                ),
                 "[ ] <wed nov 10 2021 +every month> this is a datespec"
             )
         end)

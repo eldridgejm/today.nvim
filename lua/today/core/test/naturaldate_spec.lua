@@ -136,10 +136,7 @@ describe("natural language to date", function()
 
         it("converts natural language to date", function()
             assert.are.equal(
-                dateslib.from_natural(
-                    "next wednesday",
-                    DateObj:new("2021-07-04")
-                ),
+                dateslib.from_natural("next wednesday", DateObj:new("2021-07-04")),
                 DateObj:new("2021-07-14")
             )
         end)
@@ -183,10 +180,7 @@ describe("natural language to date", function()
 
         it("converts 2 weeks from now", function()
             assert.are.equal(
-                dateslib.from_natural(
-                    "2 weeks from now",
-                    DateObj:new("2021-7-5")
-                ),
+                dateslib.from_natural("2 weeks from now", DateObj:new("2021-7-5")),
                 DateObj:new("2021-07-19")
             )
         end)
@@ -196,10 +190,7 @@ describe("natural language to date", function()
         it("converts 1 month from now", function()
             -- adds 30 days
             assert.are.equal(
-                dateslib.from_natural(
-                    "1 month from now",
-                    DateObj:new("2021-7-5")
-                ),
+                dateslib.from_natural("1 month from now", DateObj:new("2021-7-5")),
                 DateObj:new("2021-08-04")
             )
         end)
@@ -207,10 +198,7 @@ describe("natural language to date", function()
         it("converts 2 months from now", function()
             -- adds 60 days
             assert.are.equal(
-                dateslib.from_natural(
-                    "2 months from now",
-                    DateObj:new("2021-7-5")
-                ),
+                dateslib.from_natural("2 months from now", DateObj:new("2021-7-5")),
                 DateObj:new("2021-09-03")
             )
         end)
@@ -233,10 +221,7 @@ describe("natural language to date", function()
 
         it("works with lots of days", function()
             assert.are.equal(
-                dateslib.from_natural(
-                    "10 days from now",
-                    DateObj:new("2021-7-5")
-                ),
+                dateslib.from_natural("10 days from now", DateObj:new("2021-7-5")),
                 DateObj:new("2021-07-15")
             )
         end)
@@ -381,10 +366,7 @@ describe("date to natural language", function()
     end)
 
     it("uses YYYY-MM-DD as default default_format", function()
-        assert.are.equal(
-            dateslib.to_natural("2021-08-10", "2021-07-04"),
-            "2021-08-10"
-        )
+        assert.are.equal(dateslib.to_natural("2021-08-10", "2021-07-04"), "2021-08-10")
     end)
 
     it("has option to use human datestamp as default", function()

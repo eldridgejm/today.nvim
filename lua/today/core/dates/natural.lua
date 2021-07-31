@@ -269,10 +269,7 @@ RULES:add({
 -- @return The absolute date as a DateObj.
 function M.from_natural(s, today)
     assert(today ~= nil)
-
-    if type(today) == "string" then
-        today = DateObj:new(today)
-    end
+    today = DateObj:new(today)
 
     s = s:lower()
 
