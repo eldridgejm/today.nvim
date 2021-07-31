@@ -34,16 +34,10 @@ function make_categorizer(components)
     end
 end
 
-function organize.do_date_categorizer(working_date, options)
-    working_date = dates.DateObj:new(working_date)
 
-    if options == nil then
-        options = {
-            show_empty_sections = false,
-        }
-    end
+function make_default_do_date_view(working_date, options)
 
-    local order = {
+    local default_order = {
         "today",
         "tomorrow",
         "this week",
@@ -53,7 +47,8 @@ function organize.do_date_categorizer(working_date, options)
         "done",
     }
 
-    return make_categorizer({
+    return {
+        order = default_order,
         grouper = function(tasks)
             local keyfunc = function(t)
                 local datespec = task.parse_datespec_safe(t, working_date)
@@ -81,7 +76,7 @@ function organize.do_date_categorizer(working_date, options)
             local groups = util.groupby(keyfunc, tasks)
 
             if options.show_empty_sections then
-                for _, key in pairs(order) do
+                for _, key in pairs(default_order) do
                     if groups[key] == nil then
                         groups[key] = {}
                     end
@@ -89,9 +84,25 @@ function organize.do_date_categorizer(working_date, options)
             end
 
             return groups
-        end,
+        end
+    }
+end
 
-        header_comparator = sort.make_order_comparator(order),
+function organize.do_date_categorizer(working_date, options)
+    working_date = dates.DateObj:new(working_date)
+
+    if options == nil then
+        options = {
+            show_empty_sections = false,
+        }
+    end
+
+    local view = make_default_do_date_view(working_date, options)
+
+    return make_categorizer({
+        grouper = view.grouper,
+
+        header_comparator = sort.make_order_comparator(view.order),
 
         task_comparator = sort.chain_comparators({
             sort.make_do_date_comparator(working_date),
