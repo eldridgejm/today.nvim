@@ -151,6 +151,7 @@ RULES:add({
     end,
 })
 
+
 -- next week
 RULES:add({
     -- defaults to the next monday

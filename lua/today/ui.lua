@@ -12,7 +12,7 @@ ui.options = {
         categorizer = {
             active = "do_date",
             options = {
-                show_empty_sections = false,
+                show_empty_categories = false,
                 view = "weekly",
                 move_to_done_immediately = false,
             },

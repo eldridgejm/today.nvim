@@ -14,30 +14,58 @@ local organize = {}
 -- @param working_date The working date as a string in YYYY-MM-DD format.
 
 function organize.make_categorizer_from_components(components)
-    return function(lines)
-        local groups = components.grouper(lines)
 
-        local headers = util.keys(groups)
-        sort.mergesort(headers, components.header_comparator)
+    return {
+        categorize = function (lines)
+            local groups = components.grouper(lines)
 
-        local result = {}
-        for _, header in ipairs(headers) do
-            local group_tasks = groups[header]
-            sort.mergesort(group_tasks, components.task_comparator)
-            local group = {
-                header = header,
-                tasks = group_tasks,
-            }
-            table.insert(result, group)
+            local headers = util.keys(groups)
+            sort.mergesort(headers, components.header_comparator)
+
+            local result = {}
+            for _, header in ipairs(headers) do
+                local group_tasks = groups[header]
+                sort.mergesort(group_tasks, components.task_comparator)
+                local group = {
+                    header = header,
+                    tasks = group_tasks,
+                }
+                table.insert(result, group)
+            end
+            return result
+        end,
+        infer_from_category = function (lines)
+            if components.inferrer == nil then
+                return lines
+            end
+
+            local current_header = nil
+            local new_lines = {}
+            for _, line in pairs(lines) do
+                local header = line:match("-- (.*) %(%d+%) {{{")
+                if header ~= nil then
+                    current_header = header
+                end
+
+                if task.is_task(line) then
+                    local new_line = components.inferrer(line, current_header)
+                    if new_line ~= nil then
+                        line = new_line
+                    end
+                end
+
+                table.insert(new_lines, line)
+            end
+
+            return new_lines
         end
-        return result
-    end
+    }
 end
 
 local function make_weekly_view(working_date, options)
     local weekly_order = {
         "today",
-        "this week",
+        "rest of this week",
         "next week",
         "future",
         "someday",
@@ -61,7 +89,7 @@ local function make_weekly_view(working_date, options)
                 elseif days_until_do <= 0 then
                     return "today"
                 elseif weeks_until_do == 0 then
-                    return "this week"
+                    return "rest of this week"
                 elseif weeks_until_do == 1 then
                     return "next week"
                 elseif days_until_do == math.huge then
@@ -73,7 +101,7 @@ local function make_weekly_view(working_date, options)
 
             local groups = util.groupby(keyfunc, tasks)
 
-            if options.show_empty_sections then
+            if options.show_empty_categories then
                 for _, key in pairs(weekly_order) do
                     if groups[key] == nil then
                         groups[key] = {}
@@ -127,7 +155,7 @@ local function make_daily_view(working_date, options)
 
             local groups = util.groupby(keyfunc, tasks)
 
-            if options.show_empty_sections then
+            if options.show_empty_categories then
                 for _, key in pairs(daily_order) do
                     if groups[key] == nil then
                         groups[key] = {}
@@ -161,7 +189,7 @@ function organize.do_date_categorizer(working_date, options)
     working_date = dates.DateObj:new(working_date)
 
     options = merge_options(options, {
-        show_empty_sections = false,
+        show_empty_categories = false,
         move_to_done_immediately = true,
         view = "weekly",
     })
@@ -182,6 +210,40 @@ function organize.do_date_categorizer(working_date, options)
             sort.make_do_date_comparator(working_date),
             sort.priority_comparator,
         }),
+
+        inferrer = function (t, header)
+            if header == "done" then
+                return task.mark_done(t)
+            end
+
+            if header == nil then
+                return nil
+            end
+
+            if task.parse_datespec(t, working_date) ~= nil then
+                return nil
+            end
+
+            local do_date
+            if header == "rest of this week" then
+                local tomorrow = working_date:add_days(1)
+
+                if working_date:weeks_until(tomorrow) == 0 then
+                    do_date = "tomorrow"
+                else
+                    do_date = "today"
+                end
+            elseif header == "next week" then
+                    do_date = "next week"
+            elseif header == "future" then
+                    do_date = "15 days from now"
+            else
+                do_date = header
+            end
+
+            return task.set_do_date(t, do_date)
+        end
+
     })
 end
 
@@ -214,10 +276,7 @@ function organize.first_tag_categorizer(working_date)
     })
 end
 
-local function categorize(lines, categorizer)
-    local tasks = util.filter(task.is_task, lines)
-    local groups = categorizer(tasks)
-
+local function display_categories(categories)
     local result = {}
     local function add_line(s)
         table.insert(result, s)
@@ -229,14 +288,14 @@ local function categorize(lines, categorizer)
         end
     end
 
-    for _, group in pairs(groups) do
-        add_line("-- " .. group.header .. " (" .. #group.tasks .. ")" .. " {{{")
-        add_lines(group.tasks)
+    for _, category in pairs(categories) do
+        add_line("-- " .. category.header .. " (" .. #category.tasks .. ")" .. " {{{")
+        add_lines(category.tasks)
         add_line("-- }}}")
         add_line("")
     end
 
-    -- the last line will be blank if any group was processed;
+    -- the last line will be blank if any category was processed;
     -- remove it, as it is not necessary
     if #result > 0 then
         table.remove(result)
@@ -318,6 +377,10 @@ function organize.organize(lines, categorizer, filterer, informer)
     local head_comments = extract_user_comments(lines)
     local tail_comments = extract_user_comments(util.reverse(lines))
 
+    if categorizer.infer_from_category ~= nil then
+        lines = categorizer.infer_from_category(lines)
+    end
+
     local tasks = util.filter(task.is_task, lines)
     tasks = util.map(task.normalize, tasks)
 
@@ -329,7 +392,8 @@ function organize.organize(lines, categorizer, filterer, informer)
         hidden_tasks = filtered[false]
     end
 
-    tasks = categorize(tasks, categorizer)
+    local categories = categorizer.categorize(tasks)
+    local category_lines = display_categories(categories)
 
     local result = {}
     if #head_comments > 0 then
@@ -342,7 +406,7 @@ function organize.organize(lines, categorizer, filterer, informer)
         util.put_into(result, info_lines)
     end
 
-    util.put_into(result, tasks)
+    util.put_into(result, category_lines)
 
     if hidden_tasks ~= nil then
         table.insert(result, "")
