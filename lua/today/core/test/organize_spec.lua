@@ -2,257 +2,323 @@ describe("organize", function()
     organize = require("today.core.organize")
 
     describe("do_date_categorizer", function()
-        it("should move completed lines to the end", function()
-            -- given
-            local lines = {
-                "[ ] undone",
-                "[x] this is done",
-                "[ ] but this isn't",
-            }
+        describe("default weekly view", function()
+            it("should move completed lines to the done section by default", function()
+                -- given
+                local lines = {
+                    "[ ] undone",
+                    "[x] this is done",
+                    "[ ] but this isn't",
+                }
 
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer("2021-06-01")
-            )
-
-            -- then
-            local expected = {
-                "-- today (2) {{{",
-                "[ ] undone",
-                "[ ] but this isn't",
-                "-- }}}",
-                "",
-                "-- done (1) {{{",
-                "[x] this is done",
-                "-- }}}",
-            }
-            assert.are.same(result, expected)
-        end)
-
-        it("should not create a new done category if exists", function()
-            -- given
-            local lines = {
-                "[ ] undone",
-                "[x] this is done",
-                "[ ] but this isn't",
-                "",
-                "-- done (0) {{{",
-                "-- }}}",
-            }
-
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer("2021-06-01")
-            )
-
-            -- then
-            local expected = {
-                "-- today (2) {{{",
-                "[ ] undone",
-                "[ ] but this isn't",
-                "-- }}}",
-                "",
-                "-- done (1) {{{",
-                "[x] this is done",
-                "-- }}}",
-            }
-            assert.are.same(result, expected)
-        end)
-
-        it("should have over-do tasks at top of today category", function()
-            -- given
-            local lines = {
-                "[ ] undone <today>",
-                "[x] this is done",
-                "[ ] but this isn't <2021-01-01>",
-            }
-
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer("2021-02-01")
-            )
-
-            -- then
-            local expected = {
-                "-- today (2) {{{",
-                "[ ] <2021-01-01> but this isn't",
-                "[ ] <today> undone",
-                "-- }}}",
-                "",
-                "-- done (1) {{{",
-                "[x] this is done",
-                "-- }}}",
-            }
-            assert.are.same(result, expected)
-        end)
-
-        it("should sort by do date within each section", function()
-            -- given
-            local lines = {
-                "[ ] undone <11 days from now>",
-                "[x] this is done <tomorrow>",
-                "[x] also done <today>",
-                "[ ] but this isn't <10 days from now>",
-            }
-
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer("2021-02-01")
-            )
-
-            -- then
-            local expected = {
-                "-- next week (2) {{{",
-                "[ ] <10 days from now> but this isn't",
-                "[ ] <11 days from now> undone",
-                "-- }}}",
-                "",
-                "-- done (2) {{{",
-                "[x] <today> also done",
-                "[x] <tomorrow> this is done",
-                "-- }}}",
-            }
-            assert.are.same(result, expected)
-        end)
-
-        it("should sort by do date into this week and next", function()
-            -- given
-            local lines = {
-                "[ ] undone <thursday>",
-                "[ ] this is done <tomorrow>",
-                "[ ] also done <next wednesday>",
-                "[ ] but this isn't <next friday>",
-            }
-
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer("2021-07-04") -- a sunday
-            )
-
-            -- then
-            local expected = {
-                "-- this week (2) {{{",
-                "[ ] <tomorrow> this is done",
-                "[ ] <thursday> undone",
-                "-- }}}",
-                "",
-                "-- next week (2) {{{",
-                "[ ] <next wednesday> also done",
-                "[ ] <next friday> but this isn't",
-                "-- }}}",
-            }
-            assert.are.same(result, expected)
-        end)
-
-        it("should keep user comments at the beginning and end", function()
-            -- given
-            local lines = {
-                "--: this is a user comment",
-                "[x] this is done",
-                "[ ] but this isn't",
-                "--: and so is this",
-            }
-
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer("2021-02-01")
-            )
-
-            -- then
-            local expected = {
-                "--: this is a user comment",
-                "",
-                "-- today (1) {{{",
-                "[ ] but this isn't",
-                "-- }}}",
-                "",
-                "-- done (1) {{{",
-                "[x] this is done",
-                "-- }}}",
-                "",
-                "--: and so is this",
-            }
-            assert.are.same(result, expected)
-        end)
-
-        it("should show empty sections if option given", function()
-            -- given
-            local lines = {
-                "[ ] undone",
-                "[x] this is done",
-                "[ ] but this isn't",
-            }
-
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer(
-                    "2021-06-01",
-                    { show_empty_sections = true, view = "weekly" }
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer("2021-06-01")
                 )
+
+                -- then
+                local expected = {
+                    "-- today (2) {{{",
+                    "[ ] undone",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                    "",
+                    "-- done (1) {{{",
+                    "[x] this is done",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
+            it(
+                "should put done tasks in do date section if move_to_done_immediately=false",
+                function()
+                    -- given
+                    local lines = {
+                        "[ ] undone",
+                        "[x] this is done",
+                        "[ ] but this isn't",
+                    }
+
+                    -- when
+                    local result = organize.organize(
+                        lines,
+                        organize.do_date_categorizer(
+                            "2021-06-01",
+                            { move_to_done_immediately = false }
+                        )
+                    )
+
+                    -- then
+                    local expected = {
+                        "-- today (3) {{{",
+                        "[ ] undone",
+                        "[ ] but this isn't",
+                        "[x] this is done",
+                        "-- }}}",
+                    }
+                    assert.are.same(result, expected)
+                end
             )
 
-            -- then
-            local expected = {
-                "-- today (2) {{{",
-                "[ ] undone",
-                "[ ] but this isn't",
-                "-- }}}",
-                "",
-                "-- this week (0) {{{",
-                "-- }}}",
-                "",
-                "-- next week (0) {{{",
-                "-- }}}",
-                "",
-                "-- future (0) {{{",
-                "-- }}}",
-                "",
-                "-- someday (0) {{{",
-                "-- }}}",
-                "",
-                "-- done (1) {{{",
-                "[x] this is done",
-                "-- }}}",
-            }
-            assert.are.same(result, expected)
-        end)
+            it(
+                "should put done tasks in done section if move_to_done_immediately=false but they are old",
+                function()
+                    -- given
+                    local lines = {
+                        "[ ] undone",
+                        "[x] <yesterday> this is done",
+                        "[ ] but this isn't",
+                    }
 
-        it("should have a 'someday' section", function()
-            -- given
-            local lines = {
-                "[ ] undone <someday>",
-                "[x] this is done",
-                "[ ] but this isn't",
-            }
+                    -- when
+                    local result = organize.organize(
+                        lines,
+                        organize.do_date_categorizer(
+                            "2021-06-01",
+                            { move_to_done_immediately = false }
+                        )
+                    )
 
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer("2021-06-01")
+                    -- then
+                    local expected = {
+                        "-- today (2) {{{",
+                        "[ ] undone",
+                        "[ ] but this isn't",
+                        "-- }}}",
+                        "",
+                        "-- done (1) {{{",
+                        "[x] <yesterday> this is done",
+                        "-- }}}",
+                    }
+                    assert.are.same(result, expected)
+                end
             )
+            it("should not create a new done category if exists", function()
+                -- given
+                local lines = {
+                    "[ ] undone",
+                    "[x] this is done",
+                    "[ ] but this isn't",
+                    "",
+                    "-- done (0) {{{",
+                    "-- }}}",
+                }
 
-            -- then
-            local expected = {
-                "-- today (1) {{{",
-                "[ ] but this isn't",
-                "-- }}}",
-                "",
-                "-- someday (1) {{{",
-                "[ ] <someday> undone",
-                "-- }}}",
-                "",
-                "-- done (1) {{{",
-                "[x] this is done",
-                "-- }}}",
-            }
-            assert.are.same(result, expected)
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer("2021-06-01")
+                )
+
+                -- then
+                local expected = {
+                    "-- today (2) {{{",
+                    "[ ] undone",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                    "",
+                    "-- done (1) {{{",
+                    "[x] this is done",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
+            it("should have over-do tasks at top of today category", function()
+                -- given
+                local lines = {
+                    "[ ] undone <today>",
+                    "[x] this is done",
+                    "[ ] but this isn't <2021-01-01>",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer("2021-02-01")
+                )
+
+                -- then
+                local expected = {
+                    "-- today (2) {{{",
+                    "[ ] <2021-01-01> but this isn't",
+                    "[ ] <today> undone",
+                    "-- }}}",
+                    "",
+                    "-- done (1) {{{",
+                    "[x] this is done",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
+            it("should sort by do date within each section", function()
+                -- given
+                local lines = {
+                    "[ ] undone <11 days from now>",
+                    "[x] this is done <tomorrow>",
+                    "[x] also done <today>",
+                    "[ ] but this isn't <10 days from now>",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer("2021-02-01")
+                )
+
+                -- then
+                local expected = {
+                    "-- next week (2) {{{",
+                    "[ ] <10 days from now> but this isn't",
+                    "[ ] <11 days from now> undone",
+                    "-- }}}",
+                    "",
+                    "-- done (2) {{{",
+                    "[x] <today> also done",
+                    "[x] <tomorrow> this is done",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
+            it("should sort by do date into this week and next", function()
+                -- given
+                local lines = {
+                    "[ ] undone <thursday>",
+                    "[ ] this is done <tomorrow>",
+                    "[ ] also done <next wednesday>",
+                    "[ ] but this isn't <next friday>",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer("2021-07-04") -- a sunday
+                )
+
+                -- then
+                local expected = {
+                    "-- this week (2) {{{",
+                    "[ ] <tomorrow> this is done",
+                    "[ ] <thursday> undone",
+                    "-- }}}",
+                    "",
+                    "-- next week (2) {{{",
+                    "[ ] <next wednesday> also done",
+                    "[ ] <next friday> but this isn't",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
+            it("should keep user comments at the beginning and end", function()
+                -- given
+                local lines = {
+                    "--: this is a user comment",
+                    "[x] this is done",
+                    "[ ] but this isn't",
+                    "--: and so is this",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer("2021-02-01")
+                )
+
+                -- then
+                local expected = {
+                    "--: this is a user comment",
+                    "",
+                    "-- today (1) {{{",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                    "",
+                    "-- done (1) {{{",
+                    "[x] this is done",
+                    "-- }}}",
+                    "",
+                    "--: and so is this",
+                }
+                assert.are.same(result, expected)
+            end)
+
+            it("should show empty sections if option given", function()
+                -- given
+                local lines = {
+                    "[ ] undone",
+                    "[x] this is done",
+                    "[ ] but this isn't",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer(
+                        "2021-06-01",
+                        { show_empty_sections = true, view = "weekly" }
+                    )
+                )
+
+                -- then
+                local expected = {
+                    "-- today (2) {{{",
+                    "[ ] undone",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                    "",
+                    "-- this week (0) {{{",
+                    "-- }}}",
+                    "",
+                    "-- next week (0) {{{",
+                    "-- }}}",
+                    "",
+                    "-- future (0) {{{",
+                    "-- }}}",
+                    "",
+                    "-- someday (0) {{{",
+                    "-- }}}",
+                    "",
+                    "-- done (1) {{{",
+                    "[x] this is done",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
+            it("should have a 'someday' section", function()
+                -- given
+                local lines = {
+                    "[ ] undone <someday>",
+                    "[x] this is done",
+                    "[ ] but this isn't",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer("2021-06-01")
+                )
+
+                -- then
+                local expected = {
+                    "-- today (1) {{{",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                    "",
+                    "-- someday (1) {{{",
+                    "[ ] <someday> undone",
+                    "-- }}}",
+                    "",
+                    "-- done (1) {{{",
+                    "[x] this is done",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
         end)
 
         describe("daily view", function()
@@ -346,6 +412,71 @@ describe("organize", function()
                 }
                 assert.are.same(result, expected)
             end)
+
+            it(
+                "should put done tasks in do date section if move_to_done_immediately=false",
+                function()
+                    -- given
+                    local lines = {
+                        "[ ] undone",
+                        "[x] this is done",
+                        "[ ] but this isn't",
+                    }
+
+                    -- when
+                    local result = organize.organize(
+                        lines,
+                        organize.do_date_categorizer(
+                            "2021-06-01",
+                            { view = "daily", move_to_done_immediately = false }
+                        )
+                    )
+
+                    -- then
+                    local expected = {
+                        "-- today (3) {{{",
+                        "[ ] undone",
+                        "[ ] but this isn't",
+                        "[x] this is done",
+                        "-- }}}",
+                    }
+                    assert.are.same(result, expected)
+                end
+            )
+
+            it(
+                "should put done tasks in done section if move_to_done_immediately=false but they are old",
+                function()
+                    -- given
+                    local lines = {
+                        "[ ] undone",
+                        "[x] <yesterday> this is done",
+                        "[ ] but this isn't",
+                    }
+
+                    -- when
+                    local result = organize.organize(
+                        lines,
+                        organize.do_date_categorizer(
+                            "2021-06-01",
+                            { view = "daily", move_to_done_immediately = false }
+                        )
+                    )
+
+                    -- then
+                    local expected = {
+                        "-- today (2) {{{",
+                        "[ ] undone",
+                        "[ ] but this isn't",
+                        "-- }}}",
+                        "",
+                        "-- done (1) {{{",
+                        "[x] <yesterday> this is done",
+                        "-- }}}",
+                    }
+                    assert.are.same(result, expected)
+                end
+            )
 
             it("should have a 'someday' section", function()
                 -- given

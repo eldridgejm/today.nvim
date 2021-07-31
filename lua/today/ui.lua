@@ -14,6 +14,7 @@ ui.options = {
             options = {
                 show_empty_sections = false,
                 view = "weekly",
+                move_to_done_immediately = false,
             },
         },
         filter_tags = nil,
