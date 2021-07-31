@@ -14,9 +14,8 @@ local organize = {}
 -- @param working_date The working date as a string in YYYY-MM-DD format.
 
 function organize.make_categorizer_from_components(components)
-
     return {
-        categorize = function (lines)
+        categorize = function(lines)
             local groups = components.grouper(lines)
 
             local headers = util.keys(groups)
@@ -34,7 +33,7 @@ function organize.make_categorizer_from_components(components)
             end
             return result
         end,
-        infer_from_category = function (lines)
+        infer_from_category = function(lines)
             if components.inferrer == nil then
                 return lines
             end
@@ -43,8 +42,14 @@ function organize.make_categorizer_from_components(components)
             local new_lines = {}
             for _, line in pairs(lines) do
                 local header = line:match("-- (.*) %(%d+%) {{{")
+                local end_header = line == "-- }}}"
+
                 if header ~= nil then
                     current_header = header
+                end
+
+                if end_header then
+                    current_header = nil
                 end
 
                 if task.is_task(line) then
@@ -58,7 +63,7 @@ function organize.make_categorizer_from_components(components)
             end
 
             return new_lines
-        end
+        end,
     }
 end
 
@@ -211,7 +216,7 @@ function organize.do_date_categorizer(working_date, options)
             sort.priority_comparator,
         }),
 
-        inferrer = function (t, header)
+        inferrer = function(t, header)
             if header == "done" then
                 return task.mark_done(t)
             end
@@ -234,16 +239,15 @@ function organize.do_date_categorizer(working_date, options)
                     do_date = "today"
                 end
             elseif header == "next week" then
-                    do_date = "next week"
+                do_date = "next week"
             elseif header == "future" then
-                    do_date = "15 days from now"
+                do_date = "15 days from now"
             else
                 do_date = header
             end
 
             return task.set_do_date(t, do_date)
-        end
-
+        end,
     })
 end
 

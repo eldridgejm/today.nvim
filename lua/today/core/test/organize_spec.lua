@@ -734,7 +734,6 @@ describe("organize", function()
         end)
     end)
 
-
     describe("do_date datespec inferrer", function()
         it("should infer datespec for unlabeled items in today category", function()
             -- given
@@ -747,9 +746,7 @@ describe("organize", function()
             -- when
             local result = organize.organize(
                 lines,
-                organize.do_date_categorizer(
-                    "2021-07-01"
-                )
+                organize.do_date_categorizer("2021-07-01")
             )
 
             -- then
@@ -763,63 +760,67 @@ describe("organize", function()
             assert.are.same(result, expected)
         end)
 
-        it("should infer tomorrow from rest of this week if tomorrow is in the same week", function()
-            -- given
-            local lines = {
-                "-- rest of this week (1) {{{",
-                "[ ] task 1",
-                "-- }}}",
-            }
+        it(
+            "should infer tomorrow from rest of this week if tomorrow is in the same week",
+            function()
+                -- given
+                local lines = {
+                    "-- rest of this week (1) {{{",
+                    "[ ] task 1",
+                    "-- }}}",
+                }
 
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer(
-                    -- this was a monday
-                    "2021-07-05"
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer(
+                        -- this was a monday
+                        "2021-07-05"
+                    )
                 )
-            )
 
-            -- then
-            -- July 01 was a Thursday
-            local expected = {
-                "-- rest of this week (1) {{{",
-                "[ ] <tomorrow> task 1",
-                "-- }}}",
-            }
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- rest of this week (1) {{{",
+                    "[ ] <tomorrow> task 1",
+                    "-- }}}",
+                }
 
-            assert.are.same(result, expected)
-        end)
+                assert.are.same(result, expected)
+            end
+        )
 
+        it(
+            "should infer today from rest of this week if tomorrow is in the next week",
+            function()
+                -- given
+                local lines = {
+                    "-- rest of this week (1) {{{",
+                    "[ ] task 1",
+                    "-- }}}",
+                }
 
-        it("should infer today from rest of this week if tomorrow is in the next week", function()
-            -- given
-            local lines = {
-                "-- rest of this week (1) {{{",
-                "[ ] task 1",
-                "-- }}}",
-            }
-
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer(
-                    -- this was a saturday
-                    "2021-07-03"
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer(
+                        -- this was a saturday
+                        "2021-07-03"
+                    )
                 )
-            )
 
-            -- then
-            -- July 01 was a Thursday
-            local expected = {
-                "-- today (1) {{{",
-                "[ ] <today> task 1",
-                "-- }}}",
-            }
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- today (1) {{{",
+                    "[ ] <today> task 1",
+                    "-- }}}",
+                }
 
-            assert.are.same(result, expected)
-        end)
-
+                assert.are.same(result, expected)
+            end
+        )
 
         it("should preserve datespec if it is given", function()
             -- given
@@ -855,6 +856,34 @@ describe("organize", function()
         end)
 
 
+        it("should recognize the end of the section", function()
+            -- given
+            local lines = {
+                "-- next week (1) {{{",
+                "-- }}}",
+                "[ ] task 2",
+            }
+
+            -- when
+            local result = organize.organize(
+                lines,
+                organize.do_date_categorizer(
+                    -- this was a monday
+                    "2021-07-05"
+                )
+            )
+
+            -- then
+            -- July 01 was a Thursday
+            local expected = {
+                "-- today (1) {{{",
+                "[ ] task 2",
+                "-- }}}",
+            }
+
+            assert.are.same(result, expected)
+        end)
+
         it("should infer next week in next week", function()
             -- given
             local lines = {
@@ -882,9 +911,6 @@ describe("organize", function()
 
             assert.are.same(result, expected)
         end)
-
-
-
 
         it("should infer 15 days from now in future", function()
             -- given
@@ -914,9 +940,6 @@ describe("organize", function()
             assert.are.same(result, expected)
         end)
 
-
-
-
         it("should infer someday in someday", function()
             -- given
             local lines = {
@@ -944,7 +967,6 @@ describe("organize", function()
 
             assert.are.same(result, expected)
         end)
-
 
         it("should infer done in done", function()
             -- given
@@ -987,7 +1009,8 @@ describe("organize", function()
                 lines,
                 organize.do_date_categorizer(
                     -- this was a saturday
-                    "2021-07-03", { view = "daily" }
+                    "2021-07-03",
+                    { view = "daily" }
                 )
             )
 
@@ -1015,7 +1038,8 @@ describe("organize", function()
                 lines,
                 organize.do_date_categorizer(
                     -- this was a saturday
-                    "2021-07-03", { view = "daily" }
+                    "2021-07-03",
+                    { view = "daily" }
                 )
             )
 
@@ -1029,8 +1053,5 @@ describe("organize", function()
 
             assert.are.same(result, expected)
         end)
-
-
     end)
-
 end)
