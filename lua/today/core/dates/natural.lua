@@ -266,7 +266,7 @@ RULES:add({
 --- Convert a natural date into an absolute date.
 -- @param s The natural date as a string. Can be in any case.
 -- @param today The date used for today, as a YYYY-MM-DD string or a DateObj.
--- @return The absolute date as a DateObj.
+-- @return The absolute date as a DateObj, or nil if the natural date is invalid.
 function M.from_natural(s, today)
     assert(today ~= nil)
     today = DateObj:new(today)
@@ -282,6 +282,10 @@ function M.from_natural(s, today)
                 return result
             end
         end
+    end
+
+    if not s:match('%d%d%d%d-%d+-%d+') then
+        return nil
     end
 
     return DateObj:new(s)

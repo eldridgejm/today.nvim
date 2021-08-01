@@ -353,6 +353,33 @@ describe("organize", function()
                 }
                 assert.are.same(result, expected)
             end)
+
+
+            it("should move malformed tasks to a broken section", function()
+                -- given
+                local lines = {
+                    "[ ] undone <zzz>",
+                    "[ ] but this isn't",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer("2021-06-01")
+                )
+
+                -- then
+                local expected = {
+                    "-- broken (1) {{{",
+                    "[ ] <zzz> undone",
+                    "-- }}}",
+                    "",
+                    "-- today (1) {{{",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
         end)
 
         describe("daily view", function()
@@ -579,6 +606,33 @@ describe("organize", function()
                 }
                 assert.are.same(result, expected)
             end)
+
+            it("should move malformed tasks to a broken section", function()
+                -- given
+                local lines = {
+                    "[ ] undone <zzz>",
+                    "[ ] but this isn't",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer("2021-06-01", { view = "daily" })
+                )
+
+                -- then
+                local expected = {
+                    "-- broken (1) {{{",
+                    "[ ] <zzz> undone",
+                    "-- }}}",
+                    "",
+                    "-- today (1) {{{",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
         end)
     end)
 
@@ -686,7 +740,35 @@ describe("organize", function()
                 "[ ] ok this works",
                 "-- }}}",
             })
+
         end)
+
+            it("should move malformed tasks to a broken section", function()
+                -- given
+                local lines = {
+                    "[ ] undone <zzz>",
+                    "[ ] but this isn't",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.first_tag_categorizer("2021-06-01")
+                )
+
+                -- then
+                local expected = {
+                    "-- broken (1) {{{",
+                    "[ ] <zzz> undone",
+                    "-- }}}",
+                    "",
+                    "-- other (1) {{{",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
     end)
 
     describe("tag_filterer", function()
@@ -1099,7 +1181,7 @@ describe("organize", function()
                 -- when
                 local result = organize.organize(
                     lines,
-                    organize.first_tag_categorizer()
+                    organize.first_tag_categorizer("2021-10-10")
                 )
 
                 -- then
@@ -1124,7 +1206,7 @@ describe("organize", function()
                 -- when
                 local result = organize.organize(
                     lines,
-                    organize.first_tag_categorizer()
+                    organize.first_tag_categorizer("2021-10-10")
                 )
 
                 -- then
@@ -1149,7 +1231,7 @@ describe("organize", function()
                 -- when
                 local result = organize.organize(
                     lines,
-                    organize.first_tag_categorizer()
+                    organize.first_tag_categorizer("2021-10-10")
                 )
 
                 -- then
@@ -1171,7 +1253,7 @@ describe("organize", function()
                 -- when
                 local result = organize.organize(
                     lines,
-                    organize.first_tag_categorizer()
+                    organize.first_tag_categorizer("2021-10-10")
                 )
 
                 -- then

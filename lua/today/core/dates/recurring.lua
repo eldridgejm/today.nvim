@@ -55,7 +55,7 @@ RULES:add({
 
 -- every k days
 RULES:add({
-    match = function (s)
+    match = function(s)
         return s:match("every (%d+) days")
     end,
 
@@ -100,13 +100,12 @@ RULES:add({
     end,
 })
 
-
 -- every other month
 RULES:add({
     match = string_matcher("every other month"),
 
     advance = function(today)
-        return today:add_days(2*31)
+        return today:add_days(2 * 31)
     end,
 })
 
@@ -128,13 +127,12 @@ RULES:add({
     end,
 })
 
-
 -- every other year
 RULES:add({
     match = string_matcher("every other year"),
 
     advance = function(today)
-        return today:add_days(2*365)
+        return today:add_days(2 * 365)
     end,
 })
 
@@ -165,16 +163,18 @@ RULES:add({
             parts = util.map(util.strip, parts)
 
             local days = util.map(function(p)
-                    return util.prefix_search(DAYS_OF_THE_WEEK, p)
-                end, parts)
+                return util.prefix_search(DAYS_OF_THE_WEEK, p)
+            end, parts)
 
             -- assure that the pattern is valid
             for _, day in pairs(days) do
-                if day == nil then return nil end
+                if day == nil then
+                    return nil
+                end
             end
 
             if #days == 0 then
-                return nil;
+                return nil
             end
 
             return days

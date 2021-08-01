@@ -140,7 +140,13 @@ end
 
 function sort.make_order_comparator(order)
     return function(x, y)
-        return util.index_of(order, x) < util.index_of(order, y)
+        local ix_x = util.index_of(order, x)
+        local ix_y = util.index_of(order, y)
+
+        ix_x = ix_x or -math.huge
+        ix_y = ix_y or -math.huge
+
+        return ix_x < ix_y
     end
 end
 

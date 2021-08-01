@@ -6,10 +6,13 @@ let s:checked_color = "guifg=#565f89 ctermfg=14"
 
 " comments
 " ========
-syntax match todayComment /^--.*/ contains=todaySection
+syntax match todayComment /^--.*/ contains=todaySection,todayBrokenSection
 syntax match todaySection /^--\s\zs.*\ze (/ contained
+syntax match todayBrokenSection /^-- \zsbroken\ze (/ contained
 exec "highlight default todayComment " . s:comment_color
 exec "highlight default todaySection gui=bold,underline " . s:comment_color
+highlight default todayBrokenSection gui=bold guifg=#db4b4b
+
 
 " checkboxes
 " ==========

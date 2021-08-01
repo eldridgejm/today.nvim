@@ -364,7 +364,8 @@ end
 -- @param working_date The working date as a DateObj or a string in YYYY-MM-DD format.
 -- @return A table of the parts of the datespec, including a "do_date" as a DateObj
 -- and a "recur_pattern" as a string. If the datespec has no recur pattern, this
--- entry of the table will be nil. If the task itself has no datespec, nil is returned.
+-- entry of the table will be nil. If the task's datespec is malformed, the do_date 
+-- will be nil. If the task itself has no datespec, nil is returned.
 function task.parse_datespec(line, working_date)
     assert(working_date ~= nil)
 
@@ -382,11 +383,15 @@ end
 --- Retrieve the parsed parts of the datespec. As opposed to the "regular" parse_datespec,
 -- this will not return nil if there is no datespec, instead, it will return a table
 -- where the "do_date" is a DateObj representing the infinite past, and the recur pattern
--- is nil. Otherwise, the behavior is the same.
+-- is nil. If the datespec is malformed, the entire return value will be nil. Otherwise, 
+-- the behavior is the same.
 function task.parse_datespec_safe(line, working_date)
     local ds = task.parse_datespec(line, working_date)
+
     if ds == nil then
         return { do_date = dates.DateObj:infinite_past(), recur_pattern = nil }
+    elseif ds.do_date == nil then
+        return nil
     else
         return ds
     end
@@ -426,12 +431,12 @@ function task.replace_datespec_string_parts(line, datespec)
 end
 
 --- Replaces a datespec with an absolute datespec. If there is no datespec,
--- this leaves the task unchanged.
+-- or the datespec is malformed this leaves the task unchanged.
 -- @param line The task line.
 -- @param working_date The date of working_date as a string in YYYY-MM-DD format
 function task.make_datespec_absolute(line, working_date)
     local ds = task.parse_datespec(line, working_date)
-    if ds == nil then
+    if ds == nil or ds.do_date == nil then
         return line
     end
 
@@ -450,7 +455,7 @@ function task.make_datespec_natural(line, working_date, to_natural_options)
     end
 
     local ds = task.parse_datespec(line, working_date)
-    if ds == nil then
+    if ds == nil or ds.do_date ==nil then
         return line
     end
 

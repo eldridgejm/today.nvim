@@ -15,8 +15,8 @@ local organize = {}
 
 function organize.make_categorizer_from_components(components)
     return {
-        categorize = function(lines)
-            local groups = components.grouper(lines)
+        categorize = function(tasks)
+            local groups = components.grouper(tasks)
 
             local headers = util.keys(groups)
             sort.mergesort(headers, components.header_comparator)
@@ -83,6 +83,10 @@ local function make_weekly_view(working_date, options)
             local keyfunc = function(t)
                 local datespec = task.parse_datespec_safe(t, working_date)
 
+                if datespec == nil then
+                    return "broken"
+                end
+
                 local days_until_do = working_date:days_until(datespec.do_date)
                 local weeks_until_do = working_date:weeks_until(datespec.do_date)
 
@@ -129,6 +133,11 @@ local function make_daily_view(working_date, options)
         grouper = function(tasks)
             local keyfunc = function(t)
                 local datespec = task.parse_datespec_safe(t, working_date)
+
+                if datespec == nil then
+                    return "broken"
+                end
+
                 local days_until_do = working_date:days_until(datespec.do_date)
 
                 local ready_to_move = options.move_to_done_immediately
@@ -257,9 +266,18 @@ end
 --- Organizes tasks by the first tag present in the tag, then by do date, then priority.
 -- @param working_date The working date as a string in YYYY-MM-DD format.
 function organize.first_tag_categorizer(working_date)
+    assert(working_date ~= nil)
+    working_date = dates.DateObj:new(working_date)
+
     return organize.make_categorizer_from_components({
+
         grouper = function(tasks)
             local keyfunc = function(line)
+
+                if task.parse_datespec_safe(line, working_date) == nil then
+                    return "broken"
+                end
+
                 local first_tag = task.get_first_tag(line)
                 if first_tag ~= nil then
                     return first_tag

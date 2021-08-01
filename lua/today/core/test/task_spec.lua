@@ -282,6 +282,15 @@ describe("Today core module's", function()
             local result = task.make_datespec_absolute("[x] task", "2021-07-05")
             assert.are.equal(result, "[x] task")
         end)
+
+
+        it("it should ??? with someday", function()
+            local result = task.make_datespec_absolute("[x] <someday> task", "2021-07-05")
+            assert.are.equal(result, "[x] task")
+        end)
+
+
+
     end)
 
     describe("make datespec natural", function()
@@ -418,6 +427,7 @@ describe("Today core module's", function()
             )
         end)
 
+
         it("returns the do date as a DateObj, recur pattern as string", function()
             assert.are.same(
                 task.parse_datespec(
@@ -453,6 +463,24 @@ describe("Today core module's", function()
                 { do_date = DateObj:new("infinite_past"), recur_pattern = nil }
             )
         end)
+
+
+        it("returns nil if the datespec is malformed", function()
+            assert.are.equal(
+                task.parse_datespec_safe("[ ] <zzz> this should return nil", "2021-07-04"),
+                nil
+            )
+        end)
+
+
+        it("works with <someday>", function()
+            assert.are.same(
+                task.parse_datespec_safe("[ ] <someday> hello", "2021-07-04"),
+                { do_date = DateObj:infinite_future(), recur_pattern = nil }
+            )
+        end)
+
+
     end)
 
     describe("paint_recur_pattern", function()
