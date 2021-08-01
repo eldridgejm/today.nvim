@@ -144,13 +144,23 @@ end
 --- Remove whitespace from the left of a string.
 -- @param s The string to strip.
 function util.lstrip(s)
-    return s:match("^%s*(.+)")
+    if s == "" then return "" end
+    local m = s:match("^%s*(.+)")
+    if m == " " then
+        return ""
+    end
+    return m
 end
 
 --- Remove whitespace from the right of a string.
 -- @param s The string to strip.
 function util.rstrip(s)
-    return s:match("^(.*%S+)%s*$")
+    if s == "" then return "" end
+    local m = s:match("^(.*%S+)%s*$")
+    if m == nil then
+        return ""
+    end
+    return m
 end
 
 --- Remove whitespace from the left and right of a string.

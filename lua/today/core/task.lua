@@ -431,12 +431,13 @@ function task.replace_datespec_string_parts(line, datespec)
 end
 
 --- Replaces a datespec with an absolute datespec. If there is no datespec,
--- or the datespec is malformed this leaves the task unchanged.
+-- or the datespec is malformed this leaves the task unchanged. If the datespec
+-- is <someday>, this leaves it unchanged as well.
 -- @param line The task line.
 -- @param working_date The date of working_date as a string in YYYY-MM-DD format
 function task.make_datespec_absolute(line, working_date)
     local ds = task.parse_datespec(line, working_date)
-    if ds == nil or ds.do_date == nil then
+    if ds == nil or ds.do_date == nil or ds.do_date == dates.DateObj:infinite_future() then
         return line
     end
 

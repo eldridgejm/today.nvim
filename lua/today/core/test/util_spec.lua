@@ -86,6 +86,18 @@ describe("util module", function()
         it("should leave a single char alone", function()
             assert.are.same(util.lstrip("x"), "x")
         end)
+
+
+        it("should leave the empty string alone", function()
+            assert.are.same(util.lstrip(""), "")
+        end)
+
+
+        it("should reduce a string of whitespace to the empty string", function()
+            assert.are.same(util.lstrip(" "), "")
+        end)
+
+
     end)
 
     describe("rstrip", function()
@@ -96,11 +108,27 @@ describe("util module", function()
         it("should remove whitespace on the right", function()
             assert.are.same(util.rstrip("testing   "), "testing")
         end)
+
+        it("should leave the empty string alone", function()
+            assert.are.same(util.rstrip(""), "")
+        end)
+
+        it("should reduce a string of whitespace to the empty string", function()
+            assert.are.same(util.rstrip(" "), "")
+        end)
     end)
 
     describe("strip", function()
         it("should leave a single char alone", function()
             assert.are.same(util.strip("x"), "x")
+        end)
+
+        it("should leave the empty string alone", function()
+            assert.are.same(util.strip(""), "")
+        end)
+
+        it("should reduce a string of whitespace to the empty string", function()
+            assert.are.same(util.strip(" "), "")
         end)
     end)
 end)

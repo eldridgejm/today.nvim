@@ -772,6 +772,9 @@ describe("organize", function()
     end)
 
     describe("tag_filterer", function()
+
+        local categorizer = organize.first_tag_categorizer("2021-10-01")
+
         it("should accept a task that contains a target tag", function()
             assert.are.equal(
                 organize.tag_filterer({ "#one", "#two" })("this is a #one test"),
@@ -789,10 +792,6 @@ describe("organize", function()
         it("should accept a tagless task if 'none' is a target", function()
             assert.are.equal(organize.tag_filterer({ "none" })("this is a test"), true)
         end)
-    end)
-
-    describe("filterer", function()
-        local categorizer = organize.first_tag_categorizer("2021-10-01")
 
         it("should place the hidden tasks at the bottom", function()
             local tag_filterer = organize.tag_filterer({ "#one" })

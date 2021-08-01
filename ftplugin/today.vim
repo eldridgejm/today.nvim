@@ -34,7 +34,7 @@ command -buffer -range TodayTaskRemoveDatespec lua require('today.ui').task_remo
 command -buffer -range -nargs=1 TodayTaskReschedule lua require('today.ui').task_reschedule(<line1>, <line2>, "<args>")
 command -buffer -range -nargs=1 TodayTaskSetPriority lua require('today.ui').task_set_priority(<line1>, <line2>, <args>)
 command -buffer -range -nargs=1 TodayTaskSetFirstTag lua require('today.ui').task_set_first_tag(<line1>, <line2>, "<args>")
-command -buffer -range TodayTaskRemoveFirstTag lua require('today.ui').task_set_first_tag(<line1>, <line2>)
+command -buffer -range TodayTaskRemoveFirstTag lua require('today.ui').task_remove_first_tag(<line1>, <line2>)
 command -buffer -range -nargs=1 TodayPaintRecurPattern lua require('today.ui').paint_recur_pattern("<args>", <line1>, <line2>)
 command -buffer -nargs=? TodayCategorizeByDoDate lua require('today.ui').categorize_by_do_date("<args>")
 command -buffer TodayCategorizeByFirstTag lua require('today.ui').categorize_by_first_tag()
