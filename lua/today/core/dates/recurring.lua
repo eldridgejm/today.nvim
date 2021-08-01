@@ -23,11 +23,12 @@ end
 
 --- Constructs a simple match function that checks if the recur spec is a certain string.
 local function string_matcher(...)
-    local strings = { ... }
+    local patterns = { ... }
     return function(recur)
-        for _, s in ipairs(strings) do
-            if recur == s then
-                return s
+        for _, pattern in ipairs(patterns) do
+            local m = recur:match(pattern)
+            if m then
+                return m
             end
         end
         return nil
@@ -43,12 +44,51 @@ RULES:add({
     end,
 })
 
+-- daily, every day
+RULES:add({
+    match = string_matcher("every other day"),
+
+    advance = function(today)
+        return today:add_days(2)
+    end,
+})
+
+-- every k days
+RULES:add({
+    match = function(s)
+        return s:match("every (%d+) days")
+    end,
+
+    advance = function(today, k)
+        return today:add_days(k)
+    end,
+})
+
 -- weekly
 RULES:add({
     match = string_matcher("weekly", "every week"),
 
     advance = function(today)
         return today:add_days(7)
+    end,
+})
+
+-- every other week
+RULES:add({
+    match = string_matcher("every other week"),
+
+    advance = function(today)
+        return today:add_days(14)
+    end,
+})
+
+-- every k weeks
+RULES:add({
+    match = string_matcher("every (%d+) weeks"),
+
+    advance = function(today, k)
+        print(k)
+        return today:add_days(7 * k)
     end,
 })
 
@@ -61,6 +101,50 @@ RULES:add({
     end,
 })
 
+-- every other month
+RULES:add({
+    match = string_matcher("every other month"),
+
+    advance = function(today)
+        return today:add_days(2 * 31)
+    end,
+})
+
+-- every k months
+RULES:add({
+    match = string_matcher("every (%d+) months"),
+
+    advance = function(today, k)
+        return today:add_days(k * 31)
+    end,
+})
+
+-- yearly
+RULES:add({
+    match = string_matcher("yearly", "every year"),
+
+    advance = function(today)
+        return today:add_days(365)
+    end,
+})
+
+-- every other year
+RULES:add({
+    match = string_matcher("every other year"),
+
+    advance = function(today)
+        return today:add_days(2 * 365)
+    end,
+})
+
+-- every k years
+RULES:add({
+    match = string_matcher("every (%d+) years"),
+
+    advance = function(today, k)
+        return today:add_days(k * 365)
+    end,
+})
 -- every monday, tuesday, etc.
 local DAYS_OF_THE_WEEK = {
     "sunday",
@@ -78,9 +162,23 @@ RULES:add({
         if remainder ~= nil then
             local parts = util.split(remainder, ",")
             parts = util.map(util.strip, parts)
-            return util.map(function(p)
+
+            local days = util.map(function(p)
                 return util.prefix_search(DAYS_OF_THE_WEEK, p)
             end, parts)
+
+            -- assure that the pattern is valid
+            for _, day in pairs(days) do
+                if day == nil then
+                    return nil
+                end
+            end
+
+            if #days == 0 then
+                return nil
+            end
+
+            return days
         end
     end,
 

@@ -25,9 +25,32 @@ syntax match todayCheckboxChecked /^\[x\]/ contained
 exec "highlight default todayCheckboxChecked gui=strikethrough,bold " . s:checked_color
 
 " dates
-" =====
-syntax match todayDate /<.*>/
-highlight default link todayDate Identifier
+" ====
+
+
+let s:do_date_pattern =
+    \ '\%('
+    \ .. join(luaeval("require('today.syntax').do_date_patterns"), '\|')
+    \ .. '\)'
+
+let s:recur_pattern =
+    \ '\s*\%(+\%('
+    \ .. join(luaeval("require('today.syntax').recur_patterns"), '\|')
+    \ .. '\)\)\?'
+
+exec 'syntax match todayDateSpec '
+    \ .. '/\zs<\s*'
+    \ .. s:do_date_pattern
+    \ .. s:recur_pattern
+    \ .. '>\ze/'
+    \ .. ' contains=todayRecur,todayDoDatePast'
+
+exec 'syntax match todayRecur /' .. s:recur_pattern .. '/ contained'
+syntax match todayDoDatePast /\(yesterday\|\d\+ days ago\)/ contained
+
+highlight default link todayDateSpec Identifier
+highlight default link todayRecur Identifier
+highlight default link todayDoDatePast ErrorMsg
 
 " priorities
 " ==========

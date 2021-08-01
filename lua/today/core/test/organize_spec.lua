@@ -599,16 +599,16 @@ describe("organize", function()
 
             assert.are.same(result, {
                 "-- #one (2) {{{",
-                "[ ] this is #one something",
+                "[ ] this is something #one",
                 "[ ] this is another #one",
                 "-- }}}",
                 "",
                 "-- #three (1) {{{",
-                "[ ] this is #three #one a third",
+                "[ ] this is a third #three #one",
                 "-- }}}",
                 "",
                 "-- #two (1) {{{",
-                "[ ] this is #two another",
+                "[ ] this is another #two",
                 "-- }}}",
                 "",
                 "-- other (1) {{{",
@@ -633,16 +633,16 @@ describe("organize", function()
 
             assert.are.same(result, {
                 "-- #one (2) {{{",
-                "[ ] this is #one something",
+                "[ ] this is something #one",
                 "[x] this is another #one",
                 "-- }}}",
                 "",
                 "-- #three (1) {{{",
-                "[x] this is #three #one a third",
+                "[x] this is a third #three #one",
                 "-- }}}",
                 "",
                 "-- #two (1) {{{",
-                "[ ] this is #two another",
+                "[ ] this is another #two",
                 "-- }}}",
                 "",
                 "-- other (2) {{{",
@@ -670,16 +670,16 @@ describe("organize", function()
 
                 "-- #one (3) {{{",
                 "[ ] <today> !! this is another #one",
-                "[ ] <today> ! and this is a #one th",
-                "[ ] <tomorrow> this is #one something",
+                "[ ] <today> ! and this is a th #one",
+                "[ ] <tomorrow> this is something #one",
                 "-- }}}",
                 "",
                 "-- #three (1) {{{",
-                "[ ] this is #three #one a third",
+                "[ ] this is a third #three #one",
                 "-- }}}",
                 "",
                 "-- #two (1) {{{",
-                "[ ] this is #two another",
+                "[ ] this is another #two",
                 "-- }}}",
                 "",
                 "-- other (1) {{{",
@@ -734,39 +734,104 @@ describe("organize", function()
         end)
     end)
 
-    describe("do_date datespec inferrer", function()
-        it("should infer datespec for unlabeled items in today category", function()
-            -- given
-            local lines = {
-                "-- today (1) {{{",
-                "[ ] task 1",
-                "-- }}}",
-            }
+    describe("datespec inferrer", function()
+        describe("do date categorizer", function()
+            it(
+                "should not infer datespec for unlabeled items in today category",
+                function()
+                    -- given
+                    local lines = {
+                        "-- today (1) {{{",
+                        "[ ] task 1",
+                        "-- }}}",
+                    }
 
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer("2021-07-01")
+                    -- when
+                    local result = organize.organize(
+                        lines,
+                        organize.do_date_categorizer("2021-07-01")
+                    )
+
+                    -- then
+                    -- July 01 was a Thursday
+                    local expected = {
+                        "-- today (1) {{{",
+                        "[ ] task 1",
+                        "-- }}}",
+                    }
+
+                    assert.are.same(result, expected)
+                end
             )
 
-            -- then
-            -- July 01 was a Thursday
-            local expected = {
-                "-- today (1) {{{",
-                "[ ] <today> task 1",
-                "-- }}}",
-            }
+            it(
+                "should infer tomorrow from rest of this week if tomorrow is in the same week",
+                function()
+                    -- given
+                    local lines = {
+                        "-- rest of this week (1) {{{",
+                        "[ ] task 1",
+                        "-- }}}",
+                    }
 
-            assert.are.same(result, expected)
-        end)
+                    -- when
+                    local result = organize.organize(
+                        lines,
+                        organize.do_date_categorizer(
+                            -- this was a monday
+                            "2021-07-05"
+                        )
+                    )
 
-        it(
-            "should infer tomorrow from rest of this week if tomorrow is in the same week",
-            function()
+                    -- then
+                    -- July 01 was a Thursday
+                    local expected = {
+                        "-- rest of this week (1) {{{",
+                        "[ ] <tomorrow> task 1",
+                        "-- }}}",
+                    }
+
+                    assert.are.same(result, expected)
+                end
+            )
+
+            it(
+                "should infer today from rest of this week if tomorrow is in the next week",
+                function()
+                    -- given
+                    local lines = {
+                        "-- rest of this week (1) {{{",
+                        "[ ] task 1",
+                        "-- }}}",
+                    }
+
+                    -- when
+                    local result = organize.organize(
+                        lines,
+                        organize.do_date_categorizer(
+                            -- this was a saturday
+                            "2021-07-03"
+                        )
+                    )
+
+                    -- then
+                    -- July 01 was a Thursday
+                    local expected = {
+                        "-- today (1) {{{",
+                        "[ ] <today> task 1",
+                        "-- }}}",
+                    }
+
+                    assert.are.same(result, expected)
+                end
+            )
+
+            it("should preserve datespec if it is given", function()
                 -- given
                 local lines = {
-                    "-- rest of this week (1) {{{",
-                    "[ ] task 1",
+                    "-- next week (1) {{{",
+                    "[ ] task 2",
+                    "[ ] <today> task 1",
                     "-- }}}",
                 }
 
@@ -782,21 +847,50 @@ describe("organize", function()
                 -- then
                 -- July 01 was a Thursday
                 local expected = {
-                    "-- rest of this week (1) {{{",
-                    "[ ] <tomorrow> task 1",
+                    "-- today (1) {{{",
+                    "[ ] <today> task 1",
+                    "-- }}}",
+                    "",
+                    "-- next week (1) {{{",
+                    "[ ] <next week> task 2",
                     "-- }}}",
                 }
 
                 assert.are.same(result, expected)
-            end
-        )
+            end)
 
-        it(
-            "should infer today from rest of this week if tomorrow is in the next week",
-            function()
+            it("should recognize the end of the section", function()
                 -- given
                 local lines = {
-                    "-- rest of this week (1) {{{",
+                    "-- next week (1) {{{",
+                    "-- }}}",
+                    "[ ] task 2",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer(
+                        -- this was a monday
+                        "2021-07-05"
+                    )
+                )
+
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- today (1) {{{",
+                    "[ ] task 2",
+                    "-- }}}",
+                }
+
+                assert.are.same(result, expected)
+            end)
+
+            it("should infer next week in next week", function()
+                -- given
+                local lines = {
+                    "-- next week (1) {{{",
                     "[ ] task 1",
                     "-- }}}",
                 }
@@ -813,245 +907,282 @@ describe("organize", function()
                 -- then
                 -- July 01 was a Thursday
                 local expected = {
-                    "-- today (1) {{{",
-                    "[ ] <today> task 1",
+                    "-- next week (1) {{{",
+                    "[ ] <next week> task 1",
                     "-- }}}",
                 }
 
                 assert.are.same(result, expected)
-            end
-        )
+            end)
 
-        it("should preserve datespec if it is given", function()
-            -- given
-            local lines = {
-                "-- next week (1) {{{",
-                "[ ] task 2",
-                "[ ] <today> task 1",
-                "-- }}}",
-            }
+            it("should infer 15 days from now in future", function()
+                -- given
+                local lines = {
+                    "-- future (1) {{{",
+                    "[ ] task 1",
+                    "-- }}}",
+                }
 
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer(
-                    -- this was a monday
-                    "2021-07-05"
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer(
+                        -- this was a saturday
+                        "2021-07-03"
+                    )
                 )
-            )
 
-            -- then
-            -- July 01 was a Thursday
-            local expected = {
-                "-- today (1) {{{",
-                "[ ] <today> task 1",
-                "-- }}}",
-                "",
-                "-- next week (1) {{{",
-                "[ ] <next week> task 2",
-                "-- }}}",
-            }
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- future (1) {{{",
+                    "[ ] <15 days from now> task 1",
+                    "-- }}}",
+                }
 
-            assert.are.same(result, expected)
+                assert.are.same(result, expected)
+            end)
+
+            it("should infer someday in someday", function()
+                -- given
+                local lines = {
+                    "-- someday (1) {{{",
+                    "[ ] task 1",
+                    "-- }}}",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer(
+                        -- this was a saturday
+                        "2021-07-03"
+                    )
+                )
+
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- someday (1) {{{",
+                    "[ ] <someday> task 1",
+                    "-- }}}",
+                }
+
+                assert.are.same(result, expected)
+            end)
+
+            it("should infer done in done", function()
+                -- given
+                local lines = {
+                    "-- done (1) {{{",
+                    "[ ] task 1",
+                    "-- }}}",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer(
+                        -- this was a saturday
+                        "2021-07-03"
+                    )
+                )
+
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- done (1) {{{",
+                    "[x] task 1",
+                    "-- }}}",
+                }
+
+                assert.are.same(result, expected)
+            end)
+
+            it("should infer tomorrow in tomorrow", function()
+                -- given
+                local lines = {
+                    "-- tomorrow (1) {{{",
+                    "[ ] task 1",
+                    "-- }}}",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer(
+                        -- this was a saturday
+                        "2021-07-03",
+                        { view = "daily" }
+                    )
+                )
+
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- tomorrow (1) {{{",
+                    "[ ] <tomorrow> task 1",
+                    "-- }}}",
+                }
+
+                assert.are.same(result, expected)
+            end)
+
+            it("should infer weekday in weekday", function()
+                -- given
+                local lines = {
+                    "-- friday (1) {{{",
+                    "[ ] task 1",
+                    "-- }}}",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer(
+                        -- this was a saturday
+                        "2021-07-03",
+                        { view = "daily" }
+                    )
+                )
+
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- friday (1) {{{",
+                    "[ ] <friday> task 1",
+                    "-- }}}",
+                }
+
+                assert.are.same(result, expected)
+            end)
+
+            it("should be robust to unknown category names", function()
+                -- given
+                local lines = {
+                    "-- what is this? (1) {{{",
+                    "[ ] task 1",
+                    "-- }}}",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer(
+                        -- this was a saturday
+                        "2021-07-03",
+                        { view = "daily" }
+                    )
+                )
+
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- today (1) {{{",
+                    "[ ] task 1",
+                    "-- }}}",
+                }
+
+                assert.are.same(result, expected)
+            end)
         end)
 
+        describe("first_tag_categorizer", function()
+            it("should infer first tag", function()
+                -- given
+                local lines = {
+                    "-- #personal (1) {{{",
+                    "[ ] something",
+                    "-- }}}",
+                }
 
-        it("should recognize the end of the section", function()
-            -- given
-            local lines = {
-                "-- next week (1) {{{",
-                "-- }}}",
-                "[ ] task 2",
-            }
-
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer(
-                    -- this was a monday
-                    "2021-07-05"
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.first_tag_categorizer()
                 )
-            )
 
-            -- then
-            -- July 01 was a Thursday
-            local expected = {
-                "-- today (1) {{{",
-                "[ ] task 2",
-                "-- }}}",
-            }
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- #personal (1) {{{",
+                    "[ ] something #personal",
+                    "-- }}}",
+                }
 
-            assert.are.same(result, expected)
-        end)
+                assert.are.same(result, expected)
+            end)
 
-        it("should infer next week in next week", function()
-            -- given
-            local lines = {
-                "-- next week (1) {{{",
-                "[ ] task 1",
-                "-- }}}",
-            }
+            it("should only infer if there are no tags currently", function()
+                -- given
+                local lines = {
+                    "-- #personal (1) {{{",
+                    "[ ] something #other",
+                    "-- }}}",
+                }
 
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer(
-                    -- this was a saturday
-                    "2021-07-03"
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.first_tag_categorizer()
                 )
-            )
 
-            -- then
-            -- July 01 was a Thursday
-            local expected = {
-                "-- next week (1) {{{",
-                "[ ] <next week> task 1",
-                "-- }}}",
-            }
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- #other (1) {{{",
+                    "[ ] something #other",
+                    "-- }}}",
+                }
 
-            assert.are.same(result, expected)
-        end)
+                assert.are.same(result, expected)
+            end)
 
-        it("should infer 15 days from now in future", function()
-            -- given
-            local lines = {
-                "-- future (1) {{{",
-                "[ ] task 1",
-                "-- }}}",
-            }
+            it("should handle the 'other' category", function()
+                -- given
+                local lines = {
+                    "-- other (1) {{{",
+                    "[ ] something",
+                    "-- }}}",
+                }
 
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer(
-                    -- this was a saturday
-                    "2021-07-03"
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.first_tag_categorizer()
                 )
-            )
 
-            -- then
-            -- July 01 was a Thursday
-            local expected = {
-                "-- future (1) {{{",
-                "[ ] <15 days from now> task 1",
-                "-- }}}",
-            }
+                -- then
+                local expected = {
+                    "-- other (1) {{{",
+                    "[ ] something",
+                    "-- }}}",
+                }
 
-            assert.are.same(result, expected)
-        end)
+                assert.are.same(result, expected)
+            end)
 
-        it("should infer someday in someday", function()
-            -- given
-            local lines = {
-                "-- someday (1) {{{",
-                "[ ] task 1",
-                "-- }}}",
-            }
+            it("should handle tasks outside of a category", function()
+                -- given
+                local lines = {
+                    "[ ] something",
+                }
 
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer(
-                    -- this was a saturday
-                    "2021-07-03"
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.first_tag_categorizer()
                 )
-            )
 
-            -- then
-            -- July 01 was a Thursday
-            local expected = {
-                "-- someday (1) {{{",
-                "[ ] <someday> task 1",
-                "-- }}}",
-            }
+                -- then
+                local expected = {
+                    "-- other (1) {{{",
+                    "[ ] something",
+                    "-- }}}",
+                }
 
-            assert.are.same(result, expected)
-        end)
-
-        it("should infer done in done", function()
-            -- given
-            local lines = {
-                "-- done (1) {{{",
-                "[ ] task 1",
-                "-- }}}",
-            }
-
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer(
-                    -- this was a saturday
-                    "2021-07-03"
-                )
-            )
-
-            -- then
-            -- July 01 was a Thursday
-            local expected = {
-                "-- done (1) {{{",
-                "[x] task 1",
-                "-- }}}",
-            }
-
-            assert.are.same(result, expected)
-        end)
-
-        it("should infer tomorrow in tomorrow", function()
-            -- given
-            local lines = {
-                "-- tomorrow (1) {{{",
-                "[ ] task 1",
-                "-- }}}",
-            }
-
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer(
-                    -- this was a saturday
-                    "2021-07-03",
-                    { view = "daily" }
-                )
-            )
-
-            -- then
-            -- July 01 was a Thursday
-            local expected = {
-                "-- tomorrow (1) {{{",
-                "[ ] <tomorrow> task 1",
-                "-- }}}",
-            }
-
-            assert.are.same(result, expected)
-        end)
-
-        it("should infer weekday in weekday", function()
-            -- given
-            local lines = {
-                "-- friday (1) {{{",
-                "[ ] task 1",
-                "-- }}}",
-            }
-
-            -- when
-            local result = organize.organize(
-                lines,
-                organize.do_date_categorizer(
-                    -- this was a saturday
-                    "2021-07-03",
-                    { view = "daily" }
-                )
-            )
-
-            -- then
-            -- July 01 was a Thursday
-            local expected = {
-                "-- friday (1) {{{",
-                "[ ] <friday> task 1",
-                "-- }}}",
-            }
-
-            assert.are.same(result, expected)
+                assert.are.same(result, expected)
+            end)
         end)
     end)
 end)

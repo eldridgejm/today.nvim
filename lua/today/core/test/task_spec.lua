@@ -95,6 +95,24 @@ describe("Today core module's", function()
             local result = task.normalize("[x] <today> !! testing", "2021-02-03")
             assert.are.equal(result, "[x] <today> !! testing")
         end)
+
+        it("should move all tags to the end", function()
+            local result = task.normalize("this #is a #test of #this", "2021-02-03")
+            assert.are.equal(result, "[ ] this a of #is #test #this")
+        end)
+
+        it("should normalize case of all tags", function()
+            local result = task.normalize("this #IS", "2021-02-03")
+            assert.are.equal(result, "[ ] this #is")
+        end)
+
+        it("should remove second, third, etc. tag occurrence", function()
+            local result = task.normalize(
+                "this #foo #bar #baz #bar #beta #foo",
+                "2021-02-03"
+            )
+            assert.are.equal(result, "[ ] this #foo #bar #baz #beta")
+        end)
     end)
 
     describe("is_task", function()
@@ -118,12 +136,26 @@ describe("Today core module's", function()
                 "this is a test"
             )
         end)
+
+        it("should not include tags", function()
+            assert.are.equal(
+                task.get_description("[x] this is #foo a test"),
+                "this is a test"
+            )
+        end)
     end)
 
     describe("get_tags", function()
-        it("should retrieve all tags in order of appearance", function()
+        it("should retrieve tags in order of appearance", function()
             assert.are.same(
                 task.get_tags("testing #one #two is not #three"),
+                { "#one", "#two", "#three" }
+            )
+        end)
+
+        it("should remove duplicates", function()
+            assert.are.same(
+                task.get_tags("testing #one #two #one is not #three"),
                 { "#one", "#two", "#three" }
             )
         end)
@@ -141,10 +173,60 @@ describe("Today core module's", function()
         end)
     end)
 
+    describe("set_first_tag", function()
+        it("should add a tag to end if none exists", function()
+            assert.are.same(task.set_first_tag("testing", "#foo"), "[ ] testing #foo")
+        end)
+
+        it("should normalize case of new tag", function()
+            assert.are.same(task.set_first_tag("testing", "#FOO"), "[ ] testing #foo")
+        end)
+
+        it("should preserve existing tags", function()
+            assert.are.same(
+                task.set_first_tag("testing #bar #baz", "#FOO"),
+                "[ ] testing #foo #bar #baz"
+            )
+        end)
+
+        it(
+            "should avoid creating a duplicate, if tag is already in the task",
+            function()
+                assert.are.same(
+                    task.set_first_tag("testing #bar #baz #foo", "#FOO"),
+                    "[ ] testing #foo #bar #baz"
+                )
+            end
+        )
+    end)
+
+    describe("remove_tags", function()
+        it("should remove all tags", function()
+            assert.are.same(
+                task.remove_tags("testing #bar #baz #foo this"),
+                "testing this"
+            )
+        end)
+
+        it("should work even with weird spacing", function()
+            assert.are.same(
+                task.remove_tags("testing #bar     #foo this"),
+                "testing this"
+            )
+        end)
+    end)
+
     describe("get_first_tag", function()
         it("should retrieve the first tag", function()
             assert.are.equal(
                 task.get_first_tag("testing #one #two is not #three"),
+                "#one"
+            )
+        end)
+
+        it("should normalize case", function()
+            assert.are.equal(
+                task.get_first_tag("testing #ONE #two is not #three"),
                 "#one"
             )
         end)

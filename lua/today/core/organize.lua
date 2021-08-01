@@ -106,14 +106,6 @@ local function make_weekly_view(working_date, options)
 
             local groups = util.groupby(keyfunc, tasks)
 
-            if options.show_empty_categories then
-                for _, key in pairs(weekly_order) do
-                    if groups[key] == nil then
-                        groups[key] = {}
-                    end
-                end
-            end
-
             return groups
         end,
     }
@@ -160,14 +152,6 @@ local function make_daily_view(working_date, options)
 
             local groups = util.groupby(keyfunc, tasks)
 
-            if options.show_empty_categories then
-                for _, key in pairs(daily_order) do
-                    if groups[key] == nil then
-                        groups[key] = {}
-                    end
-                end
-            end
-
             return groups
         end,
     }
@@ -206,7 +190,18 @@ function organize.do_date_categorizer(working_date, options)
     local view = view_lookup[options.view](working_date, options)
 
     return organize.make_categorizer_from_components({
-        grouper = view.grouper,
+        grouper = function(lines)
+            local groups = view.grouper(lines)
+
+            if options.show_empty_categories then
+                for _, key in pairs(view.order) do
+                    if groups[key] == nil then
+                        groups[key] = {}
+                    end
+                end
+            end
+            return groups
+        end,
 
         header_comparator = sort.make_order_comparator(view.order),
 
@@ -225,12 +220,22 @@ function organize.do_date_categorizer(working_date, options)
                 return nil
             end
 
+            if not util.contains_value(view.order, header) then
+                return nil
+            end
+
             if task.parse_datespec(t, working_date) ~= nil then
                 return nil
             end
 
             local do_date
-            if header == "rest of this week" then
+            if header == "today" then
+                -- tasks without datespecs (such as this one) already appear under today.
+                -- plus, this prevents the jarring situation where we switch from tag categorizer
+                -- to date categorizer, and all of the things without a datespec immediately are
+                -- given one
+                return nil
+            elseif header == "rest of this week" then
                 local tomorrow = working_date:add_days(1)
 
                 if working_date:weeks_until(tomorrow) == 0 then
@@ -238,8 +243,6 @@ function organize.do_date_categorizer(working_date, options)
                 else
                     do_date = "today"
                 end
-            elseif header == "next week" then
-                do_date = "next week"
             elseif header == "future" then
                 do_date = "15 days from now"
             else
@@ -276,6 +279,23 @@ function organize.first_tag_categorizer(working_date)
                 sort.priority_comparator,
             })
             return cmp(x, y)
+        end,
+
+        inferrer = function(line, header)
+            if header == nil then
+                return nil
+            end
+
+            -- don't infer if there is already a tag
+            if task.get_first_tag(line) ~= nil then
+                return nil
+            end
+
+            if not util.startswith(header, "#") then
+                return nil
+            end
+
+            return task.set_first_tag(line, header)
         end,
     })
 end

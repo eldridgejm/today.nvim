@@ -302,6 +302,10 @@ function M.to_human_datestamp(date)
         "sat",
     }
 
+    if d < 10 then
+        d = "0" .. d
+    end
+
     wd = days_of_the_week[wd]
     m = months[m]
 

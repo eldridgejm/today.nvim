@@ -72,6 +72,9 @@ ui.task_toggle_done = make_ranged_function(
     with_working_date(replace_datespec_with_next)
 )
 ui.task_mark_undone = make_ranged_function(task.mark_undone)
+ui.task_remove_datespec = make_ranged_function(task.remove_datespec)
+ui.task_set_first_tag = make_ranged_function(task.set_first_tag)
+ui.task_remove_first_tag = make_ranged_function(task.remove_first_tag)
 ui.task_reschedule = make_ranged_function(task.set_do_date)
 ui.task_set_priority = make_ranged_function(task.set_priority)
 ui.task_set_do_date = make_ranged_function(task.set_do_date)
@@ -100,6 +103,12 @@ function ui.paint_recur_pattern(recur_pattern, start_row, end_row)
         vim.b.today_working_date
     )
     vim.api.nvim_buf_set_lines(0, start_row - 1, end_row, 0, new_lines)
+end
+
+function ui.remove_comments(start_row, end_row)
+    local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, 0)
+    lines = util.filter(task.is_task, lines)
+    vim.api.nvim_buf_set_lines(0, start_row - 1, end_row, 0, lines)
 end
 
 function ui.get_buffer_options()
@@ -181,12 +190,20 @@ end
 function ui.update_pre_write()
     ui.organize()
     ui.task_make_datespec_absolute(1, -1)
+    ui.remove_comments(1, -1)
 end
 
 function ui.update_post_read()
     vim.b.today_working_date = ui.get_current_time():fmt("%Y-%m-%d")
     ui.organize()
     ui.task_make_datespec_natural(1, -1)
+end
+
+function ui.follow()
+    local cword = vim.fn.expand("<cWORD>")
+    if util.startswith(cword, "#") then
+        ui.set_filter_tags({ cword })
+    end
 end
 
 local function is_today_buffer(bufnum)

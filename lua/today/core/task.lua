@@ -61,7 +61,7 @@ end
 -- If the line does not start with a checkbox [ ], [x], add [ ].
 -- Move the datespec string (if it exists) to after the checkbox.
 -- Move the priority (if it exists) to after the datespec.
--- Finally, add the task definition.
+-- Finally, add the task description, moving all tags to the end.
 -- @param line The task string
 -- @return The new, normalized task string.
 function task.normalize(line)
@@ -73,6 +73,7 @@ function task.normalize(line)
     local ds = task.get_datespec_as_string(line)
     local priority = task.get_priority(line)
     local description = task.get_description(line)
+    local tags = task.get_tags(line)
 
     local result = start
     local concat = function(s)
@@ -88,6 +89,10 @@ function task.normalize(line)
     end
 
     concat(description)
+
+    for _, tag in pairs(tags) do
+        concat(tag)
+    end
 
     return util.strip(result)
 end
@@ -181,6 +186,7 @@ end
 -- @return The description part.
 function task.get_description(line)
     local l = tail(line)
+    l = task.remove_tags(l)
     l = task.remove_datespec(l)
     l = task.remove_priority(l)
     return l
@@ -193,9 +199,34 @@ function task.get_tags(line)
     line = " " .. line .. " "
     local result = {}
     for match in line:gmatch("%s(#[%w-_]+)") do
-        table.insert(result, match:lower())
+        if not util.contains_value(result, match:lower()) then
+            table.insert(result, match:lower())
+        end
     end
     return result
+end
+
+--- Remove the first tag from a task string.
+-- If there are no tags, nothing is done.
+-- @param line The task string.
+-- @return The new task string, but without the first tag.
+function task.remove_first_tag(line)
+    line = " " .. line .. " "
+
+    return util.strip(line:gsub("%s+(#[%w-_]+)%s+", " "))
+end
+
+--- Remove the tags from a task string.
+-- @param line The task string.
+-- @return The new task string, but without the tags.
+function task.remove_tags(line)
+    while true do
+        local result = task.remove_first_tag(line)
+        if result == line then
+            return result
+        end
+        line = result
+    end
 end
 
 --- Retrieves the first tag, if it exists.
@@ -208,6 +239,29 @@ function task.get_first_tag(line)
     else
         return tags[1]
     end
+end
+
+--- Set the first tag. If there are no tags, this is added to the end. If there
+-- are existing tags, they are preserved in their original order. If the tag to be
+-- added already exists, it is not duplicated, but it is moved to the front of the
+-- tag list. After this call, tags that were scattered around the task will now all
+-- be at the end.
+-- @param line The task line.
+-- @param tag The new tag. It does not need to start with a "#", though it may.
+-- It will be case-normalized.
+-- @param The new task line with the new tag added as described above.
+function task.set_first_tag(line, tag)
+    if not util.startswith(tag, "#") then
+        tag = "#" .. tag
+    end
+
+    local tags = task.get_tags(line)
+    local new_line = task.remove_tags(line)
+    new_line = new_line .. " " .. tag
+    for _, old_tag in pairs(tags) do
+        new_line = new_line .. " " .. old_tag
+    end
+    return task.normalize(new_line)
 end
 
 --- Priority
@@ -290,6 +344,7 @@ end
 -- @return The datespec string (including angle brackets) or nil if there is
 -- no datespec.
 function task.get_datespec_as_string(line)
+    line = " " .. line .. " "
     return line:match("(<.*>)")
 end
 
