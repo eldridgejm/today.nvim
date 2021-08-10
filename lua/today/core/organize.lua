@@ -141,7 +141,8 @@ function organize.do_date_categorizer(working_date, options)
     options = merge_options(options, {
         show_empty_categories = false,
         move_to_done_immediately = true,
-        days_until_future = 15
+        days_until_future = 15,
+        show_dates = false
     })
 
     local view = make_daily_view(working_date, options)

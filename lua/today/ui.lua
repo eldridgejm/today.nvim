@@ -13,7 +13,6 @@ ui.options = {
             active = "do_date",
             options = {
                 show_empty_categories = true,
-                view = "daily",
                 move_to_done_immediately = false,
             },
         },
@@ -175,14 +174,10 @@ function ui.categorize_by_first_tag()
     ui.organize()
 end
 
-function ui.categorize_by_do_date(view)
+function ui.categorize_by_do_date()
     -- will be the empty string if no argument is provided
-    if (view == "") or (view == nil) then
-        view = "weekly"
-    end
     local opts = ui.get_buffer_options()
     opts.categorizer.active = "do_date"
-    opts.categorizer.options.view = view
     vim.b.today = opts
     ui.organize()
 end
