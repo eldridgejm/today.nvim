@@ -67,54 +67,6 @@ function organize.make_categorizer_from_components(components)
     }
 end
 
-local function make_weekly_view(working_date, options)
-    local weekly_order = {
-        "today",
-        "rest of this week",
-        "next week",
-        "future",
-        "someday",
-        "done",
-    }
-
-    return {
-        order = weekly_order,
-        grouper = function(tasks)
-            local keyfunc = function(t)
-                local datespec = task.parse_datespec_safe(t, working_date)
-
-                if datespec == nil then
-                    return "broken"
-                end
-
-                local days_until_do = working_date:days_until(datespec.do_date)
-                local weeks_until_do = working_date:weeks_until(datespec.do_date)
-
-                local ready_to_move = options.move_to_done_immediately
-                    or (days_until_do < 0)
-
-                if task.is_done(t) and ready_to_move then
-                    return "done"
-                elseif days_until_do <= 0 then
-                    return "today"
-                elseif weeks_until_do == 0 then
-                    return "rest of this week"
-                elseif weeks_until_do == 1 then
-                    return "next week"
-                elseif days_until_do == math.huge then
-                    return "someday"
-                else
-                    return "future"
-                end
-            end
-
-            local groups = util.groupby(keyfunc, tasks)
-
-            return groups
-        end,
-    }
-end
-
 local function make_daily_view(working_date, options)
     local daily_order = {}
     for i = 0, 13 do
@@ -189,14 +141,10 @@ function organize.do_date_categorizer(working_date, options)
     options = merge_options(options, {
         show_empty_categories = false,
         move_to_done_immediately = true,
-        view = "weekly",
+        days_until_future = 15
     })
 
-    local view_lookup = {
-        weekly = make_weekly_view,
-        daily = make_daily_view,
-    }
-    local view = view_lookup[options.view](working_date, options)
+    local view = make_daily_view(working_date, options)
 
     return organize.make_categorizer_from_components({
         grouper = function(lines)
@@ -244,16 +192,8 @@ function organize.do_date_categorizer(working_date, options)
                 -- to date categorizer, and all of the things without a datespec immediately are
                 -- given one
                 return nil
-            elseif header == "rest of this week" then
-                local tomorrow = working_date:add_days(1)
-
-                if working_date:weeks_until(tomorrow) == 0 then
-                    do_date = "tomorrow"
-                else
-                    do_date = "today"
-                end
             elseif header == "future" then
-                do_date = "15 days from now"
+                do_date = options.days_until_future .. " days from now"
             else
                 do_date = header
             end
@@ -273,7 +213,6 @@ function organize.first_tag_categorizer(working_date)
 
         grouper = function(tasks)
             local keyfunc = function(line)
-
                 if task.parse_datespec_safe(line, working_date) == nil then
                     return "broken"
                 end

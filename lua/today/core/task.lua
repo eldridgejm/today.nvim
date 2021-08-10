@@ -437,7 +437,11 @@ end
 -- @param working_date The date of working_date as a string in YYYY-MM-DD format
 function task.make_datespec_absolute(line, working_date)
     local ds = task.parse_datespec(line, working_date)
-    if ds == nil or ds.do_date == nil or ds.do_date == dates.DateObj:infinite_future() then
+    if
+        ds == nil
+        or ds.do_date == nil
+        or ds.do_date == dates.DateObj:infinite_future()
+    then
         return line
     end
 
@@ -456,7 +460,7 @@ function task.make_datespec_natural(line, working_date, to_natural_options)
     end
 
     local ds = task.parse_datespec(line, working_date)
-    if ds == nil or ds.do_date ==nil then
+    if ds == nil or ds.do_date == nil then
         return line
     end
 

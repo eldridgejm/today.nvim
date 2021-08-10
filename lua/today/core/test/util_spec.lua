@@ -87,17 +87,13 @@ describe("util module", function()
             assert.are.same(util.lstrip("x"), "x")
         end)
 
-
         it("should leave the empty string alone", function()
             assert.are.same(util.lstrip(""), "")
         end)
 
-
         it("should reduce a string of whitespace to the empty string", function()
             assert.are.same(util.lstrip(" "), "")
         end)
-
-
     end)
 
     describe("rstrip", function()

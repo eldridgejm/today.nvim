@@ -80,12 +80,9 @@ describe("Today core module's", function()
             assert.are.equal(task.normalize("this is a test"), "[ ] this is a test")
         end)
 
-
         it("should work OK with a task that has a datespec only", function()
             assert.are.equal(task.normalize("<2021-10-10>"), "[ ] <2021-10-10>")
         end)
-
-
 
         it("should leave line unchanged if checkbox exists", function()
             assert.are.equal(task.normalize("[ ] task"), "[ ] task")
@@ -225,19 +222,11 @@ describe("Today core module's", function()
                 "testing this"
             )
         end)
-
-
-
-
-
     end)
 
     describe("remove_first_tag", function()
         it("should work when there are no tags", function()
-            assert.are.same(
-                task.remove_first_tag("testing"),
-                "testing"
-            )
+            assert.are.same(task.remove_first_tag("testing"), "testing")
         end)
     end)
 
@@ -308,14 +297,13 @@ describe("Today core module's", function()
             assert.are.equal(result, "[x] task")
         end)
 
-
         it("it should leave someday alone", function()
-            local result = task.make_datespec_absolute("[x] <someday> task", "2021-07-05")
+            local result = task.make_datespec_absolute(
+                "[x] <someday> task",
+                "2021-07-05"
+            )
             assert.are.equal(result, "[x] <someday> task")
         end)
-
-
-
     end)
 
     describe("make datespec natural", function()
@@ -452,7 +440,6 @@ describe("Today core module's", function()
             )
         end)
 
-
         it("returns the do date as a DateObj, recur pattern as string", function()
             assert.are.same(
                 task.parse_datespec(
@@ -489,14 +476,15 @@ describe("Today core module's", function()
             )
         end)
 
-
         it("returns nil if the datespec is malformed", function()
             assert.are.equal(
-                task.parse_datespec_safe("[ ] <zzz> this should return nil", "2021-07-04"),
+                task.parse_datespec_safe(
+                    "[ ] <zzz> this should return nil",
+                    "2021-07-04"
+                ),
                 nil
             )
         end)
-
 
         it("works with <someday>", function()
             assert.are.same(
@@ -504,8 +492,6 @@ describe("Today core module's", function()
                 { do_date = DateObj:infinite_future(), recur_pattern = nil }
             )
         end)
-
-
     end)
 
     describe("paint_recur_pattern", function()

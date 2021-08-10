@@ -284,7 +284,7 @@ function M.from_natural(s, today)
         end
     end
 
-    if not s:match('%d%d%d%d-%d+-%d+') then
+    if not s:match("%d%d%d%d-%d+-%d+") then
         return nil
     end
 

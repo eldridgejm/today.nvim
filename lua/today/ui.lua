@@ -108,8 +108,8 @@ end
 function ui.remove_comments(start_row, end_row)
     local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, 0)
 
-    local function keep (line)
-        return task.is_task(line) or util.startswith(line, '--:')
+    local function keep(line)
+        return task.is_task(line) or util.startswith(line, "--:")
     end
     lines = util.filter(keep, lines)
     vim.api.nvim_buf_set_lines(0, start_row - 1, end_row, 0, lines)

@@ -290,15 +290,10 @@ describe("natural language to date", function()
                 DateObj:new("2020-06-02")
             )
         end)
-
-
     end)
 
     it("returns nil when given an invalid date", function()
-        assert.are.equal(
-            dateslib.from_natural("zzz", DateObj:new("2021-7-5")),
-            nil
-        )
+        assert.are.equal(dateslib.from_natural("zzz", DateObj:new("2021-7-5")), nil)
     end)
 end)
 
