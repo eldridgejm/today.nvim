@@ -12,8 +12,8 @@ ui.options = {
         categorizer = {
             active = "do_date",
             options = {
-                show_empty_categories = false,
-                view = "weekly",
+                show_empty_categories = true,
+                view = "daily",
                 move_to_done_immediately = false,
             },
         },
@@ -107,7 +107,11 @@ end
 
 function ui.remove_comments(start_row, end_row)
     local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, 0)
-    lines = util.filter(task.is_task, lines)
+
+    local function keep (line)
+        return task.is_task(line) or util.startswith(line, '--:')
+    end
+    lines = util.filter(keep, lines)
     vim.api.nvim_buf_set_lines(0, start_row - 1, end_row, 0, lines)
 end
 
@@ -156,9 +160,12 @@ function ui.organize()
     })
 
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
+
     lines = organize.organize(lines, categorizer, filterer, informer)
     vim.api.nvim_buf_set_lines(0, 0, -1, 0, lines)
     vim.api.nvim_buf_set_option(0, "modified", was_modified)
+
+    return #lines
 end
 
 function ui.categorize_by_first_tag()
@@ -188,6 +195,7 @@ function ui.set_filter_tags(tags)
 end
 
 function ui.update_pre_write()
+    vim.b.today_cursor = vim.api.nvim_win_get_cursor(0)
     ui.organize()
     ui.task_make_datespec_absolute(1, -1)
     ui.remove_comments(1, -1)
@@ -195,8 +203,15 @@ end
 
 function ui.update_post_read()
     vim.b.today_working_date = ui.get_current_time():fmt("%Y-%m-%d")
-    ui.organize()
+    local n_lines = ui.organize()
     ui.task_make_datespec_natural(1, -1)
+
+    if vim.b.today_cursor ~= nil then
+        if vim.b.today_cursor[1] >= n_lines then
+            vim.b.today_cursor = { n_lines, vim.b.today_cursor[2] }
+        end
+        vim.api.nvim_win_set_cursor(0, vim.b.today_cursor) -- restore the cursor position
+    end
 end
 
 function ui.follow()

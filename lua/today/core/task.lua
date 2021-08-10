@@ -364,7 +364,7 @@ end
 -- @param working_date The working date as a DateObj or a string in YYYY-MM-DD format.
 -- @return A table of the parts of the datespec, including a "do_date" as a DateObj
 -- and a "recur_pattern" as a string. If the datespec has no recur pattern, this
--- entry of the table will be nil. If the task's datespec is malformed, the do_date 
+-- entry of the table will be nil. If the task's datespec is malformed, the do_date
 -- will be nil. If the task itself has no datespec, nil is returned.
 function task.parse_datespec(line, working_date)
     assert(working_date ~= nil)
@@ -383,7 +383,7 @@ end
 --- Retrieve the parsed parts of the datespec. As opposed to the "regular" parse_datespec,
 -- this will not return nil if there is no datespec, instead, it will return a table
 -- where the "do_date" is a DateObj representing the infinite past, and the recur pattern
--- is nil. If the datespec is malformed, the entire return value will be nil. Otherwise, 
+-- is nil. If the datespec is malformed, the entire return value will be nil. Otherwise,
 -- the behavior is the same.
 function task.parse_datespec_safe(line, working_date)
     local ds = task.parse_datespec(line, working_date)

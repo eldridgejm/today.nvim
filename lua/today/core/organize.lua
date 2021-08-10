@@ -430,8 +430,8 @@ function organize.organize(lines, categorizer, filterer, informer)
 
     if filterer ~= nil then
         local filtered = util.groupby(filterer, tasks)
-        tasks = filtered[true]
-        hidden_tasks = filtered[false]
+        tasks = filtered[true] or {}
+        hidden_tasks = filtered[false] or {}
     end
 
     local categories = categorizer.categorize(tasks)

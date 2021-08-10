@@ -474,6 +474,38 @@ describe("organize", function()
                 assert.are.same(result, expected)
             end)
 
+            it("should keep user comments at the beginning and end", function()
+                -- given
+                local lines = {
+                    "--: this is a user comment",
+                    "[x] this is done",
+                    "[ ] but this isn't",
+                    "--: and so is this",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer("2021-02-01", { view = "daily"} )
+                )
+
+                -- then
+                local expected = {
+                    "--: this is a user comment",
+                    "",
+                    "-- today (1) {{{",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                    "",
+                    "-- done (1) {{{",
+                    "[x] this is done",
+                    "-- }}}",
+                    "",
+                    "--: and so is this",
+                }
+                assert.are.same(result, expected)
+            end)
+
             it(
                 "should put done tasks in do date category if move_to_done_immediately=false",
                 function()
@@ -813,6 +845,27 @@ describe("organize", function()
                 "-- }}}",
             })
         end)
+
+        it("should hide all tasks if none match the filter", function()
+            local tag_filterer = organize.tag_filterer({ "#zoomzoom" })
+            local tasks = {
+                "this is the first one",
+                "this is the second one #two",
+                "this is the third #one",
+            }
+            local result = organize.organize(tasks, categorizer, tag_filterer)
+
+            assert.are.same(result, {
+                "",
+                "-- hidden (3) {{{",
+                "[ ] this is the first one",
+                "[ ] this is the second one #two",
+                "[ ] this is the third #one",
+                "-- }}}",
+            })
+        end)
+
+
     end)
 
     describe("datespec inferrer", function()

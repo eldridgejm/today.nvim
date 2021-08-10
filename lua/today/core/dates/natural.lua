@@ -182,7 +182,7 @@ RULES:add({
 
 -- someday
 RULES:add({
-    -- defaults to the first day of next month
+    -- a date in the infinite future
     from_natural = function(s, _)
         if s == "someday" then
             return DateObj:infinite_future()
