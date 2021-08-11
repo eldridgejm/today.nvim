@@ -103,12 +103,16 @@ function sort.make_do_date_comparator(working_date)
     assert(working_date ~= nil)
 
     local function comparator(task_x, task_y)
-        local x_ds = task.parse_datespec_safe(task_x, working_date).do_date
-        local y_ds = task.parse_datespec_safe(task_y, working_date).do_date
-        if x_ds == y_ds then
+        local x_ds = task.parse_datespec_safe(task_x, working_date)
+        local y_ds = task.parse_datespec_safe(task_y, working_date)
+
+        assert(x_ds ~= nil, "nil datespec: " .. task_x)
+        assert(y_ds ~= nil, "nil datespec: " .. task_y)
+
+        if x_ds.do_date == y_ds.do_date then
             return nil
         end
-        return x_ds < y_ds
+        return x_ds.do_date < y_ds.do_date
     end
 
     return comparator
@@ -138,8 +142,17 @@ function sort.priority_comparator(task_x, task_y)
     return x_pr > y_pr
 end
 
-function sort.make_order_comparator(order)
+function sort.make_order_comparator(order, transformer)
+    --- Make a comparator that looks for the objects in the "order" list
+    -- and returns based on their index. If it is not nil, the "transformer"
+    -- is first used to transform the objects before looking into the
+    -- "order" list.
     return function(x, y)
+        if transformer ~= nil then
+            x = transformer(x)
+            y = transformer(y)
+        end
+
         local ix_x = util.index_of(order, x)
         local ix_y = util.index_of(order, y)
 

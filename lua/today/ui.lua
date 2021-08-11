@@ -14,6 +14,7 @@ ui.options = {
             options = {
                 show_empty_categories = true,
                 move_to_done_immediately = false,
+                show_dates = true,
             },
         },
         filter_tags = nil,

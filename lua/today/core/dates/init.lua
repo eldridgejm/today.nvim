@@ -15,5 +15,6 @@ M.DateObj = require("today.core.dates.dateobj")
 
 slurp("today.core.dates.natural")
 slurp("today.core.dates.recurring")
+slurp("today.core.dates.strings")
 
 return M

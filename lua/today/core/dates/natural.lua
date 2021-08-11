@@ -5,6 +5,7 @@
 
 local DateObj = require("today.core.dates.dateobj")
 local util = require("today.util")
+local datestrings = require("today.core.dates.strings")
 
 local M = {}
 
@@ -75,16 +76,6 @@ RULES:add({
 
 -- weekdays
 
-local WEEKDAYS = {
-    "sunday",
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-}
-
 RULES:add({
     from_natural = function(s, today)
         local week_adder = 0
@@ -92,7 +83,7 @@ RULES:add({
             week_adder = 7
             s = s:match("next (%w+)")
         end
-        local target_weekday = util.prefix_search(WEEKDAYS, s)
+        local target_weekday = util.prefix_search(datestrings.WEEKDAYS, s)
 
         if target_weekday ~= nil then
             local todays_weekday = today:day_of_the_week()
@@ -116,7 +107,7 @@ RULES:add({
                 prefix = ""
             end
 
-            return prefix .. WEEKDAYS[target_weekday]
+            return prefix .. datestrings.WEEKDAYS[target_weekday]
         end
     end,
 })
@@ -199,21 +190,6 @@ RULES:add({
 -- <Weekday> <Month> <Day> <Year>
 -- e.g., mon july 05 2021
 
-local months = {
-    "jan",
-    "feb",
-    "mar",
-    "apr",
-    "may",
-    "jun",
-    "jul",
-    "aug",
-    "sep",
-    "oct",
-    "nov",
-    "dec",
-}
-
 RULES:add({
     -- defaults to the first day of next month
     from_natural = function(s, _)
@@ -223,7 +199,7 @@ RULES:add({
             return nil
         end
 
-        m = util.index_of(months, m)
+        m = util.index_of(datestrings.MONTHS_3_CHARS, m)
         return DateObj:from_ymd(y, m, d)
     end,
 })
@@ -291,31 +267,6 @@ function M.from_natural(s, today)
     return DateObj:new(s)
 end
 
---- Converts a date into a human datestamp of the form "mon jul 05 2021"
-function M.to_human_datestamp(date)
-    local y, m, d = date:ymd()
-    local wd = date:day_of_the_week()
-
-    local days_of_the_week = {
-        "sun",
-        "mon",
-        "tue",
-        "wed",
-        "thu",
-        "fri",
-        "sat",
-    }
-
-    if d < 10 then
-        d = "0" .. d
-    end
-
-    wd = days_of_the_week[wd]
-    m = months[m]
-
-    return wd .. " " .. m .. " " .. d .. " " .. y
-end
-
 --- Convert an absolute date to a natural date.
 -- If there is no valid conversion of the absolute date to a natural date,
 -- the date is left as a string in YYYY-MM-DD format.
@@ -353,7 +304,7 @@ function M.to_natural(s, today, options)
     if options.default_format == "YYYY-MM-DD" then
         return tostring(d)
     elseif options.default_format == "human" then
-        return M.to_human_datestamp(d)
+        return datestrings.to_human_datestamp(d)
     end
 end
 

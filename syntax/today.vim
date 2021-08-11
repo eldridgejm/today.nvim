@@ -6,12 +6,15 @@ let s:checked_color = "guifg=#565f89 ctermfg=14"
 
 " comments
 " ========
-syntax match todayComment /^--.*/ contains=todaySection,todayBrokenSection
-syntax match todaySection /^--\s\zs.*\ze (/ contained
-syntax match todayBrokenSection /^-- \zsbroken\ze (/ contained
+syntax match todayComment /^--.*/ contains=todayCategory,todayBrokenCategory,todayCategoryDivider
+syntax match todayCategory /^--\s\zs\(\w\|\s\)\+\ze / contained
+syntax match todayCategoryDivider /|/ contained
+syntax match todayBrokenCategory /^-- \zsbroken\ze (/ contained
+
 exec "highlight default todayComment " . s:comment_color
-exec "highlight default todaySection gui=bold,underline " . s:comment_color
-highlight default todayBrokenSection gui=bold guifg=#db4b4b
+exec "highlight default todayCategory gui=bold,underline " . s:comment_color
+exec "highlight default todayCategoryDate gui=italic " . s:comment_color
+highlight default todayBrokenCategory gui=bold guifg=#db4b4b
 
 
 " checkboxes
@@ -29,7 +32,6 @@ exec "highlight default todayCheckboxChecked gui=strikethrough,bold " . s:checke
 
 " dates
 " ====
-
 
 let s:do_date_pattern =
     \ '\%('

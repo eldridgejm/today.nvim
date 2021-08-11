@@ -23,7 +23,7 @@ describe("organize", function()
                     lines,
                     organize.do_date_categorizer(
                         "2021-07-01",
-                        { show_empty_categories = true, view = "daily" }
+                        { show_empty_categories = true }
                     )
                 )
 
@@ -106,7 +106,7 @@ describe("organize", function()
                 -- when
                 local result = organize.organize(
                     lines,
-                    organize.do_date_categorizer("2021-02-01", { view = "daily" })
+                    organize.do_date_categorizer("2021-02-01", {})
                 )
 
                 -- then
@@ -238,7 +238,7 @@ describe("organize", function()
                     lines,
                     organize.do_date_categorizer(
                         "2021-06-01",
-                        { show_empty_categories = false, view = "daily" }
+                        { show_empty_categories = false }
                     )
                 )
 
@@ -269,7 +269,7 @@ describe("organize", function()
                 -- when
                 local result = organize.organize(
                     lines,
-                    organize.do_date_categorizer("2021-06-01", { view = "daily" })
+                    organize.do_date_categorizer("2021-06-01", {})
                 )
 
                 -- then
@@ -280,6 +280,32 @@ describe("organize", function()
                     "",
                     "-- today (1) {{{",
                     "[ ] but this isn't",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
+            it("should add date to header if option is given", function()
+                -- given
+                local lines = {
+                    "[ ] undone <tomorrow>",
+                    "[ ] but this isn't",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer("2021-06-01", { show_dates = true })
+                )
+
+                -- then
+                local expected = {
+                    "-- today | jun 01 | (1) {{{",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                    "",
+                    "-- tomorrow | jun 02 | (1) {{{",
+                    "[ ] <tomorrow> undone",
                     "-- }}}",
                 }
                 assert.are.same(result, expected)
@@ -474,7 +500,7 @@ describe("organize", function()
                     organize.do_date_categorizer(
                         -- this was a saturday
                         "2021-07-03",
-                        { view = "daily" }
+                        {}
                     )
                 )
 
@@ -503,7 +529,7 @@ describe("organize", function()
                     organize.do_date_categorizer(
                         -- this was a saturday
                         "2021-07-03",
-                        { view = "daily" }
+                        {}
                     )
                 )
 
@@ -532,7 +558,7 @@ describe("organize", function()
                     organize.do_date_categorizer(
                         -- this was a saturday
                         "2021-07-03",
-                        { view = "daily" }
+                        {}
                     )
                 )
 
@@ -541,6 +567,45 @@ describe("organize", function()
                 local expected = {
                     "-- today (1) {{{",
                     "[ ] task 1",
+                    "-- }}}",
+                }
+
+                assert.are.same(result, expected)
+            end)
+
+            it("should be robust the date appearing in the header", function()
+                -- given
+                local lines = {
+                    "-- today | jun 01 | (1) {{{",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                    "",
+                    "-- tomorrow | jun 02 | (1) {{{",
+                    "[ ] <tomorrow> undone",
+                    "[ ] something",
+                    "-- }}}",
+                }
+
+                -- when
+                local result = organize.organize(
+                    lines,
+                    organize.do_date_categorizer(
+                        -- this was a saturday
+                        "2021-06-01",
+                        { show_dates = true }
+                    )
+                )
+
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- today | jun 01 | (1) {{{",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                    "",
+                    "-- tomorrow | jun 02 | (2) {{{",
+                    "[ ] <tomorrow> undone",
+                    "[ ] <tomorrow> something",
                     "-- }}}",
                 }
 
@@ -778,7 +843,6 @@ describe("organize", function()
                 assert.are.same(result, expected)
             end)
         end)
-
     end)
 
     describe("tag_filterer", function()
@@ -842,5 +906,4 @@ describe("organize", function()
             })
         end)
     end)
-
 end)

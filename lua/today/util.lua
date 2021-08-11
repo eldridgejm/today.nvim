@@ -14,7 +14,7 @@ function util.negate(predicate)
     end
 end
 
---- Map a function over a table, returning a table of results.
+--- Map a function over a list, returning a list of results.
 -- @param fn The function to apply.
 -- @param iterable The table to apply it to.
 -- @return A table of the results.
@@ -22,6 +22,18 @@ function util.map(fn, iterable)
     local result = {}
     for _, x in pairs(iterable) do
         table.insert(result, fn(x))
+    end
+    return result
+end
+
+--- Map a function over the keys of a table, transforming them.
+-- @param fn The function to apply.
+-- @param iterable The table to apply it to.
+-- @return A table of the results with keys transformed.
+function util.map_keys(fn, table)
+    local result = {}
+    for key, x in pairs(table) do
+        result[fn(key)] = x
     end
     return result
 end

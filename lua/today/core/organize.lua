@@ -67,21 +67,70 @@ function organize.make_categorizer_from_components(components)
     }
 end
 
-local function make_daily_view(working_date, options)
-    local daily_order = {}
-    for i = 0, 13 do
-        local header = dates.to_natural(working_date:add_days(i), working_date)
-        table.insert(daily_order, header)
+local function merge_options(provided, defaults)
+    if provided == nil then
+        return defaults
     end
 
-    util.put_into(daily_order, {
+    local opts = {}
+
+    for key, default_value in pairs(defaults) do
+        if provided[key] ~= nil then
+            opts[key] = provided[key]
+        else
+            opts[key] = default_value
+        end
+    end
+    return opts
+end
+
+function organize.do_date_categorizer(working_date, options)
+    working_date = dates.DateObj:new(working_date)
+
+    options = merge_options(options, {
+        show_empty_categories = false,
+        move_to_done_immediately = true,
+        days_until_future = 15,
+        show_dates = false,
+    })
+
+    local function remove_date_from_header(h)
+        return h:gsub(" |.*|", "")
+    end
+
+    local function add_date_to_header(header)
+        local undated = {
+            "done",
+            "someday",
+            "future",
+            "broken",
+        }
+
+        if util.contains_value(undated, header) then
+            return header
+        end
+
+        local date = dates.from_natural(header, working_date)
+        return header .. " | " .. dates.to_month_day(date) .. " |"
+    end
+
+    local order = {}
+    for i = 0, 13 do
+        local header = dates.to_natural(working_date:add_days(i), working_date)
+        table.insert(order, header)
+    end
+
+    if options.show_dates then
+        order = util.map(add_date_to_header, order)
+    end
+
+    util.put_into(order, {
         "future",
         "someday",
         "done",
     })
 
-    return {
-        order = daily_order,
+    return organize.make_categorizer_from_components({
         grouper = function(tasks)
             local keyfunc = function(t)
                 local datespec = task.parse_datespec_safe(t, working_date)
@@ -113,46 +162,12 @@ local function make_daily_view(working_date, options)
 
             local groups = util.groupby(keyfunc, tasks)
 
-            return groups
-        end,
-    }
-end
-
-local function merge_options(provided, defaults)
-    if provided == nil then
-        return defaults
-    end
-
-    local opts = {}
-
-    for key, default_value in pairs(defaults) do
-        if provided[key] ~= nil then
-            opts[key] = provided[key]
-        else
-            opts[key] = default_value
-        end
-    end
-    return opts
-end
-
-function organize.do_date_categorizer(working_date, options)
-    working_date = dates.DateObj:new(working_date)
-
-    options = merge_options(options, {
-        show_empty_categories = false,
-        move_to_done_immediately = true,
-        days_until_future = 15,
-        show_dates = false
-    })
-
-    local view = make_daily_view(working_date, options)
-
-    return organize.make_categorizer_from_components({
-        grouper = function(lines)
-            local groups = view.grouper(lines)
+            if options.show_dates then
+                groups = util.map_keys(add_date_to_header, groups)
+            end
 
             if options.show_empty_categories then
-                for _, key in pairs(view.order) do
+                for _, key in pairs(order) do
                     if groups[key] == nil then
                         groups[key] = {}
                     end
@@ -161,7 +176,7 @@ function organize.do_date_categorizer(working_date, options)
             return groups
         end,
 
-        header_comparator = sort.make_order_comparator(view.order),
+        header_comparator = sort.make_order_comparator(order),
 
         task_comparator = sort.chain_comparators({
             sort.completed_comparator,
@@ -178,7 +193,7 @@ function organize.do_date_categorizer(working_date, options)
                 return nil
             end
 
-            if not util.contains_value(view.order, header) then
+            if not util.contains_value(order, header) then
                 return nil
             end
 
@@ -187,6 +202,7 @@ function organize.do_date_categorizer(working_date, options)
             end
 
             local do_date
+            header = remove_date_from_header(header)
             if header == "today" then
                 -- tasks without datespecs (such as this one) already appear under today.
                 -- plus, this prevents the jarring situation where we switch from tag categorizer
