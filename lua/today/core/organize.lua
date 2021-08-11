@@ -1,4 +1,15 @@
---- Functions for organizing a buffer full of tasks.
+--- Functions for organizing the tasks in a buffer.
+--
+-- A buffer should be organized into mutually-exclusive *categories*. Each category is 
+-- delimited by a starting category "header" and a trailing "footer". A category header
+-- comment is of the form:
+--      -- <title> [| <information 1> | <information 2> ...] {{{
+-- A footer comment is of the form:
+--      -- }}}
+-- The term "header" refers to the content of the header comment. For example, given the
+-- header comment:
+--      -- tomorrow | aug 15 | 1 task {{{
+-- the header is the string `"tomorrow | aug 15 | 1 task"`.
 
 local task = require("today.core.task")
 local util = require("today.util")
@@ -7,72 +18,23 @@ local dates = require("today.core.dates")
 
 local organize = {}
 
---- Categorizers.
--- @section
 
---- Organizes tasks by do date first, then by priority.
--- @param working_date The working date as a string in YYYY-MM-DD format.
-
-function organize.make_categorizer_from_components(components)
-    return {
-        categorize = function(tasks)
-            local groups = components.grouper(tasks)
-
-            local headers = util.keys(groups)
-            sort.mergesort(headers, components.header_comparator)
-
-            local result = {}
-            for _, header in ipairs(headers) do
-                local group_tasks = groups[header]
-                sort.mergesort(group_tasks, components.task_comparator)
-                local group = {
-                    header = header,
-                    tasks = group_tasks,
-                }
-                table.insert(result, group)
-            end
-            return result
-        end,
-        infer_from_category = function(lines)
-            if components.inferrer == nil then
-                return lines
-            end
-
-            local current_header = nil
-            local new_lines = {}
-            for _, line in pairs(lines) do
-                local header = line:match("-- (.*) %(%d+%) {{{")
-                local end_header = line == "-- }}}"
-
-                if header ~= nil then
-                    current_header = header
-                end
-
-                if end_header then
-                    current_header = nil
-                end
-
-                if task.is_task(line) then
-                    local new_line = components.inferrer(line, current_header)
-                    if new_line ~= nil then
-                        line = new_line
-                    end
-                end
-
-                table.insert(new_lines, line)
-            end
-
-            return new_lines
-        end,
-    }
-end
-
-local function merge_options(provided, defaults)
-    if provided == nil then
-        return defaults
-    end
-
+--- Merges the keys/values in two tables.
+-- @param provided The "new" table that replaces the defaults. If this is nil, the
+-- defaults table is copied and returned. If `provided[key]` is nil but is defined in
+-- `defaults`, the default value is inserted into `provided`. If a key is in `provided`
+-- but not in `defaults`, nothing happens.
+-- @param defaults The default values.
+-- @returns The new table.
+local function merge(provided, defaults)
     local opts = {}
+
+    if provided == nil then
+        for key, value in pairs(defaults) do
+            opts[key] = value
+        end
+        return opts
+    end
 
     for key, default_value in pairs(defaults) do
         if provided[key] ~= nil then
@@ -84,21 +46,95 @@ local function merge_options(provided, defaults)
     return opts
 end
 
+local function construct_header(parts)
+    parts = util.filter(function (x) return x ~= nil end, parts)
+    return table.concat(parts, " | ")
+end
+
+
+local function count_remaining_tasks(tasks)
+    local count = 0
+    for _, t in pairs(tasks) do
+        if not task.is_done(t) then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+--- Categorizers.
+-- A categorizer is a function that implements a strategy for organizing
+-- the tasks into categories. The function should accept a list of tasks (as strings)
+-- and should return a list of tables -- each table representing a separate category,
+-- and with key/value pairs: "header" (string) the category's header and "tasks" (list
+-- of strings) the tasks in the category.
+--
+-- There is a lot of overlap in the creation of categorizers. To simplify the process,
+-- the `make_categorizer_from_components` helper function may be used. It builds a
+-- categorizer from several orthogonal component functions.
+-- @section
+
+--- Builds a categorizer from components. The required components are:
+--
+-- `grouper`: Accepts a list of tasks and returns a table whose keys are category "keys"
+-- (strings used to describe the category) and whose values are the lists of tasks in each
+-- category. Note that category keys need not be headers (though they may be).
+--
+-- `header_formatter`: Accepts a category key and the list of tasks in the category and 
+-- returns a formatter header string. If not provided, the default is to simply use the 
+-- category key as the header.
+--
+-- `category_key_comparator`: Compares category keys for the purpose of ordering between
+-- categories. Default behavior is to simply use the standard < operator.
+--
+-- `task_comparator`: Compares tasks for the purpose of ordering within categories.
+--
+-- @param components A table with the components listed above.
+-- @returns A list of categories, with each category being a table with "header" and "tasks"
+-- keys.
+function organize.make_categorizer_from_components(components)
+    if components.header_formatter == nil then
+        components.header_formatter = function (k) return k end
+    end
+
+    return function(tasks)
+        local groups = components.grouper(tasks)
+
+        local category_keys = util.keys(groups)
+        sort.mergesort(category_keys, components.category_key_comparator)
+
+        local result = {}
+        for _, category_key in ipairs(category_keys) do
+            local group_tasks = groups[category_key]
+            sort.mergesort(group_tasks, components.task_comparator)
+            local group = {
+                header = components.header_formatter(category_key, group_tasks),
+                tasks = group_tasks,
+            }
+            table.insert(result, group)
+        end
+        return result
+    end
+end
+
+
+--- Organizes tasks according to their "do date".
 function organize.do_date_categorizer(working_date, options)
     working_date = dates.DateObj:new(working_date)
 
-    options = merge_options(options, {
+    options = merge(options, {
         show_empty_categories = false,
         move_to_done_immediately = true,
         days_until_future = 15,
         show_dates = false,
+        show_remaining_tasks_count = true
     })
 
     local function remove_date_from_header(h)
         return h:gsub(" |.*|", "")
     end
 
-    local function add_date_to_header(header)
+    local function category_key_to_date(key)
         local undated = {
             "done",
             "someday",
@@ -106,22 +142,18 @@ function organize.do_date_categorizer(working_date, options)
             "broken",
         }
 
-        if util.contains_value(undated, header) then
-            return header
+        if util.contains_value(undated, key) then
+            return nil
         end
 
-        local date = dates.from_natural(header, working_date)
-        return header .. " | " .. dates.to_month_day(date) .. " |"
+        local date = dates.from_natural(key, working_date)
+        return dates.to_month_day(date)
     end
 
     local order = {}
     for i = 0, 13 do
         local header = dates.to_natural(working_date:add_days(i), working_date)
         table.insert(order, header)
-    end
-
-    if options.show_dates then
-        order = util.map(add_date_to_header, order)
     end
 
     util.put_into(order, {
@@ -162,10 +194,6 @@ function organize.do_date_categorizer(working_date, options)
 
             local groups = util.groupby(keyfunc, tasks)
 
-            if options.show_dates then
-                groups = util.map_keys(add_date_to_header, groups)
-            end
-
             if options.show_empty_categories then
                 for _, key in pairs(order) do
                     if groups[key] == nil then
@@ -176,13 +204,30 @@ function organize.do_date_categorizer(working_date, options)
             return groups
         end,
 
-        header_comparator = sort.make_order_comparator(order),
+        category_key_comparator = sort.make_order_comparator(order),
 
         task_comparator = sort.chain_comparators({
             sort.completed_comparator,
             sort.make_do_date_comparator(working_date),
             sort.priority_comparator,
         }),
+
+        header_formatter = function (category_key, category_tasks)
+            local date
+            local tasks_remaining
+
+            if options.show_dates then
+                date = category_key_to_date(category_key)
+            end
+
+            if options.show_remaining_tasks_count and category_key ~= "done" then
+                tasks_remaining = count_remaining_tasks(category_tasks)
+            end
+
+            return construct_header({
+                category_key, date, tasks_remaining
+            })
+        end,
 
         inferrer = function(t, header)
             if header == "done" then
@@ -222,9 +267,13 @@ end
 
 --- Organizes tasks by the first tag present in the tag, then by do date, then priority.
 -- @param working_date The working date as a string in YYYY-MM-DD format.
-function organize.first_tag_categorizer(working_date)
+function organize.first_tag_categorizer(working_date, options)
     assert(working_date ~= nil)
     working_date = dates.DateObj:new(working_date)
+
+    options = merge(options, {
+        show_remaining_tasks_count = true
+    })
 
     return organize.make_categorizer_from_components({
 
@@ -244,7 +293,7 @@ function organize.first_tag_categorizer(working_date)
             return util.groupby(keyfunc, tasks)
         end,
 
-        header_comparator = nil,
+        category_key_comparator = nil,
 
         task_comparator = function(x, y)
             local cmp = sort.chain_comparators({
@@ -253,6 +302,19 @@ function organize.first_tag_categorizer(working_date)
                 sort.priority_comparator,
             })
             return cmp(x, y)
+        end,
+
+        header_formatter = function (category_key, category_tasks)
+            local tasks_remaining
+
+            if options.show_remaining_tasks_count then
+                tasks_remaining = count_remaining_tasks(category_tasks)
+            end
+
+            return construct_header({
+                category_key,
+                tasks_remaining
+            })
         end,
 
         inferrer = function(line, header)
@@ -287,7 +349,7 @@ local function display_categories(categories)
     end
 
     for _, category in pairs(categories) do
-        add_line("-- " .. category.header .. " (" .. #category.tasks .. ")" .. " {{{")
+        add_line("-- " .. category.header .. " {{{")
         add_lines(category.tasks)
         add_line("-- }}}")
         add_line("")
@@ -375,10 +437,6 @@ function organize.organize(lines, categorizer, filterer, informer)
     local head_comments = extract_user_comments(lines)
     local tail_comments = extract_user_comments(util.reverse(lines))
 
-    if categorizer.infer_from_category ~= nil then
-        lines = categorizer.infer_from_category(lines)
-    end
-
     local tasks = util.filter(task.is_task, lines)
     tasks = util.map(task.normalize, tasks)
 
@@ -390,7 +448,7 @@ function organize.organize(lines, categorizer, filterer, informer)
         hidden_tasks = filtered[false] or {}
     end
 
-    local categories = categorizer.categorize(tasks)
+    local categories = categorizer(tasks)
     local category_lines = display_categories(categories)
 
     local result = {}
@@ -408,7 +466,7 @@ function organize.organize(lines, categorizer, filterer, informer)
 
     if hidden_tasks ~= nil then
         table.insert(result, "")
-        table.insert(result, "-- hidden (" .. #hidden_tasks .. ") {{{")
+        table.insert(result, "-- hidden | " .. #hidden_tasks .. " {{{")
         util.put_into(result, hidden_tasks)
         table.insert(result, "-- }}}")
     end

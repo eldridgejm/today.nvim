@@ -3,7 +3,6 @@ file = {
     "lua/today/core/dates/dateobj.lua",
     "lua/today/core/dates/natural.lua",
     "lua/today/core/dates/recurring.lua",
-    "lua/today/core/dates/testing.lua",
     "lua/today/core/organize.lua",
     "lua/today/core/sort.lua",
     "lua/today/core/task.lua",
@@ -12,3 +11,5 @@ file = {
 }
 
 package = "lua/today"
+
+format = "markdown"
