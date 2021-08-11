@@ -572,5 +572,52 @@ describe("organize", function()
                 assert.are.same(result, expected)
             end)
         end)
+
+        describe("first_tag_header_formatter", function()
+
+            it("should add count of remaining if option given", function()
+                -- given
+                local lines = {
+                    "[x] this is #three #one a third",
+                    "[x] this is another #one",
+                    "this is #one something",
+                    "this is #two another",
+                    "[x] ok this works",
+                    "and this is a four th",
+                }
+
+
+                -- when
+                local result = organize.organize(lines, {
+                    categorizer = organize.first_tag_categorizer("2021-06-01"),
+                    header_formatter = organize.first_tag_header_formatter({
+                        show_remaining_tasks_count = true,
+                    }),
+                })
+
+                -- then
+                local expected = {
+                    "-- #one | 1 {{{",
+                    "[ ] this is something #one",
+                    "[x] this is another #one",
+                    "-- }}}",
+                    "",
+                    "-- #three | 0 {{{",
+                    "[x] this is a third #three #one",
+                    "-- }}}",
+                    "",
+                    "-- #two | 1 {{{",
+                    "[ ] this is another #two",
+                    "-- }}}",
+                    "",
+                    "-- other | 1 {{{",
+                    "[ ] and this is a four th",
+                    "[x] ok this works",
+                    "-- }}}",
+                }
+
+                assert.are.same(result, expected)
+            end)
+        end)
     end)
 end)

@@ -304,19 +304,6 @@ function organize.first_tag_categorizer(working_date, options)
             return cmp(x, y)
         end,
 
-        header_formatter = function (category_key, category_tasks)
-            local tasks_remaining
-
-            if options.show_remaining_tasks_count then
-                tasks_remaining = count_remaining_tasks(category_tasks)
-            end
-
-            return construct_header({
-                category_key,
-                tasks_remaining
-            })
-        end,
-
         inferrer = function(line, header)
             if header == nil then
                 return nil
@@ -335,6 +322,22 @@ function organize.first_tag_categorizer(working_date, options)
         end,
     })
 end
+
+function organize.first_tag_header_formatter(options)
+    return function (category_key, category_tasks)
+    local tasks_remaining
+
+    if options.show_remaining_tasks_count then
+        tasks_remaining = count_remaining_tasks(category_tasks)
+    end
+
+    return construct_header({
+        category_key,
+        tasks_remaining
+    })
+end
+end
+
 
 local function display_categories(categories, header_formatter)
     local result = {}
