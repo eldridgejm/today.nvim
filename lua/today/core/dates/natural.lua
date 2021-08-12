@@ -22,12 +22,12 @@ end
 
 -- The rules that are applied during conversion.
 --
--- A rule is itself a table containing two keys by convention: "from_natural"
--- and "from_absolute". "from_natural" should be a function that takes a string
+-- A rule is itself a table containing two keys by convention: "parse"
+-- and "to_natural". "parse" should be a function that takes a string
 -- "s" and a DateObj "today" and returns a DateObj that is equivalent to
 -- the natural date.
 --
--- "from_absolute" should either be a function that accepts an absolute date as
+-- "to_natural" should either be a function that accepts an absolute date as
 -- a DateObj and a DateObj "today" and returns a string
 -- representing the date in natural format, or nil. A value of nil for this key
 -- signals that there is no conversion from the absolute date to a natural
@@ -38,19 +38,19 @@ local RULES = {}
 function RULES:add(rule)
     table.insert(
         self,
-        { from_natural = rule.from_natural, from_absolute = rule.from_absolute }
+        { parse = rule.parse, to_natural = rule.to_natural }
     )
 end
 
 -- today
 RULES:add({
-    from_natural = function(s, today)
+    parse = function(s, today)
         if s == "today" then
             return today
         end
     end,
 
-    from_absolute = function(d, today)
+    to_natural = function(d, today)
         local diff = days_into_future(d, today)
         if diff == 0 then
             return "today"
@@ -60,13 +60,13 @@ RULES:add({
 
 -- tomorrow
 RULES:add({
-    from_natural = function(s, today)
+    parse = function(s, today)
         if (s == "tomorrow") or (s == "tom") then
             return today:add_days(1)
         end
     end,
 
-    from_absolute = function(d, today)
+    to_natural = function(d, today)
         local diff = days_into_future(d, today)
         if diff == 1 then
             return "tomorrow"
@@ -77,7 +77,7 @@ RULES:add({
 -- weekdays
 
 RULES:add({
-    from_natural = function(s, today)
+    parse = function(s, today)
         local week_adder = 0
         if util.startswith(s, "next ") then
             week_adder = 7
@@ -93,7 +93,7 @@ RULES:add({
         end
     end,
 
-    from_absolute = function(d, today)
+    to_natural = function(d, today)
         local diff = days_into_future(d, today)
         if (diff > 1) and (diff < 14) then
             local todays_weekday = today:day_of_the_week()
@@ -114,14 +114,14 @@ RULES:add({
 
 -- k days from now
 RULES:add({
-    from_natural = function(s, today)
+    parse = function(s, today)
         local match = s:match("(%d+) day[s]? from now")
         if match ~= nil then
             return today:add_days(match)
         end
     end,
 
-    from_absolute = function(d, today)
+    to_natural = function(d, today)
         local delta = today:days_until(d)
         if delta < math.huge and delta >= 0 then
             return delta .. " days from now"
@@ -131,7 +131,7 @@ RULES:add({
 
 -- k weeks from now
 RULES:add({
-    from_natural = function(s, today)
+    parse = function(s, today)
         local match = s:match("(%d+) week[s]? from now")
         if match ~= nil then
             return today:add_days(7 * match)
@@ -141,7 +141,7 @@ RULES:add({
 
 -- k months from now
 RULES:add({
-    from_natural = function(s, today)
+    parse = function(s, today)
         local match = s:match("(%d+) month[s]? from now")
         if match ~= nil then
             return today:add_days(30 * match)
@@ -153,7 +153,7 @@ RULES:add({
 -- next week
 RULES:add({
     -- defaults to the next monday
-    from_natural = function(s, today)
+    parse = function(s, today)
         if s == "next week" then
             local d = today:add_days(1)
             while d:day_of_the_week() ~= 2 do
@@ -167,7 +167,7 @@ RULES:add({
 -- next month
 RULES:add({
     -- defaults to the first day of next month
-    from_natural = function(s, today)
+    parse = function(s, today)
         if s == "next month" then
             local y, m, _ = today:ymd()
             m = (m + 1) % 12
@@ -182,13 +182,13 @@ RULES:add({
 -- someday
 RULES:add({
     -- a date in the infinite future
-    from_natural = function(s, _)
+    parse = function(s, _)
         if s == "someday" then
             return DateObj:infinite_future()
         end
     end,
 
-    from_absolute = function(d, _)
+    to_natural = function(d, _)
         if tostring(d) == "infinite_future" then
             return "someday"
         end
@@ -200,7 +200,7 @@ RULES:add({
 
 RULES:add({
     -- defaults to the first day of next month
-    from_natural = function(s, today)
+    parse = function(s, today)
         s = s:lower()
 
         local parts = util.split(s, " ")
@@ -245,13 +245,13 @@ RULES:add({
 
 -- yesterday
 RULES:add({
-    from_natural = function(s, today)
+    parse = function(s, today)
         if s == "yesterday" then
             return today:add_days(-1)
         end
     end,
 
-    from_absolute = function(d, today)
+    to_natural = function(d, today)
         local diff = days_into_future(d, today)
         if diff == -1 then
             return "yesterday"
@@ -261,14 +261,14 @@ RULES:add({
 
 -- k days ago
 RULES:add({
-    from_natural = function(s, today)
+    parse = function(s, today)
         local match = s:match("(%d+) day[s]? ago")
         if match ~= nil then
             return today:add_days(-match)
         end
     end,
 
-    from_absolute = function(d, today)
+    to_natural = function(d, today)
         local diff = days_into_future(d, today)
         if diff < -1 then
             return -diff .. " days ago"
@@ -280,15 +280,15 @@ RULES:add({
 -- @param s The natural date as a string. Can be in any case.
 -- @param today The date used for today, as a YYYY-MM-DD string or a DateObj.
 -- @return The absolute date as a DateObj, or nil if the natural date is invalid.
-function M.from_natural(s, today)
+function M.parse(s, today)
     assert(today ~= nil)
     today = DateObj:new(today)
 
     s = s:lower()
 
     for _, rule in ipairs(RULES) do
-        if rule.from_natural ~= nil then
-            local result = rule.from_natural(s, today)
+        if rule.parse ~= nil then
+            local result = rule.parse(s, today)
             -- if the result is nil, there is no rule
             if result ~= nil then
                 assert(result.class == "DateObj")
@@ -351,8 +351,8 @@ function M.to_natural(s, today, options)
     assert(today.class == "DateObj")
 
     for _, rule in ipairs(RULES) do
-        if rule.from_absolute ~= nil then
-            local result = rule.from_absolute(d, today)
+        if rule.to_natural ~= nil then
+            local result = rule.to_natural(d, today)
             if result ~= nil then
                 return result
             end

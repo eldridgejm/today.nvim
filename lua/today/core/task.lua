@@ -388,7 +388,7 @@ function task.parse_datespec(line, working_date)
     end
 
     if parts.do_date ~= nil then
-        parts.do_date = dates.from_natural(parts["do_date"], working_date)
+        parts.do_date = dates.parse(parts["do_date"], working_date)
     end
 
     return parts
