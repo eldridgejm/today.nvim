@@ -268,9 +268,6 @@ describe("natural language to date", function()
                 DateObj:new("2021-07-4")
             )
         end)
-    end)
-
-    describe("monthday", function()
 
         it("should infer the year to be the year on the next occurrence of m/d", function()
             -- july 4 was a sunday
@@ -287,6 +284,32 @@ describe("natural language to date", function()
                 DateObj:new("2021-01-05")
             )
         end)
+
+        it("should work with long month name", function()
+            -- july 4 was a sunday
+            assert.are.same(
+                dateslib.from_natural("january 5", DateObj:new("2021-1-1")),
+                DateObj:new("2021-01-05")
+            )
+        end)
+
+        it("should work with year as well", function()
+            -- july 4 was a sunday
+            assert.are.same(
+                dateslib.from_natural("january 5 2021", DateObj:new("2021-1-1")),
+                DateObj:new("2021-01-05")
+            )
+        end)
+
+        it("should work with long weekday", function()
+            -- july 4 was a sunday
+            assert.are.same(
+                dateslib.from_natural("monday january 5 2021", DateObj:new("2021-1-1")),
+                DateObj:new("2021-01-05")
+            )
+        end)
+
+
     end)
 
     describe("past dates", function()
