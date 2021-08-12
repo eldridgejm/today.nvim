@@ -2,6 +2,14 @@ local dateslib = require("today.core.dates")
 local DateObj = dateslib.DateObj
 
 describe("natural language to date", function()
+
+    it("returns nil when the string is not parseable", function()
+        assert.are.equal(
+            dateslib.parse("zzz", DateObj:new("2021-7-5")),
+            nil
+        )
+    end)
+
     describe("today", function()
         it("converts natural language to date", function()
             assert.are.equal(
@@ -9,6 +17,7 @@ describe("natural language to date", function()
                 DateObj:new("2021-07-05")
             )
         end)
+
     end)
 
     describe("tomorrow", function()

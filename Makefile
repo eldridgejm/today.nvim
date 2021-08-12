@@ -1,9 +1,11 @@
 .PHONY: test
 test:
+	# set the envvar BUSTED_FILTER to filter tests by name
 	busted \
 		-v \
 		--lpath ./lua/?/init.lua \
 		--lpath ./lua/?.lua \
+		--filter "${BUSTED_FILTER}" \
 		./lua/today/core/test/
 
 .PHONY: pre-commit

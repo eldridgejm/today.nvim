@@ -348,22 +348,6 @@ function organize.first_tag_categorizer(working_date, options)
             })
         end,
 
-        inferrer = function(line, header)
-            if header == nil then
-                return nil
-            end
-
-            -- don't infer if there is already a tag
-            if task.get_first_tag(line) ~= nil then
-                return nil
-            end
-
-            if not util.startswith(header, "#") then
-                return nil
-            end
-
-            return task.set_first_tag(line, header)
-        end,
     })
 end
 

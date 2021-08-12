@@ -53,6 +53,19 @@ function util.filter(predicate, iterable)
     return result
 end
 
+--- Map the function over the list, stopping and returning at the first non-nil
+-- result. If there are no non-nil results, the overall result is nil.
+-- @param func The function to apply.
+-- @param lst The list to traverse.
+-- @return The first non-nil result, or nil if all are nil.
+function util.first_non_nil(func, lst)
+    for _, x in ipairs(lst) do
+        local res = func(x)
+        if res ~= nil then
+            return res
+        end
+    end
+end
 --- Group elements of a list according to key.
 -- This is guaranteed to be stable, in the sense that if x and y are two elements with
 -- the same key (and thus in the same group), if x comes before y in the input list,

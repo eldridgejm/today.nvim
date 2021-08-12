@@ -281,7 +281,7 @@ RULES:add({
 -- @param today The date used for today, as a YYYY-MM-DD string or a DateObj.
 -- @return The absolute date as a DateObj, or nil if the natural date is invalid.
 function M.parse(s, today)
-    assert(today ~= nil)
+    assert(today ~= nil, "second argument, today, cannot be nil")
     today = DateObj:new(today)
 
     s = s:lower()
