@@ -36,10 +36,7 @@ local RULES = {}
 
 -- A function to add a rule table to the set of all rules.
 function RULES:add(rule)
-    table.insert(
-        self,
-        { parse = rule.parse, to_natural = rule.to_natural }
-    )
+    table.insert(self, { parse = rule.parse, to_natural = rule.to_natural })
 end
 
 -- today
@@ -126,7 +123,7 @@ RULES:add({
         if delta < math.huge and delta >= 0 then
             return delta .. " days from now"
         end
-    end
+    end,
 })
 
 -- k weeks from now
@@ -147,7 +144,6 @@ RULES:add({
             return today:add_days(30 * match)
         end
     end,
-
 })
 
 -- next week
@@ -221,10 +217,13 @@ RULES:add({
         local y
         if not year == nil then
             y = tonumber(year)
-            if y == nil then return nil end
+            if y == nil then
+                return nil
+            end
         end
 
-        if (m == nil) or (d == nil) then return nil
+        if (m == nil) or (d == nil) then
+            return nil
         end
 
         local this_year, _, _ = today:ymd()
@@ -326,13 +325,12 @@ end
 function M.to_natural(s, today, options)
     assert(today ~= nil)
 
-    options = util.merge(options,{
-            days_until_absolute = 14,
-            default_format = "ymd",
-        }
-        )
+    options = util.merge(options, {
+        days_until_absolute = 14,
+        default_format = "ymd",
+    })
 
-    local format_date = function (d)
+    local format_date = function(d)
         if options.default_format == "ymd" then
             return tostring(d)
         elseif options.default_format == "datestamp" then
@@ -343,7 +341,10 @@ function M.to_natural(s, today, options)
     local d = DateObj:new(s)
     today = DateObj:new(today)
 
-    if (d > today:add_days(options.days_until_absolute)) and (d ~= DateObj:infinite_future()) then
+    if
+        (d > today:add_days(options.days_until_absolute))
+        and (d ~= DateObj:infinite_future())
+    then
         return format_date(d)
     end
 
@@ -360,7 +361,6 @@ function M.to_natural(s, today, options)
     end
 
     return format_date(d)
-
 end
 
 return M

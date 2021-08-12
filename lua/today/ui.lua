@@ -15,7 +15,8 @@ ui.options = {
                 show_empty_categories = true,
                 move_to_done_immediately = false,
                 date_format = "natural",
-                second_date_format = "monthday"
+                second_date_format = "monthday",
+                show_remaining_tasks_count = true
             },
         },
         filter_tags = nil,
@@ -163,7 +164,9 @@ function ui.organize()
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
 
     lines = organize.organize(lines, {
-        categorizer = categorizer, filterer = filterer, informer = informer
+        categorizer = categorizer,
+        filterer = filterer,
+        informer = informer,
     })
     vim.api.nvim_buf_set_lines(0, 0, -1, 0, lines)
     vim.api.nvim_buf_set_option(0, "modified", was_modified)

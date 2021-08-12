@@ -2,12 +2,8 @@ local dateslib = require("today.core.dates")
 local DateObj = dateslib.DateObj
 
 describe("natural language to date", function()
-
     it("returns nil when the string is not parseable", function()
-        assert.are.equal(
-            dateslib.parse("zzz", DateObj:new("2021-7-5")),
-            nil
-        )
+        assert.are.equal(dateslib.parse("zzz", DateObj:new("2021-7-5")), nil)
     end)
 
     describe("today", function()
@@ -17,7 +13,6 @@ describe("natural language to date", function()
                 DateObj:new("2021-07-05")
             )
         end)
-
     end)
 
     describe("tomorrow", function()
@@ -272,19 +267,19 @@ describe("natural language to date", function()
         it("is doesnt care if the day of week is wrong", function()
             -- july 4 was a sunday
             local actual = dateslib.parse("mon jul 04 2021", DateObj:new("2021-1-1"))
-            assert.are.equal(
-                actual,
-                DateObj:new("2021-07-4")
-            )
+            assert.are.equal(actual, DateObj:new("2021-07-4"))
         end)
 
-        it("should infer the year to be the year on the next occurrence of m/d", function()
-            -- july 4 was a sunday
-            assert.are.same(
-                dateslib.parse("jan 05", DateObj:new("2021-10-10")),
-                DateObj:new("2022-01-05")
-            )
-        end)
+        it(
+            "should infer the year to be the year on the next occurrence of m/d",
+            function()
+                -- july 4 was a sunday
+                assert.are.same(
+                    dateslib.parse("jan 05", DateObj:new("2021-10-10")),
+                    DateObj:new("2022-01-05")
+                )
+            end
+        )
 
         it("should not care about zero padding", function()
             -- july 4 was a sunday
@@ -317,8 +312,6 @@ describe("natural language to date", function()
                 DateObj:new("2021-01-05")
             )
         end)
-
-
     end)
 
     describe("past dates", function()

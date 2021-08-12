@@ -11,9 +11,7 @@ describe("infer", function()
             }
 
             -- when
-            local result = infer.infer(
-                lines
-            )
+            local result = infer.infer(lines)
 
             -- then
             -- July 01 was a Thursday
@@ -36,9 +34,7 @@ describe("infer", function()
             }
 
             -- when
-            local result = infer.infer(
-                lines
-            )
+            local result = infer.infer(lines)
 
             -- then
             -- July 01 was a Thursday
@@ -61,9 +57,7 @@ describe("infer", function()
             }
 
             -- when
-            local result = infer.infer(
-                lines
-            )
+            local result = infer.infer(lines)
 
             -- then
             -- July 01 was a Thursday
@@ -85,9 +79,7 @@ describe("infer", function()
             }
 
             -- when
-            local result = infer.infer(
-                lines
-            )
+            local result = infer.infer(lines)
 
             -- then
             -- July 01 was a Thursday
@@ -109,9 +101,7 @@ describe("infer", function()
             }
 
             -- when
-            local result = infer.infer(
-                lines
-            )
+            local result = infer.infer(lines)
 
             -- then
             -- July 01 was a Thursday
@@ -133,9 +123,7 @@ describe("infer", function()
             }
 
             -- when
-            local result = infer.infer(
-                lines
-            )
+            local result = infer.infer(lines)
 
             -- then
             -- July 01 was a Thursday
@@ -157,9 +145,7 @@ describe("infer", function()
             }
 
             -- when
-            local result = infer.infer(
-                lines
-            )
+            local result = infer.infer(lines)
 
             -- then
             -- July 01 was a Thursday
@@ -181,9 +167,7 @@ describe("infer", function()
             }
 
             -- when
-            local result = infer.infer(
-                lines
-            )
+            local result = infer.infer(lines)
 
             -- then
             -- July 01 was a Thursday
@@ -205,10 +189,7 @@ describe("infer", function()
             }
 
             -- when
-            local result = infer.infer(
-                lines
-                
-            )
+            local result = infer.infer(lines)
 
             -- then
             -- July 01 was a Thursday
@@ -235,10 +216,7 @@ describe("infer", function()
             }
 
             -- when
-            local result = infer.infer(
-                lines
-                
-            )
+            local result = infer.infer(lines)
 
             -- then
             -- July 01 was a Thursday
@@ -267,9 +245,7 @@ describe("infer", function()
             }
 
             -- when
-            local result = infer.infer(
-                lines
-            )
+            local result = infer.infer(lines)
 
             -- then
             -- July 01 was a Thursday
@@ -291,9 +267,7 @@ describe("infer", function()
             }
 
             -- when
-            local result = infer.infer(
-                lines
-            )
+            local result = infer.infer(lines)
 
             -- then
             -- July 01 was a Thursday
@@ -315,9 +289,7 @@ describe("infer", function()
             }
 
             -- when
-            local result = infer.infer(
-                lines
-            )
+            local result = infer.infer(lines)
 
             -- then
             local expected = {
@@ -328,6 +300,5 @@ describe("infer", function()
 
             assert.are.same(result, expected)
         end)
-
     end)
 end)

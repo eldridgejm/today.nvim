@@ -361,14 +361,23 @@ function task.get_datespec_string_parts(line)
     end
 
     local function strip_if_not_nil(s)
-        if s == nil then return s else return util.strip(s) end
+        if s == nil then
+            return s
+        else
+            return util.strip(s)
+        end
     end
 
     local do_date = datespec:match("<([^%+]*)%+?.*>")
     local recur_pattern = datespec:match("<[^%+]*%+(.*)>")
 
-    if do_date == "" then do_date = nil end
-    return { do_date = strip_if_not_nil(do_date), recur_pattern = strip_if_not_nil(recur_pattern) }
+    if do_date == "" then
+        do_date = nil
+    end
+    return {
+        do_date = strip_if_not_nil(do_date),
+        recur_pattern = strip_if_not_nil(recur_pattern),
+    }
 end
 
 --- Retrieve the parsed parts of the datespec, if it exists.
@@ -407,8 +416,10 @@ function task.parse_datespec_safe(line, working_date)
     if ds == nil then
         return { do_date = dates.DateObj:infinite_past(), recur_pattern = nil }
     elseif ds.do_date == nil and ds.recur_pattern ~= nil then
-        return { do_date = dates.next(working_date:add_days(-1), ds.recur_pattern),
-         recur_pattern = ds.recur_pattern }
+        return {
+            do_date = dates.next(working_date:add_days(-1), ds.recur_pattern),
+            recur_pattern = ds.recur_pattern,
+        }
     elseif ds.do_date == nil then
         return nil
     else
@@ -447,13 +458,23 @@ end
 -- one is inserted.
 function task.replace_datespec_string_parts(line, datespec)
     local recur_string
+
+    local separator = ""
+    if datespec.do_date ~= nil and datespec.recur_pattern ~= nil then
+        separator = " "
+    end
+
     if datespec.recur_pattern == nil then
         recur_string = ""
     else
-        recur_string = " +" .. datespec.recur_pattern
+        recur_string = "+" .. datespec.recur_pattern
     end
 
-    local new_datespec = "<" .. datespec.do_date .. recur_string .. ">"
+    if datespec.do_date == nil then
+        datespec.do_date = ""
+    end
+
+    local new_datespec = "<" .. datespec.do_date .. separator .. recur_string .. ">"
     return replace_datespec_string(line, new_datespec)
 end
 

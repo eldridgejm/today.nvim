@@ -347,7 +347,6 @@ function organize.first_tag_categorizer(working_date, options)
                 tasks_remaining,
             })
         end,
-
     })
 end
 

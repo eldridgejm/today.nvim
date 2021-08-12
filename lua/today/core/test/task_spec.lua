@@ -261,34 +261,22 @@ describe("Today core module's", function()
         end)
 
         it("should convert tomorrow to absolute", function()
-            local result = task.make_datespec_ymd(
-                "[x] task <tomorrow>",
-                "2021-02-03"
-            )
+            local result = task.make_datespec_ymd("[x] task <tomorrow>", "2021-02-03")
             assert.are.equal(result, "[x] task <2021-02-04>")
         end)
 
         it("should work if date in canonical position", function()
-            local result = task.make_datespec_ymd(
-                "[x] <today> testing",
-                "2021-02-03"
-            )
+            local result = task.make_datespec_ymd("[x] <today> testing", "2021-02-03")
             assert.are.equal(result, "[x] <2021-02-03> testing")
         end)
 
         it("should not convert absolute dates", function()
-            local result = task.make_datespec_ymd(
-                "[x] task <2021-1-2>",
-                "2021-02-03"
-            )
+            local result = task.make_datespec_ymd("[x] task <2021-1-2>", "2021-02-03")
             assert.are.equal(result, "[x] task <2021-01-02>")
         end)
 
         it("should convert weekdays within next 7 days", function()
-            local result = task.make_datespec_ymd(
-                "[x] task <wednesday>",
-                "2021-07-04"
-            )
+            local result = task.make_datespec_ymd("[x] task <wednesday>", "2021-07-04")
             assert.are.equal(result, "[x] task <2021-07-07>")
         end)
 
@@ -300,13 +288,16 @@ describe("Today core module's", function()
             assert.are.equal(result, "[x] task <2021-07-05 +every wednesday>")
         end)
 
-        it("should fill in do date if there is no do date but there is a recur", function()
-            local result = task.make_datespec_ymd(
-                "[x] task <+every wednesday>",
-                "2021-07-04"
-            )
-            assert.are.equal(result, "[x] task <2021-07-07 +every wednesday>")
-        end)
+        it(
+            "should fill in do date if there is no do date but there is a recur",
+            function()
+                local result = task.make_datespec_ymd(
+                    "[x] task <+every wednesday>",
+                    "2021-07-04"
+                )
+                assert.are.equal(result, "[x] task <2021-07-07 +every wednesday>")
+            end
+        )
 
         it("should leave string unchanged if no datespec present", function()
             local result = task.make_datespec_ymd("[x] task", "2021-07-05")
@@ -314,10 +305,7 @@ describe("Today core module's", function()
         end)
 
         it("it should leave someday alone", function()
-            local result = task.make_datespec_ymd(
-                "[x] <someday> task",
-                "2021-07-05"
-            )
+            local result = task.make_datespec_ymd("[x] <someday> task", "2021-07-05")
             assert.are.equal(result, "[x] <someday> task")
         end)
     end)
@@ -423,6 +411,28 @@ describe("Today core module's", function()
         end)
     end)
 
+    describe("replace_datespec_string_parts", function()
+        it("should add a datespec to a task without one", function()
+            assert.are.equal(
+                task.replace_datespec_string_parts(
+                    "[ ] this has no datespec",
+                    { do_date = "tomorrow", recur_pattern = "every day" }
+                ),
+                "[ ] this has no datespec <tomorrow +every day>"
+            )
+        end)
+
+        it("should work when no do_date is provided, but a recur is", function()
+            assert.are.equal(
+                task.replace_datespec_string_parts(
+                    "[ ] this has no datespec",
+                    { do_date = nil, recur_pattern = "every day" }
+                ),
+                "[ ] this has no datespec <+every day>"
+            )
+        end)
+    end)
+
     describe("get_datespec_string_parts", function()
         it("returns nil if there is no datespec", function()
             assert.are.equal(
@@ -501,12 +511,14 @@ describe("Today core module's", function()
     end)
 
     describe("datespec_is_broken", function()
-
         it("says that a datespec with only a recur spec is OK", function()
             -- july 4 was a sunday
             -- should infer that the do date of the task is wednesday
             assert.falsy(
-                task.datespec_is_broken("[ ] <+every wed> this no do date", "2021-07-04")
+                task.datespec_is_broken(
+                    "[ ] <+every wed> this no do date",
+                    "2021-07-04"
+                )
             )
         end)
     end)
@@ -529,15 +541,18 @@ describe("Today core module's", function()
             )
         end)
 
-        it("infers the next do_date if there is no do date but there is a recur", function()
-            assert.are.same(
-                task.parse_datespec_safe(
-                    "[ ] <+every wed> this should return nil",
-                    "2021-07-04"
-                ),
-                { do_date = DateObj:new("2021-07-07"), recur_pattern = "every wed" }
-            )
-        end)
+        it(
+            "infers the next do_date if there is no do date but there is a recur",
+            function()
+                assert.are.same(
+                    task.parse_datespec_safe(
+                        "[ ] <+every wed> this should return nil",
+                        "2021-07-04"
+                    ),
+                    { do_date = DateObj:new("2021-07-07"), recur_pattern = "every wed" }
+                )
+            end
+        )
 
         it("works with <someday>", function()
             assert.are.same(
