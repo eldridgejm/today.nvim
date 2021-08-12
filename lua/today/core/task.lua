@@ -4,7 +4,7 @@ local util = require("today.util")
 local dates = require("today.core.dates")
 
 local DEFAULT_TO_NATURAL_OPTIONS = {
-    default_format = "YYYY-MM-DD",
+    default_format = "ymd",
 }
 
 local task = {}

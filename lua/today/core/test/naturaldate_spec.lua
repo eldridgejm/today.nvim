@@ -416,23 +416,23 @@ describe("date to natural language", function()
         assert.are.equal(dateslib.to_natural("2021-08-10", "2021-07-04"), "2021-08-10")
     end)
 
-    it("has option to use human datestamp as default", function()
+    it("has option to use datestamp as default", function()
         assert.are.equal(
             dateslib.to_natural(
                 "2021-08-10",
                 "2021-07-04",
-                { default_format = "human" }
+                { default_format = "datestamp" }
             ),
             "tue aug 10 2021"
         )
     end)
 
-    it("converts dates from next week using human datestamp option", function()
+    it("converts dates from next week using datestamp option", function()
         assert.are.equal(
             dateslib.to_natural(
                 "2021-07-17",
                 "2021-07-04",
-                { default_format = "human" }
+                { default_format = "datestamp" }
             ),
             "next saturday"
         )

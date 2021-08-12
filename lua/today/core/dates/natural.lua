@@ -303,8 +303,8 @@ end
 -- @param s The absolute date as a DateObj or as a string in YYYY-MM-DD format.
 -- @param today The date used for today, as a YYYY-MM-DD string or a DateObj.
 -- @param options An options dictionary. The only option currently is "default_format".
--- This controls what happens if no natural date applies. If this is set to "YYYY-MM-DD",
--- the date is serialized in YYYY-MM-DD format. If this is "human", it is serialized
+-- This controls what happens if no natural date applies. If this is set to "ymd",
+-- the date is serialized in YYYY-MM-DD format. If this is "datestamp", it is serialized
 -- in the format of "mon jul 05 2021".
 -- @return The date in natural form as a string.
 function M.to_natural(s, today, options)
@@ -312,7 +312,7 @@ function M.to_natural(s, today, options)
 
     if options == nil then
         options = {
-            default_format = "YYYY-MM-DD",
+            default_format = "ymd",
         }
     end
 
@@ -331,9 +331,9 @@ function M.to_natural(s, today, options)
         end
     end
 
-    if options.default_format == "YYYY-MM-DD" then
+    if options.default_format == "ymd" then
         return tostring(d)
-    elseif options.default_format == "human" then
+    elseif options.default_format == "datestamp" then
         return datestrings.to_datestamp(d)
     end
 end

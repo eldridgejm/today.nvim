@@ -416,7 +416,7 @@ describe("Today core module's", function()
                 task.replace_datespec_with_next(
                     line,
                     "2021-10-10",
-                    { default_format = "human" }
+                    { default_format = "datestamp" }
                 ),
                 "[ ] <wed nov 10 2021 +every month> this is a datespec"
             )
