@@ -18,33 +18,6 @@ local dates = require("today.core.dates")
 
 local organize = {}
 
---- Merges the keys/values in two tables.
--- @param provided The "new" table that replaces the defaults. If this is nil, the
--- defaults table is copied and returned. If `provided[key]` is nil but is defined in
--- `defaults`, the default value is inserted into `provided`. If a key is in `provided`
--- but not in `defaults`, nothing happens.
--- @param defaults The default values.
--- @returns The new table.
-local function merge(provided, defaults)
-    local opts = {}
-
-    if provided == nil then
-        for key, value in pairs(defaults) do
-            opts[key] = value
-        end
-        return opts
-    end
-
-    for key, default_value in pairs(defaults) do
-        if provided[key] ~= nil then
-            opts[key] = provided[key]
-        else
-            opts[key] = default_value
-        end
-    end
-    return opts
-end
-
 --- Builds a header string out of its parts, separating them with " | "
 local function construct_header(parts)
     parts = util.filter(function(x)
@@ -208,7 +181,7 @@ end
 function organize.daily_agenda_categorizer(working_date, options)
     working_date = dates.DateObj:new(working_date)
 
-    options = merge(options, {
+    options = util.merge(options, {
         date_format = "natural",
         second_date_format = false,
         show_empty_categories = false,
@@ -329,7 +302,7 @@ function organize.first_tag_categorizer(working_date, options)
     assert(working_date ~= nil)
     working_date = dates.DateObj:new(working_date)
 
-    options = merge(options, {
+    options = util.merge(options, {
         show_remaining_tasks_count = false,
     })
 

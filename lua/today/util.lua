@@ -150,6 +150,33 @@ function util.reverse(lst)
     return result
 end
 
+--- Merges the keys/values in two tables.
+-- @param provided The "new" table that replaces the defaults. If this is nil, the
+-- defaults table is copied and returned. If `provided[key]` is nil but is defined in
+-- `defaults`, the default value is inserted into `provided`. If a key is in `provided`
+-- but not in `defaults`, nothing happens.
+-- @param defaults The default values.
+-- @returns The new table.
+function util.merge(provided, defaults)
+    local opts = {}
+
+    if provided == nil then
+        for key, value in pairs(defaults) do
+            opts[key] = value
+        end
+        return opts
+    end
+
+    for key, default_value in pairs(defaults) do
+        if provided[key] ~= nil then
+            opts[key] = provided[key]
+        else
+            opts[key] = default_value
+        end
+    end
+    return opts
+end
+
 --- Strings.
 -- @section
 

@@ -120,6 +120,13 @@ RULES:add({
             return today:add_days(match)
         end
     end,
+
+    from_absolute = function(d, today)
+        local delta = today:days_until(d)
+        if delta < math.huge and delta >= 0 then
+            return delta .. " days from now"
+        end
+    end
 })
 
 -- k weeks from now
@@ -140,6 +147,7 @@ RULES:add({
             return today:add_days(30 * match)
         end
     end,
+
 })
 
 -- next week
@@ -298,26 +306,46 @@ end
 
 --- Serialize a DateObj as a natural language string. For instance, if a dateobj
 -- contains the date 2021-08-05, and today is 2021-08-04, then to_natural returns "tomorrow".
--- If there is no valid conversion of the absolute date to a natural date,
--- the date is left as a string in YYYY-MM-DD format.
+-- Days in the next two weeks are converted to their weekday name, like "monday" or
+-- "next tuesday". Dates after this but within the `options.days_until_absolute` threshold are
+-- converted to the format "k days from now". Dates after this are
+-- converted to a string in the format specified by `options.default_format`
+--
 -- @param s The absolute date as a DateObj or as a string in YYYY-MM-DD format.
 -- @param today The date used for today, as a YYYY-MM-DD string or a DateObj.
--- @param options An options dictionary. The only option currently is "default_format".
--- This controls what happens if no natural date applies. If this is set to "ymd",
+-- @param options An options dictionary. The available options are:
+--
+-- `days_until_absolute`: (int) A number of days, after which any date is converted to an
+-- absolute date as opposed to a natural date.
+--
+-- `default_format`: (string) This controls what happens if no natural date applies. If this is set to "ymd",
 -- the date is serialized in YYYY-MM-DD format. If this is "datestamp", it is serialized
 -- in the format of "mon jul 05 2021".
+--
 -- @return The date in natural form as a string.
 function M.to_natural(s, today, options)
     assert(today ~= nil)
 
-    if options == nil then
-        options = {
+    options = util.merge(options,{
+            days_until_absolute = 14,
             default_format = "ymd",
         }
+        )
+
+    local format_date = function (d)
+        if options.default_format == "ymd" then
+            return tostring(d)
+        elseif options.default_format == "datestamp" then
+            return datestrings.to_datestamp(d)
+        end
     end
 
     local d = DateObj:new(s)
     today = DateObj:new(today)
+
+    if (d > today:add_days(options.days_until_absolute)) and (d ~= DateObj:infinite_future()) then
+        return format_date(d)
+    end
 
     assert(d.class == "DateObj")
     assert(today.class == "DateObj")
@@ -331,11 +359,8 @@ function M.to_natural(s, today, options)
         end
     end
 
-    if options.default_format == "ymd" then
-        return tostring(d)
-    elseif options.default_format == "datestamp" then
-        return datestrings.to_datestamp(d)
-    end
+    return format_date(d)
+
 end
 
 return M

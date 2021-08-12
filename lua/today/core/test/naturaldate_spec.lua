@@ -427,14 +427,25 @@ describe("date to natural language", function()
         )
     end)
 
-    it("converts dates from next week using datestamp option", function()
+    it("converts dates from next week using l days from now", function()
         assert.are.equal(
             dateslib.to_natural(
-                "2021-07-17",
+                "2021-07-30",
                 "2021-07-04",
-                { default_format = "datestamp" }
+                { default_format = "datestamp", days_until_absolute = 100 }
             ),
-            "next saturday"
+            "26 days from now"
+        )
+    end)
+
+    it("obeys options.days_until_absolute", function()
+        assert.are.equal(
+            dateslib.to_natural(
+                "2021-07-08",
+                "2021-07-04",
+                { days_until_absolute = 3, default_format = "datestamp" }
+            ),
+            "thu jul 08 2021"
         )
     end)
 end)
