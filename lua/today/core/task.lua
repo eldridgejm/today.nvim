@@ -397,8 +397,8 @@ end
 --- Retrieve the parsed parts of the datespec. As opposed to the "regular" parse_datespec,
 -- this will not return nil if there is no datespec, instead, it will return a table
 -- where the "do_date" is a DateObj representing the infinite past, and the recur pattern
--- is nil. If the datespec is malformed, the entire return value will be nil. Otherwise,
--- the behavior is the same.
+-- is nil. Furthermore, if there is no do date but there is a recur pattern, the do date is inferred
+-- to be the next date in the sequence. If the datespec is broken, the entire return value will be nil. Otherwise,
 function task.parse_datespec_safe(line, working_date)
     working_date = dates.DateObj:new(working_date)
 
@@ -408,7 +408,7 @@ function task.parse_datespec_safe(line, working_date)
         return { do_date = dates.DateObj:infinite_past(), recur_pattern = nil }
     elseif ds.do_date == nil and ds.recur_pattern ~= nil then
         return { do_date = dates.next(working_date:add_days(-1), ds.recur_pattern),
-         recur_pattern = recur_pattern }
+         recur_pattern = ds.recur_pattern }
     elseif ds.do_date == nil then
         return nil
     else
@@ -459,14 +459,16 @@ end
 
 --- Replaces a datespec with an absolute datespec. If there is no datespec,
 -- or the datespec is malformed this leaves the task unchanged. If the datespec
--- is <someday>, this leaves it unchanged as well.
+-- is <someday>, this leaves it unchanged as well. If the task has no do date but does
+-- have a recur pattern, this will add a ymd do date equal to the next date in the
+-- sequence.
 -- @param line The task line.
 -- @param working_date The date of working_date as a string in YYYY-MM-DD format
 function task.make_datespec_ymd(line, working_date)
-    local ds = task.parse_datespec(line, working_date)
+    local ds = task.parse_datespec_safe(line, working_date)
     if
         ds == nil
-        or ds.do_date == nil
+        or ds.do_date == dates.DateObj:infinite_past()
         or ds.do_date == dates.DateObj:infinite_future()
     then
         return line
