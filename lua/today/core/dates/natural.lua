@@ -305,7 +305,7 @@ function M.to_natural(s, today, options)
     if options.default_format == "YYYY-MM-DD" then
         return tostring(d)
     elseif options.default_format == "human" then
-        return datestrings.to_human_datestamp(d)
+        return datestrings.to_datestamp(d)
     end
 end
 

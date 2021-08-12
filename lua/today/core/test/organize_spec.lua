@@ -3,95 +3,98 @@ describe("organize", function()
 
     describe("categorizers", function()
         describe("daily_agenda_categorizer", function()
-            it("should organize into days for two weeks from working date", function()
-                -- given
-                local lines = {
-                    "[ ] <2021-07-01> task 1",
-                    "[ ] <2021-07-02> task 2",
-                    "[ ] <2021-07-03> task 3",
-                    "[ ] <2021-07-04> task 4",
-                    "[ ] <2021-07-05> task 5",
-                    "[ ] <2021-07-06> task 6",
-                    "[ ] <2021-07-07> task 7",
-                    "[ ] <2021-07-08> task 8",
-                    "[ ] <2021-07-09> task 9",
-                    "[ ] <2021-07-10> task 10",
-                }
+            it(
+                "should organize into days for 14 days from working date by default",
+                function()
+                    -- given
+                    local lines = {
+                        "[ ] <2021-07-01> task 1",
+                        "[ ] <2021-07-02> task 2",
+                        "[ ] <2021-07-03> task 3",
+                        "[ ] <2021-07-04> task 4",
+                        "[ ] <2021-07-05> task 5",
+                        "[ ] <2021-07-06> task 6",
+                        "[ ] <2021-07-07> task 7",
+                        "[ ] <2021-07-08> task 8",
+                        "[ ] <2021-07-09> task 9",
+                        "[ ] <2021-07-10> task 10",
+                    }
 
-                -- when
-                local result = organize.organize(lines, {
-                    categorizer = organize.daily_agenda_categorizer(
-                        "2021-07-01",
-                        { show_empty_categories = true }
-                    ),
-                })
+                    -- when
+                    local result = organize.organize(lines, {
+                        categorizer = organize.daily_agenda_categorizer(
+                            "2021-07-01",
+                            { show_empty_categories = true }
+                        ),
+                    })
 
-                -- then
-                -- July 01 was a Thursday
-                local expected = {
-                    "-- today {{{",
-                    "[ ] <2021-07-01> task 1",
-                    "-- }}}",
-                    "",
-                    "-- tomorrow {{{",
-                    "[ ] <2021-07-02> task 2",
-                    "-- }}}",
-                    "",
-                    "-- saturday {{{",
-                    "[ ] <2021-07-03> task 3",
-                    "-- }}}",
-                    "",
-                    "-- sunday {{{",
-                    "[ ] <2021-07-04> task 4",
-                    "-- }}}",
-                    "",
-                    "-- monday {{{",
-                    "[ ] <2021-07-05> task 5",
-                    "-- }}}",
-                    "",
-                    "-- tuesday {{{",
-                    "[ ] <2021-07-06> task 6",
-                    "-- }}}",
-                    "",
-                    "-- wednesday {{{",
-                    "[ ] <2021-07-07> task 7",
-                    "-- }}}",
-                    "",
-                    "-- next thursday {{{",
-                    "[ ] <2021-07-08> task 8",
-                    "-- }}}",
-                    "",
-                    "-- next friday {{{",
-                    "[ ] <2021-07-09> task 9",
-                    "-- }}}",
-                    "",
-                    "-- next saturday {{{",
-                    "[ ] <2021-07-10> task 10",
-                    "-- }}}",
-                    "",
-                    "-- next sunday {{{",
-                    "-- }}}",
-                    "",
-                    "-- next monday {{{",
-                    "-- }}}",
-                    "",
-                    "-- next tuesday {{{",
-                    "-- }}}",
-                    "",
-                    "-- next wednesday {{{",
-                    "-- }}}",
-                    "",
-                    "-- future {{{",
-                    "-- }}}",
-                    "",
-                    "-- someday {{{",
-                    "-- }}}",
-                    "",
-                    "-- done {{{",
-                    "-- }}}",
-                }
-                assert.are.same(result, expected)
-            end)
+                    -- then
+                    -- July 01 was a Thursday
+                    local expected = {
+                        "-- today {{{",
+                        "[ ] <2021-07-01> task 1",
+                        "-- }}}",
+                        "",
+                        "-- tomorrow {{{",
+                        "[ ] <2021-07-02> task 2",
+                        "-- }}}",
+                        "",
+                        "-- saturday {{{",
+                        "[ ] <2021-07-03> task 3",
+                        "-- }}}",
+                        "",
+                        "-- sunday {{{",
+                        "[ ] <2021-07-04> task 4",
+                        "-- }}}",
+                        "",
+                        "-- monday {{{",
+                        "[ ] <2021-07-05> task 5",
+                        "-- }}}",
+                        "",
+                        "-- tuesday {{{",
+                        "[ ] <2021-07-06> task 6",
+                        "-- }}}",
+                        "",
+                        "-- wednesday {{{",
+                        "[ ] <2021-07-07> task 7",
+                        "-- }}}",
+                        "",
+                        "-- next thursday {{{",
+                        "[ ] <2021-07-08> task 8",
+                        "-- }}}",
+                        "",
+                        "-- next friday {{{",
+                        "[ ] <2021-07-09> task 9",
+                        "-- }}}",
+                        "",
+                        "-- next saturday {{{",
+                        "[ ] <2021-07-10> task 10",
+                        "-- }}}",
+                        "",
+                        "-- next sunday {{{",
+                        "-- }}}",
+                        "",
+                        "-- next monday {{{",
+                        "-- }}}",
+                        "",
+                        "-- next tuesday {{{",
+                        "-- }}}",
+                        "",
+                        "-- next wednesday {{{",
+                        "-- }}}",
+                        "",
+                        "-- future {{{",
+                        "-- }}}",
+                        "",
+                        "-- someday {{{",
+                        "-- }}}",
+                        "",
+                        "-- done {{{",
+                        "-- }}}",
+                    }
+                    assert.are.same(result, expected)
+                end
+            )
 
             it("should keep user comments at the beginning and end", function()
                 -- given
@@ -308,7 +311,7 @@ describe("organize", function()
                 assert.are.same(result, expected)
             end)
 
-            it("should add date to header if option is given", function()
+            it("should use ymd date if requested", function()
                 -- given
                 local lines = {
                     "[ ] undone <tomorrow>",
@@ -319,18 +322,107 @@ describe("organize", function()
                 local result = organize.organize(lines, {
                     categorizer = organize.daily_agenda_categorizer(
                         "2021-06-01",
-                        { show_dates = true }
+                        { date_format = "ymd" }
                     ),
                 })
 
                 -- then
                 local expected = {
-                    "-- today | jun 01 {{{",
+                    "-- 2021-06-01 {{{",
                     "[ ] but this isn't",
                     "-- }}}",
                     "",
-                    "-- tomorrow | jun 02 {{{",
+                    "-- 2021-06-02 {{{",
                     "[ ] <tomorrow> undone",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
+            it("should use datestamp if requested", function()
+                -- given
+                local lines = {
+                    "[ ] undone <tomorrow>",
+                    "[ ] but this isn't",
+                }
+
+                -- when
+                local result = organize.organize(lines, {
+                    categorizer = organize.daily_agenda_categorizer(
+                        "2021-06-01",
+                        { date_format = "datestamp" }
+                    ),
+                })
+
+                -- then
+                local expected = {
+                    "-- tue jun 01 2021 {{{",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                    "",
+                    "-- wed jun 02 2021 {{{",
+                    "[ ] <tomorrow> undone",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
+            it("should use monthday if requested", function()
+                -- given
+                local lines = {
+                    "[ ] undone <tomorrow>",
+                    "[ ] but this isn't",
+                }
+
+                -- when
+                local result = organize.organize(lines, {
+                    categorizer = organize.daily_agenda_categorizer(
+                        "2021-06-01",
+                        { date_format = "monthday" }
+                    ),
+                })
+
+                -- then
+                local expected = {
+                    "-- jun 01 {{{",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                    "",
+                    "-- jun 02 {{{",
+                    "[ ] <tomorrow> undone",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
+            it("should use a second date in header if requested", function()
+                -- given
+                local lines = {
+                    "[ ] undone <tomorrow>",
+                    "[ ] but this isn't",
+                    "testing <40 days from now>",
+                }
+
+                -- when
+                local result = organize.organize(lines, {
+                    categorizer = organize.daily_agenda_categorizer(
+                        "2021-06-01",
+                        { date_format = "monthday", second_date_format = "ymd" }
+                    ),
+                })
+
+                -- then
+                local expected = {
+                    "-- jun 01 | 2021-06-01 {{{",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                    "",
+                    "-- jun 02 | 2021-06-02 {{{",
+                    "[ ] <tomorrow> undone",
+                    "-- }}}",
+                    "",
+                    "-- future {{{",
+                    "[ ] <40 days from now> testing",
                     "-- }}}",
                 }
                 assert.are.same(result, expected)

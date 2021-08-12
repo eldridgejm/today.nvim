@@ -69,6 +69,8 @@ local function split_by(func, lst)
     return result[true], result[false]
 end
 
+-- Removes the broken tasks from the unhidden and hidden tasks, placing them
+-- in their own table.
 local function remove_broken_tasks(unhidden_tasks, hidden_tasks, working_date)
     hidden_tasks = hidden_tasks or {}
     local broken_unhidden_tasks, broken_hidden_tasks
@@ -123,6 +125,12 @@ end
 --
 -- `task_comparator`: Compares tasks for the purpose of ordering within categories.
 --
+-- Before sending the tasks to the grouper, this function will remove the broken tasks.
+-- After grouping, the hidden and broken tasks are added to the table groups returned
+-- from the grouper with keys "hidden" and "broken", respectively. These headers
+-- will be passed to the header_formatter, so be sure that the formatter expects
+-- them.
+--
 -- @param components A table with the components listed above.
 -- @param working_date The working date as a DateObj.
 -- @returns A list of categories, with each category being a table with "header" and "tasks"
@@ -174,6 +182,16 @@ end
 -- @param working_date The working date as a string or DateObj.
 -- @param options A table of options. Valid options are:
 --
+-- date_format: (string) The format used to display dates. If this is "natural", only the
+-- natural language is used, e.g., "tomorrow". If this is "ymd", the yyyy-mm-dd format
+-- is used, e.g., "2021-07-04". If this is "timestamp", this is a string of the form
+-- "wed jul 04 2021". If this is "monthday", a string of the form "jun 01" is used. Default: natural.
+--
+-- second_date_format: (string or false or nil). The format used to show a 2nd date in the header, right
+-- after the first. If this is false or nil, no second date is displayed. For valid values, see the
+-- `date_format` option above. This can be used to display a date next to a natural date,
+-- e.g., "tomorrow | jul 04"
+--
 -- `show_empty_categories`: (bool) If true, display agenda days that have no tasks.
 -- Default: false.
 --
@@ -185,43 +203,24 @@ end
 -- `days_until_future`: (int) At this number of days into the future, all tasks are lumped
 -- into a "future" category. Before this, tasks appear on distinct days.
 --
--- `show_dates`: (bool) If true, dates of the form "jul 04" are added to the header.
--- Default: false.
---
 -- `show_remaining_tasks_count`: (bool) If true, a count of remaining tasks is added to the
 -- header, after the date (if it is shown). Default: false.
 function organize.daily_agenda_categorizer(working_date, options)
     working_date = dates.DateObj:new(working_date)
 
     options = merge(options, {
+        date_format = "natural",
+        second_date_format = false,
         show_empty_categories = false,
         move_to_done_immediately = true,
-        days_until_future = 15,
-        show_dates = false,
+        days_until_future = 14,
         show_remaining_tasks_count = false,
     })
 
-    local function category_key_to_date(key)
-        local undated = {
-            "someday",
-            "future",
-            "done",
-            "broken",
-            "hidden",
-        }
-
-        if util.contains_value(undated, key) then
-            return nil
-        end
-
-        local date = dates.from_natural(key, working_date)
-        return dates.to_month_day(date)
-    end
-
     local order = {}
-    for i = 0, 13 do
-        local header = dates.to_natural(working_date:add_days(i), working_date)
-        table.insert(order, header)
+    for i = 0, options.days_until_future - 1 do
+        local key = tostring(working_date:add_days(i))
+        table.insert(order, key)
     end
 
     util.put_into(order, {
@@ -232,6 +231,9 @@ function organize.daily_agenda_categorizer(working_date, options)
 
     return organize.make_categorizer_from_components(working_date, {
         grouper = function(tasks)
+            -- we will key the categories by either "done", "someday", "future",
+            -- or the do-date as a ymd string. later we'll convert the key to the
+            -- requested date format
             local keyfunc = function(t)
                 local datespec = task.parse_datespec_safe(t, working_date)
 
@@ -247,12 +249,9 @@ function organize.daily_agenda_categorizer(working_date, options)
                 elseif days_until_do >= options.days_until_future then
                     return "future"
                 elseif days_until_do <= 0 then
-                    return "today"
+                    return tostring(working_date)
                 else
-                    return dates.to_natural(
-                        working_date:add_days(days_until_do),
-                        working_date
-                    )
+                    return tostring(working_date:add_days(days_until_do))
                 end
             end
 
@@ -283,11 +282,32 @@ function organize.daily_agenda_categorizer(working_date, options)
         }),
 
         header_formatter = function(category_key, category_tasks)
-            local date
-            local tasks_remaining
+            local title, second_date, tasks_remaining
 
-            if options.show_dates then
-                date = category_key_to_date(category_key)
+            local function date_formatter(d, fmt)
+                if fmt == "ymd" then
+                    return d
+                elseif fmt == "natural" then
+                    return dates.to_natural(d, working_date)
+                elseif fmt == "monthday" then
+                    return dates.to_month_day(d)
+                elseif fmt == "datestamp" then
+                    return dates.to_datestamp(d)
+                end
+            end
+
+            local undated = { "broken", "hidden", "done", "someday", "future" }
+            if util.contains_value(undated, category_key) then
+                title = category_key
+            else
+                title = date_formatter(category_key, options.date_format)
+
+                if options.second_date_format ~= nil then
+                    second_date = date_formatter(
+                        category_key,
+                        options.second_date_format
+                    )
+                end
             end
 
             if options.show_remaining_tasks_count and category_key ~= "done" then
@@ -295,8 +315,8 @@ function organize.daily_agenda_categorizer(working_date, options)
             end
 
             return construct_header({
-                category_key,
-                date,
+                title,
+                second_date,
                 tasks_remaining,
             })
         end,
