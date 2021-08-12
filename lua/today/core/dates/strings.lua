@@ -49,7 +49,7 @@ M.MONTHS_3_CHARS = {
     "dec",
 }
 
---- Converts a date into a human datestamp of the form "mon jul 05 2021"
+--- Converts a date into a human datestamp of the form "mon jul 05 2021".
 function M.to_human_datestamp(date)
     local y, m, d = date:ymd()
     local wd = date:day_of_the_week()
@@ -64,7 +64,7 @@ function M.to_human_datestamp(date)
     return wd .. " " .. m .. " " .. d .. " " .. y
 end
 
---- Converts a date into a month and a day
+--- Converts a date into a string of the form "jul 05".
 function M.to_month_day(date)
     local _, m, d = date:ymd()
 

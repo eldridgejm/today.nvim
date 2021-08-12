@@ -142,23 +142,29 @@ function sort.priority_comparator(task_x, task_y)
     return x_pr > y_pr
 end
 
-function sort.make_order_comparator(order, transformer)
+
+
+function sort.make_order_comparator(order, on_missing)
     --- Make a comparator that looks for the objects in the "order" list
     -- and returns based on their index. If it is not nil, the "transformer"
     -- is first used to transform the objects before looking into the
     -- "order" list.
-    return function(x, y)
-        if transformer ~= nil then
-            x = transformer(x)
-            y = transformer(y)
+    local function get_index_of(obj)
+        local ix = util.index_of(order, obj)
+        if ix == nil then
+            if on_missing ~= nil then
+                return on_missing(obj)
+            else
+                return math.huge
+            end
+        else
+            return ix
         end
+    end
 
-        local ix_x = util.index_of(order, x)
-        local ix_y = util.index_of(order, y)
-
-        ix_x = ix_x or -math.huge
-        ix_y = ix_y or -math.huge
-
+    return function(x, y)
+        local ix_x = get_index_of(x)
+        local ix_y = get_index_of(y)
         return ix_x < ix_y
     end
 end

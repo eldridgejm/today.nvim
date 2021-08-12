@@ -2,7 +2,7 @@ describe("organize", function()
     organize = require("today.core.organize")
 
     describe("categorizers", function()
-        describe("do_date_categorizer", function()
+        describe("daily_agenda_categorizer", function()
             it("should organize into days for two weeks from working date", function()
                 -- given
                 local lines = {
@@ -20,7 +20,7 @@ describe("organize", function()
 
                 -- when
                 local result = organize.organize(lines, {
-                    categorizer = organize.do_date_categorizer(
+                    categorizer = organize.daily_agenda_categorizer(
                         "2021-07-01",
                         { show_empty_categories = true }
                     ),
@@ -105,7 +105,7 @@ describe("organize", function()
                 -- when
                 local result = organize.organize(
                     lines,
-                    { categorizer = organize.do_date_categorizer("2021-02-01", {}) }
+                    { categorizer = organize.daily_agenda_categorizer("2021-02-01", {}) }
                 )
 
                 -- then
@@ -137,7 +137,7 @@ describe("organize", function()
 
                     -- when
                     local result = organize.organize(lines, {
-                        categorizer = organize.do_date_categorizer(
+                        categorizer = organize.daily_agenda_categorizer(
                             "2021-06-01",
                             { view = "daily", move_to_done_immediately = false }
                         ),
@@ -167,7 +167,7 @@ describe("organize", function()
 
                     -- when
                     local result = organize.organize(lines, {
-                        categorizer = organize.do_date_categorizer(
+                        categorizer = organize.daily_agenda_categorizer(
                             "2021-06-01",
                             { view = "daily", move_to_done_immediately = false }
                         ),
@@ -200,7 +200,7 @@ describe("organize", function()
 
                     -- when
                     local result = organize.organize(lines, {
-                        categorizer = organize.do_date_categorizer(
+                        categorizer = organize.daily_agenda_categorizer(
                             "2021-06-01",
                             { view = "daily", move_to_done_immediately = false }
                         ),
@@ -231,7 +231,7 @@ describe("organize", function()
 
                 -- when
                 local result = organize.organize(lines, {
-                    categorizer = organize.do_date_categorizer(
+                    categorizer = organize.daily_agenda_categorizer(
                         "2021-06-01",
                         { show_empty_categories = false }
                     ),
@@ -264,7 +264,7 @@ describe("organize", function()
                 -- when
                 local result = organize.organize(
                     lines,
-                    { categorizer = organize.do_date_categorizer("2021-06-01", {}) }
+                    { categorizer = organize.daily_agenda_categorizer("2021-06-01", {}) }
                 )
 
                 -- then
@@ -289,7 +289,7 @@ describe("organize", function()
 
                 -- when
                 local result = organize.organize(lines, {
-                    categorizer = organize.do_date_categorizer(
+                    categorizer = organize.daily_agenda_categorizer(
                         "2021-06-01",
                         { show_remaining_tasks_count = false }
                     ),
@@ -305,6 +305,126 @@ describe("organize", function()
                     "[ ] <tomorrow> undone",
                     "-- }}}",
                 }
+                assert.are.same(result, expected)
+            end)
+
+            it("should add date to header if option is given", function()
+                -- given
+                local lines = {
+                    "[ ] undone <tomorrow>",
+                    "[ ] but this isn't",
+                }
+
+                -- when
+                local result = organize.organize(lines, {
+                    categorizer = organize.daily_agenda_categorizer(
+                        "2021-06-01",
+                        { show_dates = true }
+                    ),
+                })
+
+                -- then
+                local expected = {
+                    "-- today | jun 01 {{{",
+                    "[ ] but this isn't",
+                    "-- }}}",
+                    "",
+                    "-- tomorrow | jun 02 {{{",
+                    "[ ] <tomorrow> undone",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
+            it("should add count of remaining if option given", function()
+                -- given
+                local lines = {
+                    "[ ] undone <tomorrow>",
+                    "[ ] but this isn't",
+                    "[x] <today> and this is done",
+                }
+
+                -- when
+                local result = organize.organize(lines, {
+                    categorizer = organize.daily_agenda_categorizer("2021-06-01", {
+                        move_to_done_immediately = false,
+                        show_remaining_tasks_count = true,
+                    }),
+                })
+
+                -- then
+                local expected = {
+                    "-- today | 1 {{{",
+                    "[ ] but this isn't",
+                    "[x] <today> and this is done",
+                    "-- }}}",
+                    "",
+                    "-- tomorrow | 1 {{{",
+                    "[ ] <tomorrow> undone",
+                    "-- }}}",
+                }
+                assert.are.same(result, expected)
+            end)
+
+            it("should show count for hidden category, if option given", function()
+                -- given
+                local tasks = {
+                    "this is the first one",
+                    "this is the second one #two",
+                    "this is the third #one",
+                }
+
+                -- when
+                local result = organize.organize(tasks, {
+                    categorizer = organize.daily_agenda_categorizer(
+                        "2021-06-01",
+                        { show_remaining_tasks_count = true }
+                    ),
+                    filterer = organize.tag_filterer({ "#one" }),
+                })
+
+                -- then
+                local expected = {
+                    "-- today | 1 {{{",
+                    "[ ] this is the third #one",
+                    "-- }}}",
+                    "",
+                    "-- hidden | 2 {{{",
+                    "[ ] this is the first one",
+                    "[ ] this is the second one #two",
+                    "-- }}}",
+                }
+
+                assert.are.same(result, expected)
+            end)
+
+
+            it("should respect days_until_future_option", function()
+                -- given
+                local tasks = {
+                    "<today> this is the first one",
+                    "<tomorrow> this is the second one #two",
+                }
+
+                -- when
+                local result = organize.organize(tasks, {
+                    categorizer = organize.daily_agenda_categorizer(
+                        "2021-06-01",
+                        { days_until_future = 1 }
+                    ),
+                })
+
+                -- then
+                local expected = {
+                    "-- today {{{",
+                    "[ ] <today> this is the first one",
+                    "-- }}}",
+                    "",
+                    "-- future {{{",
+                    "[ ] <tomorrow> this is the second one #two",
+                    "-- }}}",
+                }
+
                 assert.are.same(result, expected)
             end)
         end)
@@ -432,6 +552,80 @@ describe("organize", function()
                 }
                 assert.are.same(result, expected)
             end)
+
+            it("should add count of remaining if option given", function()
+                -- given
+                local lines = {
+                    "[x] this is #three #one a third",
+                    "[x] this is another #one",
+                    "this is #one something",
+                    "this is #two another",
+                    "[x] ok this works",
+                    "and this is a four th",
+                }
+
+                -- when
+                local result = organize.organize(lines, {
+                    categorizer = organize.first_tag_categorizer("2021-06-01", {
+                        show_remaining_tasks_count = true,
+                    }),
+                })
+
+                -- then
+                local expected = {
+                    "-- #one | 1 {{{",
+                    "[ ] this is something #one",
+                    "[x] this is another #one",
+                    "-- }}}",
+                    "",
+                    "-- #three | 0 {{{",
+                    "[x] this is a third #three #one",
+                    "-- }}}",
+                    "",
+                    "-- #two | 1 {{{",
+                    "[ ] this is another #two",
+                    "-- }}}",
+                    "",
+                    "-- other | 1 {{{",
+                    "[ ] and this is a four th",
+                    "[x] ok this works",
+                    "-- }}}",
+                }
+
+                assert.are.same(result, expected)
+            end)
+
+            it("should show count for hidden category, if option given", function()
+                -- given
+                local tasks = {
+                    "this is the first one",
+                    "this is the second one #two",
+                    "this is the third #one",
+                }
+
+                -- when
+                local result = organize.organize(tasks, {
+                    categorizer = organize.first_tag_categorizer(
+                        "2021-06-01",
+                        { show_remaining_tasks_count = true }
+                    ),
+                    filterer = organize.tag_filterer({ "#one" }),
+                })
+
+                -- then
+                local expected = {
+                    "-- #one | 1 {{{",
+                    "[ ] this is the third #one",
+                    "-- }}}",
+                    "",
+                    "-- hidden | 2 {{{",
+                    "[ ] this is the first one",
+                    "[ ] this is the second one #two",
+                    "-- }}}",
+                }
+
+                assert.are.same(result, expected)
+            end)
         end)
 
         describe("filterers", function()
@@ -498,7 +692,6 @@ describe("organize", function()
                     )
 
                     assert.are.same(result, {
-                        "",
                         "-- hidden {{{",
                         "[ ] this is the first one",
                         "[ ] this is the second one #two",
@@ -506,117 +699,6 @@ describe("organize", function()
                         "-- }}}",
                     })
                 end)
-            end)
-        end)
-    end)
-
-    describe("header formatters", function()
-        describe("do_date_header_formatter", function()
-            it("should add date to header if option is given", function()
-                -- given
-                local lines = {
-                    "[ ] undone <tomorrow>",
-                    "[ ] but this isn't",
-                }
-
-                -- when
-                local result = organize.organize(lines, {
-                    categorizer = organize.do_date_categorizer("2021-06-01"),
-                    header_formatter = organize.do_date_header_formatter("2021-06-01", {
-                        show_dates = true,
-                    }),
-                })
-
-                -- then
-                local expected = {
-                    "-- today | jun 01 {{{",
-                    "[ ] but this isn't",
-                    "-- }}}",
-                    "",
-                    "-- tomorrow | jun 02 {{{",
-                    "[ ] <tomorrow> undone",
-                    "-- }}}",
-                }
-                assert.are.same(result, expected)
-            end)
-
-            it("should add count of remaining if option given", function()
-                -- given
-                local lines = {
-                    "[ ] undone <tomorrow>",
-                    "[ ] but this isn't",
-                    "[x] <today> and this is done",
-                }
-
-                -- when
-                local result = organize.organize(lines, {
-                    categorizer = organize.do_date_categorizer("2021-06-01",
-                        {move_to_done_immediately = false}
-                    ),
-                    header_formatter = organize.do_date_header_formatter("2021-06-01", {
-                        show_remaining_tasks_count = true,
-                    }),
-                })
-
-                -- then
-                local expected = {
-                    "-- today | 1 {{{",
-                    "[ ] but this isn't",
-                    "[x] <today> and this is done",
-                    "-- }}}",
-                    "",
-                    "-- tomorrow | 1 {{{",
-                    "[ ] <tomorrow> undone",
-                    "-- }}}",
-                }
-                assert.are.same(result, expected)
-            end)
-        end)
-
-        describe("first_tag_header_formatter", function()
-
-            it("should add count of remaining if option given", function()
-                -- given
-                local lines = {
-                    "[x] this is #three #one a third",
-                    "[x] this is another #one",
-                    "this is #one something",
-                    "this is #two another",
-                    "[x] ok this works",
-                    "and this is a four th",
-                }
-
-
-                -- when
-                local result = organize.organize(lines, {
-                    categorizer = organize.first_tag_categorizer("2021-06-01"),
-                    header_formatter = organize.first_tag_header_formatter({
-                        show_remaining_tasks_count = true,
-                    }),
-                })
-
-                -- then
-                local expected = {
-                    "-- #one | 1 {{{",
-                    "[ ] this is something #one",
-                    "[x] this is another #one",
-                    "-- }}}",
-                    "",
-                    "-- #three | 0 {{{",
-                    "[x] this is a third #three #one",
-                    "-- }}}",
-                    "",
-                    "-- #two | 1 {{{",
-                    "[ ] this is another #two",
-                    "-- }}}",
-                    "",
-                    "-- other | 1 {{{",
-                    "[ ] and this is a four th",
-                    "[x] ok this works",
-                    "-- }}}",
-                }
-
-                assert.are.same(result, expected)
             end)
         end)
     end)

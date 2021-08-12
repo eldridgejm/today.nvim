@@ -397,6 +397,18 @@ function task.parse_datespec_safe(line, working_date)
     end
 end
 
+
+--- Return true/false if the line is broken. A line is broken if the datespec is provided,
+-- but is invalid.
+-- @param line The task string.
+-- @return Boolean.
+function task.datespec_is_broken(t)
+    return task.parse_datespec_safe(t, working_date) == nil
+end
+
+
+
+
 --- Helper function which replaces a datespec string with a new one.
 local function replace_datespec_string(line, new_spec)
     if task.get_datespec_as_string(line) == nil then

@@ -267,7 +267,8 @@ function M.from_natural(s, today)
     return DateObj:new(s)
 end
 
---- Convert an absolute date to a natural date.
+--- Serialize a DateObj as a natural language string. For instance, if a dateobj
+-- contains the date 2021-08-05, and today is 2021-08-04, then to_natural returns "tomorrow".
 -- If there is no valid conversion of the absolute date to a natural date,
 -- the date is left as a string in YYYY-MM-DD format.
 -- @param s The absolute date as a DateObj or as a string in YYYY-MM-DD format.
