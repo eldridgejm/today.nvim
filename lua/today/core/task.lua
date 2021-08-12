@@ -348,15 +348,27 @@ function task.get_datespec_as_string(line)
     return line:match("(<.*>)")
 end
 
+--- Retrieves the parts of a datespec as strings.
+-- @param line The task string.
+-- @returns A table with keys `do_date` and `recur_pattern`. If there is no datespec, returns nil. 
+-- If there is no do_date, but there is a recur pattern, the do_date will be nil. If there
+-- is no recur pattern, but there is a do date, then the recur_pattern will be nil.
+--
 function task.get_datespec_string_parts(line)
     local datespec = task.get_datespec_as_string(line)
     if datespec == nil then
         return nil
     end
 
-    local contents = datespec:match("<(.*)>")
-    local groups = util.map(util.strip, util.split(contents, "+"))
-    return { do_date = groups[1], recur_pattern = groups[2] }
+    local function strip_if_not_nil(s)
+        if s == nil then return s else return util.strip(s) end
+    end
+
+    local do_date = datespec:match("<([^%+]*)%+?.*>")
+    local recur_pattern = datespec:match("<[^%+]*%+(.*)>")
+
+    if do_date == "" then do_date = nil end
+    return { do_date = strip_if_not_nil(do_date), recur_pattern = strip_if_not_nil(recur_pattern) }
 end
 
 --- Retrieve the parsed parts of the datespec, if it exists.
@@ -368,16 +380,18 @@ end
 -- will be nil. If the task itself has no datespec, nil is returned.
 function task.parse_datespec(line, working_date)
     assert(working_date ~= nil, "Must supply working date")
+    working_date = dates.DateObj:new(working_date)
 
     local parts = task.get_datespec_string_parts(line)
     if parts == nil then
         return nil
     end
 
-    return {
-        do_date = dates.from_natural(parts["do_date"], working_date),
-        recur_pattern = parts["recur_pattern"],
-    }
+    if parts.do_date ~= nil then
+        parts.do_date = dates.from_natural(parts["do_date"], working_date)
+    end
+
+    return parts
 end
 
 --- Retrieve the parsed parts of the datespec. As opposed to the "regular" parse_datespec,
@@ -386,10 +400,15 @@ end
 -- is nil. If the datespec is malformed, the entire return value will be nil. Otherwise,
 -- the behavior is the same.
 function task.parse_datespec_safe(line, working_date)
+    working_date = dates.DateObj:new(working_date)
+
     local ds = task.parse_datespec(line, working_date)
 
     if ds == nil then
         return { do_date = dates.DateObj:infinite_past(), recur_pattern = nil }
+    elseif ds.do_date == nil and ds.recur_pattern ~= nil then
+        return { do_date = dates.next(working_date:add_days(-1), ds.recur_pattern),
+         recur_pattern = recur_pattern }
     elseif ds.do_date == nil then
         return nil
     else

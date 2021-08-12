@@ -415,6 +415,13 @@ describe("Today core module's", function()
             )
         end)
 
+        it("returns if there is no do date, but there is a recur", function()
+            assert.are.same(
+                task.get_datespec_string_parts("[ ] huh <+every wed>"),
+                { do_date = nil, recur_pattern = "every wed" }
+            )
+        end)
+
         it("returns parts as strings with no parsing", function()
             assert.are.same(
                 task.get_datespec_string_parts(
@@ -464,6 +471,26 @@ describe("Today core module's", function()
             assert.are.same(
                 task.parse_datespec("[ ] <tomorrow> this has a datespec", "2021-07-04"),
                 { do_date = DateObj:new("2021-07-05"), recur_pattern = nil }
+            )
+        end)
+
+        it("works for a datespec with only a recur pattern, no do date", function()
+            -- july 4 was a sunday
+            -- should infer that the do date of the task is wednesday
+            assert.are.same(
+                task.parse_datespec("[ ] <+every wed> this no do date", "2021-07-04"),
+                { do_date = nil, recur_pattern = "every wed" }
+            )
+        end)
+    end)
+
+    describe("datespec_is_broken", function()
+
+        it("says that a datespec with only a recur spec is OK", function()
+            -- july 4 was a sunday
+            -- should infer that the do date of the task is wednesday
+            assert.falsy(
+                task.datespec_is_broken("[ ] <+every wed> this no do date", "2021-07-04")
             )
         end)
     end)

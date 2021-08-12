@@ -10,11 +10,12 @@ ui.options = {
     automatic_refresh = true,
     buffer = {
         categorizer = {
-            active = "do_date",
+            active = "daily_agenda",
             options = {
                 show_empty_categories = true,
                 move_to_done_immediately = false,
-                show_dates = true,
+                date_format = "natural",
+                second_date_format = "monthday"
             },
         },
         filter_tags = nil,
@@ -134,8 +135,8 @@ function ui.organize()
     -- set up the categorizer
     local categorizer
     local categorizer_key = ui.get_buffer_options().categorizer.active
-    if (categorizer_key == nil) or (categorizer_key == "do_date") then
-        categorizer = organize.do_date_categorizer(
+    if (categorizer_key == nil) or (categorizer_key == "daily_agenda") then
+        categorizer = organize.daily_agenda_categorizer(
             working_date,
             ui.get_buffer_options().categorizer.options
         )
@@ -161,7 +162,9 @@ function ui.organize()
 
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
 
-    lines = organize.organize(lines, categorizer, filterer, informer)
+    lines = organize.organize(lines, {
+        categorizer = categorizer, filterer = filterer, informer = informer
+    })
     vim.api.nvim_buf_set_lines(0, 0, -1, 0, lines)
     vim.api.nvim_buf_set_option(0, "modified", was_modified)
 
@@ -175,10 +178,10 @@ function ui.categorize_by_first_tag()
     ui.organize()
 end
 
-function ui.categorize_by_do_date()
+function ui.categorize_by_daily_agenda()
     -- will be the empty string if no argument is provided
     local opts = ui.get_buffer_options()
-    opts.categorizer.active = "do_date"
+    opts.categorizer.active = "daily_agenda"
     vim.b.today = opts
     ui.organize()
 end
