@@ -187,19 +187,48 @@ RULES:add({
     end,
 })
 
--- <Weekday> <Month> <Day> <Year>
--- e.g., mon july 05 2021
+-- [<Weekday>] <Month> <Day> [<Year>]
+-- e.g., mon july 05 2021, jul 4, dec 31 2022, mon july 05
 
 RULES:add({
     -- defaults to the first day of next month
-    from_natural = function(s, _)
+    from_natural = function(s, today)
         s = s:lower()
-        local _, m, d, y = s:match("(%l%l%l) (%l%l%l) (%d%d) (%d%d%d%d)")
-        if y == nil then
-            return nil
+
+        local parts = util.split(s, " ")
+
+        -- if the first part is a weekday, discard it
+        -- otherwise, it must be a month
+        local offset = 0
+        if util.prefix_search(datestrings.WEEKDAYS, parts[1]) then
+            offset = 1
+        end
+        local month = parts[1 + offset]
+        local day = parts[2 + offset]
+        local year = parts[3 + offset]
+
+        local m = util.prefix_search(datestrings.MONTHS, month)
+        local d = tonumber(day)
+
+        local y
+        if not year == nil then
+            y = tonumber(year)
+            if y == nil then return nil end
         end
 
-        m = util.index_of(datestrings.MONTHS_3_CHARS, m)
+        if (m == nil) or (d == nil) then return nil
+        end
+
+        local this_year, _, _ = today:ymd()
+
+        if y == nil then
+            if DateObj:from_ymd(this_year, m, d) < today then
+                y = this_year + 1
+            else
+                y = this_year
+            end
+        end
+
         return DateObj:from_ymd(y, m, d)
     end,
 })

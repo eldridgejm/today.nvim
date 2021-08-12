@@ -350,7 +350,7 @@ end
 
 --- Retrieves the parts of a datespec as strings.
 -- @param line The task string.
--- @returns A table with keys `do_date` and `recur_pattern`. If there is no datespec, returns nil. 
+-- @returns A table with keys `do_date` and `recur_pattern`. If there is no datespec, returns nil.
 -- If there is no do_date, but there is a recur pattern, the do_date will be nil. If there
 -- is no recur pattern, but there is a do date, then the recur_pattern will be nil.
 --

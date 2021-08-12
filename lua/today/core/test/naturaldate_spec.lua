@@ -245,7 +245,7 @@ describe("natural language to date", function()
         end)
     end)
 
-    describe("human datestamp", function()
+    describe("datestamp", function()
         it("is case insensitive", function()
             assert.are.equal(
                 dateslib.from_natural("mon jul 05 2021", DateObj:new("2021-1-1")),
@@ -262,9 +262,29 @@ describe("natural language to date", function()
 
         it("is doesnt care if the day of week is wrong", function()
             -- july 4 was a sunday
+            local actual = dateslib.from_natural("mon jul 04 2021", DateObj:new("2021-1-1"))
             assert.are.equal(
-                dateslib.from_natural("mon jul 04 2021", DateObj:new("2021-1-1")),
+                actual,
                 DateObj:new("2021-07-4")
+            )
+        end)
+    end)
+
+    describe("monthday", function()
+
+        it("should infer the year to be the year on the next occurrence of m/d", function()
+            -- july 4 was a sunday
+            assert.are.same(
+                dateslib.from_natural("jan 05", DateObj:new("2021-10-10")),
+                DateObj:new("2022-01-05")
+            )
+        end)
+
+        it("should not care about zero padding", function()
+            -- july 4 was a sunday
+            assert.are.same(
+                dateslib.from_natural("jan 5", DateObj:new("2021-1-1")),
+                DateObj:new("2021-01-05")
             )
         end)
     end)
