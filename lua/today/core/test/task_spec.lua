@@ -251,17 +251,17 @@ describe("Today core module's", function()
 
     describe("make datespec absolute", function()
         it("should convert today to absolute", function()
-            local result = task.make_datespec_absolute("[x] task <today>", "2021-02-03")
+            local result = task.make_datespec_ymd("[x] task <today>", "2021-02-03")
             assert.are.equal(result, "[x] task <2021-02-03>")
         end)
 
         it("should leave string unchanged if no datespec present", function()
-            local result = task.make_datespec_absolute("[x] task", "2021-02-03")
+            local result = task.make_datespec_ymd("[x] task", "2021-02-03")
             assert.are.equal(result, "[x] task")
         end)
 
         it("should convert tomorrow to absolute", function()
-            local result = task.make_datespec_absolute(
+            local result = task.make_datespec_ymd(
                 "[x] task <tomorrow>",
                 "2021-02-03"
             )
@@ -269,7 +269,7 @@ describe("Today core module's", function()
         end)
 
         it("should work if date in canonical position", function()
-            local result = task.make_datespec_absolute(
+            local result = task.make_datespec_ymd(
                 "[x] <today> testing",
                 "2021-02-03"
             )
@@ -277,7 +277,7 @@ describe("Today core module's", function()
         end)
 
         it("should not convert absolute dates", function()
-            local result = task.make_datespec_absolute(
+            local result = task.make_datespec_ymd(
                 "[x] task <2021-1-2>",
                 "2021-02-03"
             )
@@ -285,7 +285,7 @@ describe("Today core module's", function()
         end)
 
         it("should convert weekdays within next 7 days", function()
-            local result = task.make_datespec_absolute(
+            local result = task.make_datespec_ymd(
                 "[x] task <wednesday>",
                 "2021-07-04"
             )
@@ -293,12 +293,12 @@ describe("Today core module's", function()
         end)
 
         it("should leave string unchanged if no datespec present", function()
-            local result = task.make_datespec_absolute("[x] task", "2021-07-05")
+            local result = task.make_datespec_ymd("[x] task", "2021-07-05")
             assert.are.equal(result, "[x] task")
         end)
 
         it("it should leave someday alone", function()
-            local result = task.make_datespec_absolute(
+            local result = task.make_datespec_ymd(
                 "[x] <someday> task",
                 "2021-07-05"
             )
@@ -313,7 +313,7 @@ describe("Today core module's", function()
         end)
 
         it("should leave string unchanged if no datespec present", function()
-            local result = task.make_datespec_absolute("[x] task", "2021-12-12")
+            local result = task.make_datespec_ymd("[x] task", "2021-12-12")
             assert.are.equal(result, "[x] task")
         end)
 

@@ -443,7 +443,7 @@ end
 -- is <someday>, this leaves it unchanged as well.
 -- @param line The task line.
 -- @param working_date The date of working_date as a string in YYYY-MM-DD format
-function task.make_datespec_absolute(line, working_date)
+function task.make_datespec_ymd(line, working_date)
     local ds = task.parse_datespec(line, working_date)
     if
         ds == nil

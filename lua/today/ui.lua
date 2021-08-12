@@ -79,8 +79,8 @@ ui.task_reschedule = make_ranged_function(task.set_do_date)
 ui.task_set_priority = make_ranged_function(task.set_priority)
 ui.task_set_do_date = make_ranged_function(task.set_do_date)
 
-ui.task_make_datespec_absolute = make_ranged_function(
-    with_working_date(task.make_datespec_absolute)
+ui.task_make_datespec_ymd = make_ranged_function(
+    with_working_date(task.make_datespec_ymd)
 )
 
 ui.task_make_datespec_natural = make_ranged_function(function(line)
@@ -193,7 +193,7 @@ end
 function ui.update_pre_write()
     vim.b.today_cursor = vim.api.nvim_win_get_cursor(0)
     ui.organize()
-    ui.task_make_datespec_absolute(1, -1)
+    ui.task_make_datespec_ymd(1, -1)
     ui.remove_comments(1, -1)
 end
 
