@@ -398,7 +398,6 @@ describe("organize", function()
                 assert.are.same(result, expected)
             end)
 
-
             it("should respect days_until_future_option", function()
                 -- given
                 local tasks = {

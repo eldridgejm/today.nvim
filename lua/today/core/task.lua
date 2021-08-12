@@ -367,7 +367,7 @@ end
 -- entry of the table will be nil. If the task's datespec is malformed, the do_date
 -- will be nil. If the task itself has no datespec, nil is returned.
 function task.parse_datespec(line, working_date)
-    assert(working_date ~= nil)
+    assert(working_date ~= nil, "Must supply working date")
 
     local parts = task.get_datespec_string_parts(line)
     if parts == nil then
@@ -397,17 +397,13 @@ function task.parse_datespec_safe(line, working_date)
     end
 end
 
-
 --- Return true/false if the line is broken. A line is broken if the datespec is provided,
 -- but is invalid.
 -- @param line The task string.
 -- @return Boolean.
-function task.datespec_is_broken(t)
+function task.datespec_is_broken(t, working_date)
     return task.parse_datespec_safe(t, working_date) == nil
 end
-
-
-
 
 --- Helper function which replaces a datespec string with a new one.
 local function replace_datespec_string(line, new_spec)

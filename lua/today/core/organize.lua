@@ -64,6 +64,36 @@ local function count_remaining_tasks(tasks)
     return count
 end
 
+local function split_by(func, lst)
+    local result = util.groupby(func, lst)
+    return result[true], result[false]
+end
+
+local function remove_broken_tasks(unhidden_tasks, hidden_tasks, working_date)
+    hidden_tasks = hidden_tasks or {}
+    local broken_unhidden_tasks, broken_hidden_tasks
+    local predicate = function(t)
+        return not task.datespec_is_broken(t, working_date)
+    end
+
+    unhidden_tasks, broken_unhidden_tasks = split_by(predicate, unhidden_tasks)
+    hidden_tasks, broken_hidden_tasks = split_by(predicate, hidden_tasks)
+
+    local broken_tasks = {}
+    if broken_unhidden_tasks ~= nil then
+        util.put_into(broken_tasks, broken_unhidden_tasks)
+    end
+    if broken_hidden_tasks ~= nil then
+        util.put_into(broken_tasks, broken_hidden_tasks)
+    end
+
+    unhidden_tasks = unhidden_tasks or {}
+    hidden_tasks = hidden_tasks or {}
+    broken_tasks = broken_tasks or {}
+
+    return unhidden_tasks, hidden_tasks, broken_tasks
+end
+
 -- -------------------------------------------------------------------------------------
 
 --- Categorizers.
@@ -94,18 +124,32 @@ end
 -- `task_comparator`: Compares tasks for the purpose of ordering within categories.
 --
 -- @param components A table with the components listed above.
+-- @param working_date The working date as a DateObj.
 -- @returns A list of categories, with each category being a table with "header" and "tasks"
 -- keys.
-function organize.make_categorizer_from_components(components)
+function organize.make_categorizer_from_components(working_date, components)
     return function(tasks, hidden_tasks)
+        local broken_tasks
+        tasks, hidden_tasks, broken_tasks = remove_broken_tasks(
+            tasks,
+            hidden_tasks,
+            working_date
+        )
+
         local groups = components.grouper(tasks)
 
-        if hidden_tasks ~= nil then
-            groups['hidden'] = hidden_tasks
+        if #hidden_tasks > 0 then
+            groups["hidden"] = hidden_tasks
+        end
+
+        if #broken_tasks > 0 then
+            groups["broken"] = broken_tasks
         end
 
         if components.header_formatter == nil then
-            components.header_formatter = function (k) return k end
+            components.header_formatter = function(k)
+                return k
+            end
         end
 
         local category_keys = util.keys(groups)
@@ -159,11 +203,11 @@ function organize.daily_agenda_categorizer(working_date, options)
 
     local function category_key_to_date(key)
         local undated = {
-            "done",
             "someday",
             "future",
+            "done",
             "broken",
-            "hidden"
+            "hidden",
         }
 
         if util.contains_value(undated, key) then
@@ -186,14 +230,10 @@ function organize.daily_agenda_categorizer(working_date, options)
         "done",
     })
 
-    return organize.make_categorizer_from_components({
+    return organize.make_categorizer_from_components(working_date, {
         grouper = function(tasks)
             local keyfunc = function(t)
                 local datespec = task.parse_datespec_safe(t, working_date)
-
-                if datespec == nil then
-                    return "broken"
-                end
 
                 local days_until_do = working_date:days_until(datespec.do_date)
 
@@ -228,7 +268,7 @@ function organize.daily_agenda_categorizer(working_date, options)
             return groups
         end,
 
-        category_key_comparator = sort.make_order_comparator(order, function (k)
+        category_key_comparator = sort.make_order_comparator(order, function(k)
             if k == "broken" then
                 return -math.huge
             else
@@ -260,12 +300,10 @@ function organize.daily_agenda_categorizer(working_date, options)
                 tasks_remaining,
             })
         end,
-
     })
 end
 
 --- Organizes task by their first tag.
--- 
 -- @param working_date The working date as a string in YYYY-MM-DD format.
 function organize.first_tag_categorizer(working_date, options)
     assert(working_date ~= nil)
@@ -275,7 +313,7 @@ function organize.first_tag_categorizer(working_date, options)
         show_remaining_tasks_count = false,
     })
 
-    return organize.make_categorizer_from_components({
+    return organize.make_categorizer_from_components(working_date, {
 
         grouper = function(tasks)
             local keyfunc = function(line)
@@ -336,7 +374,7 @@ function organize.first_tag_categorizer(working_date, options)
     })
 end
 
-local function display_categories(categories, header_formatter)
+local function display_categories(categories)
     local result = {}
     local function add_line(s)
         table.insert(result, s)
@@ -464,6 +502,7 @@ function organize.organize(lines, components)
             return key
         end
     end
+
     local head_comments = extract_user_comments(lines)
     local tail_comments = extract_user_comments(util.reverse(lines))
 
@@ -471,7 +510,6 @@ function organize.organize(lines, components)
     tasks = util.map(task.normalize, tasks)
 
     local hidden_tasks
-
     if components.filterer ~= nil then
         local filtered = util.groupby(components.filterer, tasks)
         tasks = filtered[true] or {}

@@ -142,8 +142,6 @@ function sort.priority_comparator(task_x, task_y)
     return x_pr > y_pr
 end
 
-
-
 function sort.make_order_comparator(order, on_missing)
     --- Make a comparator that looks for the objects in the "order" list
     -- and returns based on their index. If it is not nil, the "transformer"
