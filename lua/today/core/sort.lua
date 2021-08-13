@@ -142,28 +142,41 @@ function sort.priority_comparator(task_x, task_y)
     return x_pr > y_pr
 end
 
-function sort.make_order_comparator(order, on_missing)
-    --- Make a comparator that looks for the objects in the "order" list
-    -- and returns based on their index. If it is not nil, the "transformer"
-    -- is first used to transform the objects before looking into the
-    -- "order" list.
+--- Make a comparator that looks for the objects in the "order" list
+-- and returns based on their index. When an object in the order is compared
+-- to an object not in the order the `missing_at_end` option is consulted to
+-- determine whether to place the missing object at the end or the beginning.
+-- When two missing objects are compared, nil is returned.
+function sort.make_order_comparator(order, missing_at_end)
+    if missing_at_end == nil then
+        missing_at_end = true
+    end
+
     local function get_index_of(obj)
         local ix = util.index_of(order, obj)
         if ix == nil then
-            if on_missing ~= nil then
-                return on_missing(obj)
-            else
+            if missing_at_end then
                 return math.huge
+            else
+                return -math.huge
             end
         else
             return ix
         end
     end
 
+    local function is_infinite(x)
+        return math.abs(x) == math.huge
+    end
+
     return function(x, y)
         local ix_x = get_index_of(x)
         local ix_y = get_index_of(y)
-        return ix_x < ix_y
+        if is_infinite(ix_x) and is_infinite(ix_y) then
+            return nil
+        else
+            return ix_x < ix_y
+        end
     end
 end
 

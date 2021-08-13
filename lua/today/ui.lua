@@ -12,14 +12,15 @@ ui.options = {
         categorizer = {
             active = "daily_agenda",
             options = {
-                show_empty_categories = true,
+                show_empty_days = { at_least = 7 },
                 move_to_done_immediately = false,
                 date_format = "natural",
                 second_date_format = "monthday",
-                show_remaining_tasks_count = true
+                show_remaining_tasks_count = true,
             },
         },
         filter_tags = nil,
+        filter_days = 7,
         default_date_format = "human",
     },
 }
@@ -148,11 +149,21 @@ function ui.organize()
     end
 
     -- set up the filterer
-    local filterer
+    local filterers = {}
+
     local filter_tags = ui.get_buffer_options().filter_tags
     if (filter_tags ~= nil) and (#filter_tags > 0) then
-        filterer = organize.tag_filterer(vim.b.today.filter_tags)
+        local filterer = organize.tag_filterer(vim.b.today.filter_tags)
+        table.insert(filterers, filterer)
     end
+
+    local filter_days = ui.get_buffer_options().filter_days
+    if filter_days ~= nil then
+        local filterer = organize.do_date_filterer(filter_days, working_date)
+        table.insert(filterers, filterer)
+    end
+
+    local filterer = organize.chain_filterers(filterers)
 
     -- set up the informer
     local informer = organize.basic_informer({
@@ -192,6 +203,13 @@ end
 function ui.set_filter_tags(tags)
     local opts = ui.get_buffer_options()
     opts.filter_tags = tags
+    vim.b.today = opts
+    ui.organize()
+end
+
+function ui.set_days_to_show(n)
+    local opts = ui.get_buffer_options()
+    opts.days_to_show = n[1]
     vim.b.today = opts
     ui.organize()
 end

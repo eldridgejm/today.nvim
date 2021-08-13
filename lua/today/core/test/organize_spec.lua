@@ -3,20 +3,11 @@ describe("organize", function()
 
     describe("categorizers", function()
         describe("daily_agenda_categorizer", function()
-            it(
-                "should organize into days for 14 days from working date by default",
+            it("should show empty days between first and last task, if option true",
                 function()
                     -- given
                     local lines = {
                         "[ ] <2021-07-01> task 1",
-                        "[ ] <2021-07-02> task 2",
-                        "[ ] <2021-07-03> task 3",
-                        "[ ] <2021-07-04> task 4",
-                        "[ ] <2021-07-05> task 5",
-                        "[ ] <2021-07-06> task 6",
-                        "[ ] <2021-07-07> task 7",
-                        "[ ] <2021-07-08> task 8",
-                        "[ ] <2021-07-09> task 9",
                         "[ ] <2021-07-10> task 10",
                     }
 
@@ -24,7 +15,7 @@ describe("organize", function()
                     local result = organize.organize(lines, {
                         categorizer = organize.daily_agenda_categorizer(
                             "2021-07-01",
-                            { show_empty_categories = true }
+                            { show_empty_days = {} }
                         ),
                     })
 
@@ -36,60 +27,71 @@ describe("organize", function()
                         "-- }}}",
                         "",
                         "-- tomorrow {{{",
-                        "[ ] <2021-07-02> task 2",
                         "-- }}}",
                         "",
                         "-- saturday {{{",
-                        "[ ] <2021-07-03> task 3",
                         "-- }}}",
                         "",
                         "-- sunday {{{",
-                        "[ ] <2021-07-04> task 4",
                         "-- }}}",
                         "",
                         "-- monday {{{",
-                        "[ ] <2021-07-05> task 5",
                         "-- }}}",
                         "",
                         "-- tuesday {{{",
-                        "[ ] <2021-07-06> task 6",
                         "-- }}}",
                         "",
                         "-- wednesday {{{",
-                        "[ ] <2021-07-07> task 7",
                         "-- }}}",
                         "",
                         "-- next thursday {{{",
-                        "[ ] <2021-07-08> task 8",
                         "-- }}}",
                         "",
                         "-- next friday {{{",
-                        "[ ] <2021-07-09> task 9",
                         "-- }}}",
                         "",
                         "-- next saturday {{{",
                         "[ ] <2021-07-10> task 10",
                         "-- }}}",
-                        "",
-                        "-- next sunday {{{",
+                    }
+                    assert.are.same(result, expected)
+                end
+            )
+
+            it("should show at least a number of empty days, if provided",
+                function()
+                    -- given
+                    local lines = {
+                        "[ ] <2021-07-01> task 1",
+                        "[ ] <2021-07-03> task 10", -- 10 == 2 in binary
+                    }
+
+                    -- when
+                    local result = organize.organize(lines, {
+                        categorizer = organize.daily_agenda_categorizer(
+                            "2021-07-01",
+                            { show_empty_days = {at_least = 5} }
+                        ),
+                    })
+
+                    -- then
+                    -- July 01 was a Thursday
+                    local expected = {
+                        "-- today {{{",
+                        "[ ] <2021-07-01> task 1",
                         "-- }}}",
                         "",
-                        "-- next monday {{{",
+                        "-- tomorrow {{{",
                         "-- }}}",
                         "",
-                        "-- next tuesday {{{",
+                        "-- saturday {{{",
+                        "[ ] <2021-07-03> task 10", -- 10 == 2 in binary
                         "-- }}}",
                         "",
-                        "-- next wednesday {{{",
+                        "-- sunday {{{",
                         "-- }}}",
                         "",
-                        "-- future {{{",
-                        "-- }}}",
-                        "",
-                        "-- someday {{{",
-                        "-- }}}",
-                        "",
-                        "-- done {{{",
+                        "-- monday {{{",
                         "-- }}}",
                     }
                     assert.are.same(result, expected)
@@ -223,39 +225,6 @@ describe("organize", function()
                     assert.are.same(result, expected)
                 end
             )
-
-            it("should have a 'someday' category", function()
-                -- given
-                local lines = {
-                    "[ ] undone <someday>",
-                    "[x] this is done",
-                    "[ ] but this isn't",
-                }
-
-                -- when
-                local result = organize.organize(lines, {
-                    categorizer = organize.daily_agenda_categorizer(
-                        "2021-06-01",
-                        { show_empty_categories = false }
-                    ),
-                })
-
-                -- then
-                local expected = {
-                    "-- today {{{",
-                    "[ ] but this isn't",
-                    "-- }}}",
-                    "",
-                    "-- someday {{{",
-                    "[ ] <someday> undone",
-                    "-- }}}",
-                    "",
-                    "-- done {{{",
-                    "[x] this is done",
-                    "-- }}}",
-                }
-                assert.are.same(result, expected)
-            end)
 
             it("should move malformed tasks to a broken section", function()
                 -- given
@@ -421,7 +390,7 @@ describe("organize", function()
                     "[ ] <tomorrow> undone",
                     "-- }}}",
                     "",
-                    "-- future {{{",
+                    "-- jul 11 | 2021-07-11 {{{",
                     "[ ] <40 days from now> testing",
                     "-- }}}",
                 }
@@ -490,34 +459,6 @@ describe("organize", function()
                 assert.are.same(result, expected)
             end)
 
-            it("should respect days_until_future_option", function()
-                -- given
-                local tasks = {
-                    "<today> this is the first one",
-                    "<tomorrow> this is the second one #two",
-                }
-
-                -- when
-                local result = organize.organize(tasks, {
-                    categorizer = organize.daily_agenda_categorizer(
-                        "2021-06-01",
-                        { days_until_future = 1 }
-                    ),
-                })
-
-                -- then
-                local expected = {
-                    "-- today {{{",
-                    "[ ] <today> this is the first one",
-                    "-- }}}",
-                    "",
-                    "-- future {{{",
-                    "[ ] <tomorrow> this is the second one #two",
-                    "-- }}}",
-                }
-
-                assert.are.same(result, expected)
-            end)
         end)
 
         describe("first_tag_categorizer", function()
@@ -720,8 +661,31 @@ describe("organize", function()
         end)
 
         describe("filterers", function()
+
+            describe("do_date_filterer", function()
+
+                it("should keep k days, filter out the rest", function()
+                    assert.are.equal(
+                        organize.do_date_filterer(3, "2021-08-12")("<2021-08-15> test"),
+                        false
+                        )
+
+                    assert.are.equal(
+                        organize.do_date_filterer(3, "2021-08-12")("<2021-08-14> test"),
+                        true
+                        )
+                end)
+
+                it("should keep all days in the past", function()
+                    assert.are.equal(
+                        organize.do_date_filterer(3, "2021-08-12")("<2021-08-11> test"),
+                        true
+                        )
+                end)
+            end)
+
             describe("tag_filterer", function()
-                local categorizer = organize.first_tag_categorizer("2021-10-01")
+                local categorizer = organize.first_tag_categorizer("2021-07-04")
 
                 it("should accept a task that contains a target tag", function()
                     assert.are.equal(

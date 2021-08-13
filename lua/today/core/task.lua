@@ -409,6 +409,7 @@ end
 -- is nil. Furthermore, if there is no do date but there is a recur pattern, the do date is inferred
 -- to be the next date in the sequence. If the datespec is broken, the entire return value will be nil. Otherwise,
 function task.parse_datespec_safe(line, working_date)
+    assert(working_date ~= nil, "working_date cannot be nil")
     working_date = dates.DateObj:new(working_date)
 
     local ds = task.parse_datespec(line, working_date)

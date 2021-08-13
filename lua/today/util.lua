@@ -163,6 +163,36 @@ function util.reverse(lst)
     return result
 end
 
+function util.minimum(lst, cmp)
+    if cmp == nil then
+        cmp = function (x, y)
+            return x < y
+        end
+    end
+
+    local m = lst[1]
+    for i=1,#lst do
+        if cmp(lst[i], m) then
+            m = lst[i]
+        end
+    end
+    return m
+end
+
+function util.maximum(lst, cmp)
+    if cmp == nil then
+        cmp = function (x, y)
+            return x < y
+        end
+    end
+
+    local inverted_cmp = function (x, y)
+        return not cmp(x, y)
+    end
+
+    return util.minimum(lst, inverted_cmp)
+end
+
 --- Merges the keys/values in two tables.
 -- @param provided The "new" table that replaces the defaults. If this is nil, the
 -- defaults table is copied and returned. If `provided[key]` is nil but is defined in

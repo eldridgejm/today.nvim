@@ -165,16 +165,15 @@ end
 -- `date_format` option above. This can be used to display a date next to a natural date,
 -- e.g., "tomorrow | jul 04"
 --
--- `show_empty_categories`: (bool) If true, display agenda days that have no tasks.
--- Default: false.
+-- `show_empty_days`: (int or false) If false, agenda days with no tasks are hidden.
+-- Otherwise, this should be a table. If the table is totally empty, all empty days
+-- between the current working day and last task are shown. If it contains an `at_least` key,
+-- a minimum of that many days into the future (as compared to the working date) will be shown.
 --
 -- `move_to_done_immediately`: (bool) If false, a task that is marked as complete with a
 -- do-date of today is placed in the "today" category; all other completed tasks are placed
 -- in the "done" category. If true, all tasks are placed in the "done" category. Default:
 -- true.
---
--- `days_until_future`: (int) At this number of days into the future, all tasks are lumped
--- into a "future" category. Before this, tasks appear on distinct days.
 --
 -- `show_remaining_tasks_count`: (bool) If true, a count of remaining tasks is added to the
 -- header, after the date (if it is shown). Default: false.
@@ -184,69 +183,73 @@ function organize.daily_agenda_categorizer(working_date, options)
     options = util.merge(options, {
         date_format = "natural",
         second_date_format = false,
-        show_empty_categories = false,
+        show_empty_days = false,
         move_to_done_immediately = true,
         days_until_future = 14,
         show_remaining_tasks_count = false,
     })
 
-    local order = {}
-    for i = 0, options.days_until_future - 1 do
-        local key = tostring(working_date:add_days(i))
-        table.insert(order, key)
-    end
-
-    util.put_into(order, {
-        "future",
-        "someday",
-        "done",
-    })
-
     return organize.make_categorizer_from_components(working_date, {
         grouper = function(tasks)
-            -- we will key the categories by either "done", "someday", "future",
-            -- or the do-date as a ymd string. later we'll convert the key to the
-            -- requested date format
+            -- we will key the categories by either "done", or the do-date as a ymd
+            -- string. later we'll convert the key to the requested date format
             local keyfunc = function(t)
+
                 local datespec = task.parse_datespec_safe(t, working_date)
 
                 local days_until_do = working_date:days_until(datespec.do_date)
+
 
                 local ready_to_move = options.move_to_done_immediately
                     or (days_until_do < 0)
 
                 if task.is_done(t) and ready_to_move then
                     return "done"
-                elseif days_until_do == math.huge then
-                    return "someday"
-                elseif days_until_do >= options.days_until_future then
-                    return "future"
                 elseif days_until_do <= 0 then
                     return tostring(working_date)
                 else
                     return tostring(working_date:add_days(days_until_do))
                 end
+
             end
 
             local groups = util.groupby(keyfunc, tasks)
 
-            if options.show_empty_categories then
-                for _, key in pairs(order) do
-                    if groups[key] == nil then
-                        groups[key] = {}
+            if options.show_empty_days ~= false then
+                local get_do_date = function (t)
+                    return task.parse_datespec_safe(t, working_date).do_date
+                end
+
+                local cmp = sort.make_do_date_comparator(working_date)
+                local max = get_do_date(util.maximum(tasks, cmp))
+
+                if options.show_empty_days.at_least ~= nil then
+                    local threshold = working_date:add_days(options.show_empty_days.at_least)
+                    if max < threshold then
+                        max = threshold
                     end
+                end
+
+                local cursor = dates.DateObj:new(working_date)
+
+                while cursor < max do
+                    if groups[tostring(cursor)] == nil then
+                        groups[tostring(cursor)] = {}
+                    end
+                    cursor = cursor:add_days(1)
                 end
             end
             return groups
         end,
 
-        category_key_comparator = sort.make_order_comparator(order, function(k)
-            if k == "broken" then
-                return -math.huge
-            else
-                return math.huge
+        category_key_comparator = sort.chain_comparators({
+            sort.make_order_comparator({"broken"}, true),
+            sort.make_order_comparator({"done", "hidden"}, false),
+            function (x, y)
+                return x < y
             end
-        end),
+        }),
+
 
         task_comparator = sort.chain_comparators({
             sort.completed_comparator,
@@ -378,13 +381,35 @@ local function display_categories(categories)
     return result
 end
 
+-- -------------------------------------------------------------------------------------
+
 --- Filterers.
 -- @section
+
+function organize.chain_filterers(chain)
+    return function (t)
+        for _, filter in pairs(chain) do
+            if not filter(t) then
+                return false
+            end
+        end
+        return true
+    end
+end
+
+function organize.do_date_filterer(n_days_to_keep, working_date)
+    working_date = dates.DateObj:new(working_date)
+    return function (t)
+        local ds = task.parse_datespec_safe(t, working_date)
+        local delta = working_date:days_until(ds.do_date) + 1 -- count today as well
+        return delta <= n_days_to_keep
+    end
+end
 
 --- Filters by tags.
 -- @param target_tags A list of the tags to include.
 function organize.tag_filterer(target_tags)
-    return function(t)
+    return function (t)
         local task_tags = task.get_tags(t)
         for _, tag in pairs(task_tags) do
             if util.contains_value(target_tags, tag) then
