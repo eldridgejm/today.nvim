@@ -9,7 +9,7 @@ local filterers = {}
 --- Filters by tags.
 -- @param target_tags A list of the tags to include.
 function filterers.tag_filterer(options)
-    local options = util.merge(options, {
+    options = util.merge(options, {
         tags = {},
     })
 

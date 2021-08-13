@@ -18,38 +18,6 @@ local organize = {}
 
 -- -------------------------------------------------------------------------------------
 
-local function split_by(func, lst)
-    local result = util.groupby(func, lst)
-    return result[true], result[false]
-end
-
--- Removes the broken tasks from the unhidden and hidden tasks, placing them
--- in their own table.
-local function remove_broken_tasks(unhidden_tasks, hidden_tasks, working_date)
-    hidden_tasks = hidden_tasks or {}
-    local broken_unhidden_tasks, broken_hidden_tasks
-    local predicate = function(t)
-        return not task.datespec_is_broken(t, working_date)
-    end
-
-    unhidden_tasks, broken_unhidden_tasks = split_by(predicate, unhidden_tasks)
-    hidden_tasks, broken_hidden_tasks = split_by(predicate, hidden_tasks)
-
-    local broken_tasks = {}
-    if broken_unhidden_tasks ~= nil then
-        util.put_into(broken_tasks, broken_unhidden_tasks)
-    end
-    if broken_hidden_tasks ~= nil then
-        util.put_into(broken_tasks, broken_hidden_tasks)
-    end
-
-    unhidden_tasks = unhidden_tasks or {}
-    hidden_tasks = hidden_tasks or {}
-    broken_tasks = broken_tasks or {}
-
-    return unhidden_tasks, hidden_tasks, broken_tasks
-end
-
 --- Filter tasks into "good" tasks, hidden tasks, and broken tasks.
 local function separate_tasks(tasks, filterer, is_broken)
     local function predicate(t)
@@ -159,6 +127,7 @@ function organize.organize(lines, components)
     local tasks = util.filter(task.is_task, lines)
     tasks = util.map(task.normalize, tasks)
 
+    local hidden_tasks, broken_tasks
     tasks, hidden_tasks, broken_tasks = separate_tasks(tasks, components.filterer, components.is_broken)
 
     local categories = components.categorizer(tasks, hidden_tasks, broken_tasks)

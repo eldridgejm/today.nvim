@@ -89,7 +89,7 @@ function categorizers.make_categorizer_from_components(components)
         local result = {}
         for _, category_key in ipairs(category_keys) do
             local category_tasks = groups[category_key]
-            sort.mergesort(category_tasks, components.task_comparator(self))
+            sort.mergesort(category_tasks, components.task_comparator)
             local group = {
                 header = components.header_formatter(category_key, category_tasks),
                 tasks = category_tasks,
@@ -185,13 +185,12 @@ function categorizers.daily_agenda_categorizer(options)
                 end,
             }),
 
-        task_comparator = function(self)
-            return sort.chain_comparators({
+        task_comparator =
+            sort.chain_comparators({
                 sort.completed_comparator,
                 sort.make_do_date_comparator(options.working_date),
                 sort.priority_comparator,
-            })
-        end,
+            }),
 
         header_formatter = function(category_key, category_tasks)
             local title, second_date, tasks_remaining
@@ -270,16 +269,15 @@ function categorizers.first_tag_categorizer(options)
                 end,
             }),
 
-        task_comparator = function(self)
-            return function(x, y)
+        task_comparator =
+            function(x, y)
                 local cmp = sort.chain_comparators({
                     sort.completed_comparator,
                     sort.make_do_date_comparator(options.working_date),
                     sort.priority_comparator,
                 })
                 return cmp(x, y)
-            end
-        end,
+            end,
 
         header_formatter = function(category_key, category_tasks)
             local tasks_remaining
