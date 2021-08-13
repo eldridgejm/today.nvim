@@ -1,7 +1,19 @@
-local dates = require('today.core.dates')
-local task = require('today.core.task')
-local sort = require('today.core.sort')
-local util = require('today.util')
+--- Categorizers.
+-- A categorizer is a function that implements a strategy for organizing
+-- tasks into categories. The function should accept a list of tasks (as strings) and a list of
+-- hidden tasks and should return a list of tables -- each table representing
+-- a separate category, and with key/value pairs: "header" (string) the
+-- category's header and "tasks" (list of strings) the tasks in the category.
+--
+-- There is a lot of overlap in the creation of categorizers. To simplify the process,
+-- the `make_categorizer_from_components` helper function may be used. It builds a
+-- categorizer from several orthogonal component functions.
+-- @section
+
+local dates = require("today.core.dates")
+local task = require("today.core.task")
+local sort = require("today.core.sort")
+local util = require("today.util")
 
 local categorizers = {}
 
@@ -56,19 +68,6 @@ local function remove_broken_tasks(unhidden_tasks, hidden_tasks, working_date)
     return unhidden_tasks, hidden_tasks, broken_tasks
 end
 
-
---- Categorizers.
--- A categorizer is a function that implements a strategy for organizing
--- tasks into categories. The function should accept a list of tasks (as strings) and a list of
--- hidden tasks and should return a list of tables -- each table representing
--- a separate category, and with key/value pairs: "header" (string) the
--- category's header and "tasks" (list of strings) the tasks in the category.
---
--- There is a lot of overlap in the creation of categorizers. To simplify the process,
--- the `make_categorizer_from_components` helper function may be used. It builds a
--- categorizer from several orthogonal component functions.
--- @section
-
 --- Builds a categorizer from components. The required components are:
 --
 -- `grouper`: Accepts a list of tasks and returns a table whose keys are category "keys"
@@ -95,21 +94,14 @@ end
 -- @returns A list of categories, with each category being a table with "header" and "tasks"
 -- keys.
 function categorizers.make_categorizer_from_components(working_date, components)
-    return function(tasks, hidden_tasks)
-        local broken_tasks
-        tasks, hidden_tasks, broken_tasks = remove_broken_tasks(
-            tasks,
-            hidden_tasks,
-            working_date
-        )
-
+    return function(tasks, hidden_tasks, broken_tasks)
         local groups = components.grouper(tasks)
 
-        if #hidden_tasks > 0 then
+        if hidden_tasks and #hidden_tasks > 0 then
             groups["hidden"] = hidden_tasks
         end
 
-        if #broken_tasks > 0 then
+        if broken_tasks and #broken_tasks > 0 then
             groups["broken"] = broken_tasks
         end
 
@@ -298,7 +290,13 @@ function categorizers.first_tag_categorizer(working_date, options)
             return util.groupby(keyfunc, tasks)
         end,
 
-        category_key_comparator = nil,
+        category_key_comparator = sort.chain_comparators({
+            sort.make_order_comparator({ "broken" }, true),
+            sort.make_order_comparator({ "hidden" }, false),
+            function(x, y)
+                return x < y
+            end,
+        }),
 
         task_comparator = function(x, y)
             local cmp = sort.chain_comparators({

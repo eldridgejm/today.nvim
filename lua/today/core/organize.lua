@@ -18,7 +18,6 @@ local dates = require("today.core.dates")
 
 local organize = {}
 
-
 -- -------------------------------------------------------------------------------------
 
 local function display_categories(categories)
