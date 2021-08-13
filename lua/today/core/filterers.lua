@@ -24,10 +24,10 @@ end
 
 --- Filters by tags.
 -- @param target_tags A list of the tags to include.
-function filterers.tag_filterer(target_tags)
-    local options = {
-        tags = target_tags,
-    }
+function filterers.tag_filterer(options)
+    local options = util.merge(options, {
+        tags = {},
+    })
 
     return filterers.make_filterer(options, function(self, t)
         local task_tags = task.get_tags(t)
