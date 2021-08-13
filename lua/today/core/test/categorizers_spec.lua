@@ -299,33 +299,7 @@ describe("categorizers", function()
             assert.are.same(result, expected)
         end)
 
-        it("should allow options to be set on attribute", function()
-            -- given
-            local tasks = {
-                "this is the first one",
-            }
-
-            -- when
-            local categorizer = categorizers.daily_agenda_categorizer({
-                working_date = "2021-06-01",
-            })
-
-            categorizer.options.show_remaining_tasks_count = true
-            result = categorizer(tasks)
-
-            -- then
-            local expected = {
-
-                {
-                    header = "today | 1",
-                    tasks = {
-                        "this is the first one",
-                    },
-                },
-            }
-
-            assert.are.same(result, expected)
-        end)
+        
 
         it("should use ymd date if requested", function()
             -- given
@@ -801,45 +775,6 @@ describe("categorizers", function()
             assert.are.same(result, expected)
         end)
 
-        it("should allow options to be set on attribute", function()
-            -- given
-            local tasks = {
-                "this is the first one",
-            }
-
-            local hidden_tasks = {
-                "this is the second one #two",
-                "this is the third #one",
-            }
-
-            -- when
-            local categorizer = categorizers.first_tag_categorizer({
-                working_date = "2021-06-01",
-            })
-
-            categorizer.options.show_remaining_tasks_count = true
-            result = categorizer(tasks, hidden_tasks)
-
-            -- then
-            local expected = {
-
-                {
-                    header = "other | 1",
-                    tasks = {
-                        "this is the first one",
-                    },
-                },
-
-                {
-                    header = "hidden | 2",
-                    tasks = {
-                        "this is the second one #two",
-                        "this is the third #one",
-                    },
-                },
-            }
-
-            assert.are.same(result, expected)
-        end)
+        
     end)
 end)

@@ -30,7 +30,7 @@ RULES:add(function(title, options)
     if match ~= nil then
         return function(t)
             -- this is a dummy working date; its value is not important
-            local working_date = "2021-1-1"
+            local working_date = dates.DateObj:new(options.working_date)
             local ds = task.parse_datespec(t, working_date)
             if ds ~= nil and ds.do_date ~= nil then
                 return t
@@ -42,16 +42,17 @@ RULES:add(function(title, options)
 end)
 
 -- do-date inferrer
-RULES:add(function(title)
+RULES:add(function(title, options)
     -- this is a dummy working date
-    local working_date = "2021-1-1"
+    local working_date = options.working_date
+    working_date = dates.DateObj:new(working_date)
 
     local date = dates.parse(title, working_date)
 
     if date ~= nil then
         return function(t)
             -- if a task in the today section has no datespec, don't give it one
-            if title == "today" and task.get_datespec_as_string(t) == nil then
+            if date == working_date and task.get_datespec_as_string(t) == nil then
                 return t
             end
 
@@ -81,6 +82,8 @@ end)
 
 function M.infer(lines, options)
     options = util.merge(options, {})
+
+    assert(options.working_date ~= nil, "Must supply working date option")
 
     local current_title
     local new_lines = {}

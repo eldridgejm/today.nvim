@@ -10,10 +10,6 @@
 -- a separate category, and with key/value pairs: "header" (string) the
 -- category's header and "tasks" (list of strings) the tasks in the category.
 --
--- Additionally, the functor should have an `options` attribute that controls
--- the behavior of the categorizer. Modifying this attribute is one way to
--- change the behavior after-the-fact.
---
 -- There is a lot of overlap in the creation of categorizers. To simplify the process,
 -- the `make_categorizer_from_components` helper function may be used. It builds a
 -- categorizer from several orthogonal component functions.
@@ -67,17 +63,11 @@ end
 -- them.
 --
 -- @param components A table with the components listed above.
--- @param working_date The working date as a DateObj.
 -- @returns A list of categories, with each category being a table with "header" and "tasks"
 -- keys.
-function categorizers.make_categorizer_from_components(defaults, components)
-    local Categorizer = {
-        options = defaults,
-    }
-
-    local meta = {}
-    function meta.__call(self, tasks, hidden_tasks, broken_tasks)
-        local groups = components.grouper(self, tasks)
+function categorizers.make_categorizer_from_components(components)
+    return function (tasks, hidden_tasks, broken_tasks)
+        local groups = components.grouper(tasks)
 
         if hidden_tasks and #hidden_tasks > 0 then
             groups["hidden"] = hidden_tasks
@@ -101,7 +91,7 @@ function categorizers.make_categorizer_from_components(defaults, components)
             local category_tasks = groups[category_key]
             sort.mergesort(category_tasks, components.task_comparator(self))
             local group = {
-                header = components.header_formatter(self, category_key, category_tasks),
+                header = components.header_formatter(category_key, category_tasks),
                 tasks = category_tasks,
             }
             table.insert(result, group)
@@ -109,10 +99,6 @@ function categorizers.make_categorizer_from_components(defaults, components)
 
         return result
     end
-
-    setmetatable(Categorizer, meta)
-
-    return Categorizer
 end
 
 --- Organizes tasks into a daily agenda by their "do dates".
@@ -151,22 +137,22 @@ function categorizers.daily_agenda_categorizer(options)
         show_remaining_tasks_count = false,
     })
 
-    return categorizers.make_categorizer_from_components(options, {
-        grouper = function(self, tasks)
+    return categorizers.make_categorizer_from_components({
+        grouper = function(tasks)
             -- we will key the categories by either "done", or the do-date as a ymd
             -- string. later we'll convert the key to the requested date format
-            local working_date = dates.DateObj:new(self.options.working_date)
+            local working_date = dates.DateObj:new(options.working_date)
             local keyfunc = function(t)
                 local datespec = task.parse_datespec_safe(t, working_date)
 
                 local days_until_do = working_date:days_until(datespec.do_date)
 
-                local ready_to_move = self.options.move_to_done_immediately
+                local ready_to_move = options.move_to_done_immediately
                     or (days_until_do < 0)
 
                 if task.is_done(t) and ready_to_move then
                     return "done"
-                elseif days_until_do >= self.options.days then
+                elseif days_until_do >= options.days then
                     return "future"
                 elseif days_until_do <= 0 then
                     return tostring(working_date)
@@ -177,8 +163,8 @@ function categorizers.daily_agenda_categorizer(options)
 
             local groups = util.groupby(keyfunc, tasks)
 
-            if self.options.show_empty_days then
-                local threshold = working_date:add_days(self.options.days)
+            if options.show_empty_days then
+                local threshold = working_date:add_days(options.days)
                 local cursor = dates.DateObj:new(working_date)
 
                 while cursor < threshold do
@@ -204,19 +190,19 @@ function categorizers.daily_agenda_categorizer(options)
         task_comparator = function(self)
             return sort.chain_comparators({
                 sort.completed_comparator,
-                sort.make_do_date_comparator(self.options.working_date),
+                sort.make_do_date_comparator(options.working_date),
                 sort.priority_comparator,
             })
         end,
 
-        header_formatter = function(self, category_key, category_tasks)
+        header_formatter = function(category_key, category_tasks)
             local title, second_date, tasks_remaining
 
             local function date_formatter(d, fmt)
                 if fmt == "ymd" then
                     return d
                 elseif fmt == "natural" then
-                    return dates.to_natural(d, self.options.working_date)
+                    return dates.to_natural(d, options.working_date)
                 elseif fmt == "monthday" then
                     return dates.to_month_day(d)
                 elseif fmt == "datestamp" then
@@ -228,19 +214,19 @@ function categorizers.daily_agenda_categorizer(options)
             if util.contains_value(verbatime, category_key) then
                 title = category_key
             elseif category_key == "future" then
-                title = "future (" .. self.options.days .. "+ days from now)"
+                title = "future (" .. options.days .. "+ days from now)"
             else
-                title = date_formatter(category_key, self.options.date_format)
+                title = date_formatter(category_key, options.date_format)
 
-                if self.options.second_date_format ~= nil then
+                if options.second_date_format ~= nil then
                     second_date = date_formatter(
                         category_key,
-                        self.options.second_date_format
+                        options.second_date_format
                     )
                 end
             end
 
-            if self.options.show_remaining_tasks_count and category_key ~= "done" then
+            if options.show_remaining_tasks_count and category_key ~= "done" then
                 tasks_remaining = count_remaining_tasks(category_tasks)
             end
 
@@ -260,11 +246,11 @@ function categorizers.first_tag_categorizer(options)
         show_remaining_tasks_count = false,
     })
 
-    return categorizers.make_categorizer_from_components(options, {
+    return categorizers.make_categorizer_from_components({
 
-        grouper = function(self, tasks)
+        grouper = function(tasks)
             local keyfunc = function(line)
-                if task.parse_datespec_safe(line, self.options.working_date) == nil then
+                if task.parse_datespec_safe(line, options.working_date) == nil then
                     return "broken"
                 end
 
@@ -292,17 +278,17 @@ function categorizers.first_tag_categorizer(options)
             return function(x, y)
                 local cmp = sort.chain_comparators({
                     sort.completed_comparator,
-                    sort.make_do_date_comparator(self.options.working_date),
+                    sort.make_do_date_comparator(options.working_date),
                     sort.priority_comparator,
                 })
                 return cmp(x, y)
             end
         end,
 
-        header_formatter = function(self, category_key, category_tasks)
+        header_formatter = function(category_key, category_tasks)
             local tasks_remaining
 
-            if self.options.show_remaining_tasks_count then
+            if options.show_remaining_tasks_count then
                 tasks_remaining = count_remaining_tasks(category_tasks)
             end
 

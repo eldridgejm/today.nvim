@@ -1,5 +1,8 @@
 local task = require("today.core.task")
 local organize = require("today.core.organize")
+local categorizers = require("today.core.categorizers")
+local filterers = require("today.core.filterers")
+local informers = require("today.core.informers")
 local util = require("today.util")
 local date = require("today.vendor.date")
 local infer = require("today.core.infer")
@@ -168,29 +171,20 @@ function ui.organize(mode)
     local working_date = vim.b.today_working_date
 
     -- set up the categorizer
-    local categorizer
     local categorizer_key = opts.categorizer.active
-    local categorizer_options = opts.categorizer.options[categorizer_key].write
-    if categorizer_key == "daily_agenda" then
-        categorizer = organize.daily_agenda_categorizer(
-            working_date,
-            categorizer_options
-        )
-    elseif categorizer_key == "first_tag" then
-        categorizer = organize.first_tag_categorizer(working_date, categorizer_options)
-    else
-        error("Categorizer " .. categorizer_key .. " not known.")
-    end
+    local categorizer_options = opts.categorizer.options[categorizer_key]
+    categorizer_options['working_date'] = working_date
+    local categorizer = categorizers[categorizer_key .. "_categorizer"](categorizer_options)
 
     -- set up the filterer
     local filterer
     local filter_tags = opts.filter_tags
     if (filter_tags ~= nil) and (#filter_tags > 0) then
-        filterer = organize.tag_filterer(opts.filter_tags)
+        filterer = filterers.tag_filterer({tags = filter_tags})
     end
 
     -- set up the informer
-    local informer = organize.basic_informer({
+    local informer = informers.basic_informer({
         working_date = working_date,
         categorizer = categorizer_key,
         filter_tags = filter_tags,
@@ -212,16 +206,18 @@ function ui.organize(mode)
 end
 
 function ui.categorize_by_first_tag()
-    local opts = ui.get_buffer_options().view
-    opts.categorizer.active = "first_tag"
-    vim.b.today.view = opts
+    local opts = ui.get_buffer_options()
+    opts.view.categorizer.active = "first_tag"
+    opts.write.categorizer.active = "first_tag"
+    vim.b.today = opts
     ui.organize()
 end
 
 function ui.categorize_by_daily_agenda()
-    local opts = ui.get_buffer_options().view
-    opts.categorizer.active = "daily_agenda"
-    vim.b.today.view = opts
+    local opts = ui.get_buffer_options()
+    opts.view.categorizer.active = "daily_agenda"
+    opts.write.categorizer.active = "daily_agenda"
+    vim.b.today = opts
     ui.organize()
 end
 
@@ -232,8 +228,21 @@ function ui.set_filter_tags(tags)
     ui.organize()
 end
 
-function ui.update_pre_write()
+
+local function save_cursor()
     vim.b.today_cursor = vim.api.nvim_win_get_cursor(0)
+end
+
+local function restore_cursor(n_lines)
+    if vim.b.today_cursor ~= nil then
+        if vim.b.today_cursor[1] >= n_lines then
+            vim.b.today_cursor = { n_lines, vim.b.today_cursor[2] }
+        end
+        vim.api.nvim_win_set_cursor(0, vim.b.today_cursor) -- restore the cursor position
+    end
+end
+
+function ui.update_pre_write()
     ui.organize("write")
     ui.task_make_datespec_ymd(1, -1)
 end
@@ -242,13 +251,7 @@ function ui.update_post_read()
     vim.b.today_working_date = ui.get_current_time():fmt("%Y-%m-%d")
     local n_lines = ui.organize("view")
     ui.task_make_datespec_natural(1, -1)
-
-    if vim.b.today_cursor ~= nil then
-        if vim.b.today_cursor[1] >= n_lines then
-            vim.b.today_cursor = { n_lines, vim.b.today_cursor[2] }
-        end
-        vim.api.nvim_win_set_cursor(0, vim.b.today_cursor) -- restore the cursor position
-    end
+    restore_cursor(n_lines)
 end
 
 local function is_today_buffer(bufnum)
