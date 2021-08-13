@@ -256,7 +256,10 @@ describe("Today core module's", function()
         end)
 
         it("should work for k days from now", function()
-            local result = task.make_datespec_ymd("[x] task <20 days from now>", "2021-02-03")
+            local result = task.make_datespec_ymd(
+                "[x] task <20 days from now>",
+                "2021-02-03"
+            )
             assert.are.equal(result, "[x] task <2021-02-23>")
         end)
 
