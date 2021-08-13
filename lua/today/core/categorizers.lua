@@ -1,9 +1,18 @@
 --- Categorizers.
--- A categorizer is a function that implements a strategy for organizing
--- tasks into categories. The function should accept a list of tasks (as strings) and a list of
--- hidden tasks and should return a list of tables -- each table representing
+-- A categorizer is a functor that implements a strategy for organizing
+-- tasks into categories. The functor should accept three arguments:
+--
+-- 1. a list of tasks (as strings)
+-- 2. a list of *hidden* tasks (can be nil)
+-- 3. a list of *broken* tasks (can be nil)
+--
+-- It should return a list of tables -- each table representing
 -- a separate category, and with key/value pairs: "header" (string) the
 -- category's header and "tasks" (list of strings) the tasks in the category.
+--
+-- Additionally, the functor should have an `options` attribute that controls
+-- the behavior of the categorizer. Modifying this attribute is one way to
+-- change the behavior after-the-fact.
 --
 -- There is a lot of overlap in the creation of categorizers. To simplify the process,
 -- the `make_categorizer_from_components` helper function may be used. It builds a
@@ -36,38 +45,6 @@ local function count_remaining_tasks(tasks)
     return count
 end
 
-local function split_by(func, lst)
-    local result = util.groupby(func, lst)
-    return result[true], result[false]
-end
-
--- Removes the broken tasks from the unhidden and hidden tasks, placing them
--- in their own table.
-local function remove_broken_tasks(unhidden_tasks, hidden_tasks, working_date)
-    hidden_tasks = hidden_tasks or {}
-    local broken_unhidden_tasks, broken_hidden_tasks
-    local predicate = function(t)
-        return not task.datespec_is_broken(t, working_date)
-    end
-
-    unhidden_tasks, broken_unhidden_tasks = split_by(predicate, unhidden_tasks)
-    hidden_tasks, broken_hidden_tasks = split_by(predicate, hidden_tasks)
-
-    local broken_tasks = {}
-    if broken_unhidden_tasks ~= nil then
-        util.put_into(broken_tasks, broken_unhidden_tasks)
-    end
-    if broken_hidden_tasks ~= nil then
-        util.put_into(broken_tasks, broken_hidden_tasks)
-    end
-
-    unhidden_tasks = unhidden_tasks or {}
-    hidden_tasks = hidden_tasks or {}
-    broken_tasks = broken_tasks or {}
-
-    return unhidden_tasks, hidden_tasks, broken_tasks
-end
-
 --- Builds a categorizer from components. The required components are:
 --
 -- `grouper`: Accepts a list of tasks and returns a table whose keys are category "keys"
@@ -94,7 +71,6 @@ end
 -- @returns A list of categories, with each category being a table with "header" and "tasks"
 -- keys.
 function categorizers.make_categorizer_from_components(
-    working_date,
     defaults,
     components
 )
@@ -115,7 +91,7 @@ function categorizers.make_categorizer_from_components(
         end
 
         if components.header_formatter == nil then
-            components.header_formatter = function(self, k)
+            components.header_formatter = function(_, k)
                 return k
             end
         end
@@ -180,7 +156,7 @@ function categorizers.daily_agenda_categorizer(working_date, options)
         show_remaining_tasks_count = false,
     })
 
-    return categorizers.make_categorizer_from_components(working_date, options, {
+    return categorizers.make_categorizer_from_components( options, {
         grouper = function(self, tasks)
             -- we will key the categories by either "done", or the do-date as a ymd
             -- string. later we'll convert the key to the requested date format
@@ -219,7 +195,7 @@ function categorizers.daily_agenda_categorizer(working_date, options)
             return groups
         end,
 
-        category_key_comparator = function(self)
+        category_key_comparator = function(_)
             return sort.chain_comparators({
                 sort.make_order_comparator({ "broken" }, true),
                 sort.make_order_comparator({ "done", "hidden" }, false),
@@ -229,7 +205,7 @@ function categorizers.daily_agenda_categorizer(working_date, options)
             })
         end,
 
-        task_comparator = function(self)
+        task_comparator = function(_)
             return sort.chain_comparators({
                 sort.completed_comparator,
                 sort.make_do_date_comparator(working_date),
@@ -289,9 +265,9 @@ function categorizers.first_tag_categorizer(working_date, options)
         show_remaining_tasks_count = false,
     })
 
-    return categorizers.make_categorizer_from_components(working_date, options, {
+    return categorizers.make_categorizer_from_components(options, {
 
-        grouper = function(self, tasks)
+        grouper = function(_, tasks)
             local keyfunc = function(line)
                 if task.parse_datespec_safe(line, working_date) == nil then
                     return "broken"
@@ -307,7 +283,7 @@ function categorizers.first_tag_categorizer(working_date, options)
             return util.groupby(keyfunc, tasks)
         end,
 
-        category_key_comparator = function(self)
+        category_key_comparator = function(_)
             return sort.chain_comparators({
                 sort.make_order_comparator({ "broken" }, true),
                 sort.make_order_comparator({ "hidden" }, false),
@@ -317,7 +293,7 @@ function categorizers.first_tag_categorizer(working_date, options)
             })
         end,
 
-        task_comparator = function(self)
+        task_comparator = function(_)
             return function(x, y)
                 local cmp = sort.chain_comparators({
                     sort.completed_comparator,

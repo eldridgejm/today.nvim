@@ -290,6 +290,32 @@ describe("categorizers", function()
             assert.are.same(result, expected)
         end)
 
+        it("should allow options to be set on attribute", function()
+            -- given
+            local tasks = {
+                "this is the first one",
+            }
+
+            -- when
+            local categorizer = categorizers.daily_agenda_categorizer("2021-06-01")
+
+            categorizer.options.show_remaining_tasks_count = true
+            result = categorizer(tasks)
+
+            -- then
+            local expected = {
+
+                {
+                    header = "today | 1",
+                    tasks = {
+                        "this is the first one",
+                    },
+                },
+            }
+
+            assert.are.same(result, expected)
+        end)
+
         it("should use ymd date if requested", function()
             -- given
             local tasks = {

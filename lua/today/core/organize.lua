@@ -13,12 +13,43 @@
 
 local task = require("today.core.task")
 local util = require("today.util")
-local sort = require("today.core.sort")
-local dates = require("today.core.dates")
 
 local organize = {}
 
 -- -------------------------------------------------------------------------------------
+
+local function split_by(func, lst)
+    local result = util.groupby(func, lst)
+    return result[true], result[false]
+end
+
+
+-- Removes the broken tasks from the unhidden and hidden tasks, placing them
+-- in their own table.
+local function remove_broken_tasks(unhidden_tasks, hidden_tasks, working_date)
+    hidden_tasks = hidden_tasks or {}
+    local broken_unhidden_tasks, broken_hidden_tasks
+    local predicate = function(t)
+        return not task.datespec_is_broken(t, working_date)
+    end
+
+    unhidden_tasks, broken_unhidden_tasks = split_by(predicate, unhidden_tasks)
+    hidden_tasks, broken_hidden_tasks = split_by(predicate, hidden_tasks)
+
+    local broken_tasks = {}
+    if broken_unhidden_tasks ~= nil then
+        util.put_into(broken_tasks, broken_unhidden_tasks)
+    end
+    if broken_hidden_tasks ~= nil then
+        util.put_into(broken_tasks, broken_hidden_tasks)
+    end
+
+    unhidden_tasks = unhidden_tasks or {}
+    hidden_tasks = hidden_tasks or {}
+    broken_tasks = broken_tasks or {}
+
+    return unhidden_tasks, hidden_tasks, broken_tasks
+end
 
 local function display_categories(categories)
     local result = {}
@@ -49,53 +80,6 @@ local function display_categories(categories)
 end
 
 -- -------------------------------------------------------------------------------------
-
---- Filterers.
--- @section
-
---- Filters by tags.
--- @param target_tags A list of the tags to include.
-function organize.tag_filterer(target_tags)
-    return function(t)
-        local task_tags = task.get_tags(t)
-        for _, tag in pairs(task_tags) do
-            if util.contains_value(target_tags, tag) then
-                return true
-            end
-        end
-
-        if (#task_tags == 0) and util.contains_value(target_tags, "none") then
-            return true
-        end
-
-        return false
-    end
-end
-
---- Informers.
--- @section
-
---- Displays basic information.
--- @param info A table with information to display. Should have keys:
---  "working_date", "categorizer" (a string), and "filter_tags" (a list of strings).
-function organize.basic_informer(info)
-    return function()
-        local lines = {}
-
-        local working_date = info.working_date
-        table.insert(lines, "-- working date: " .. working_date)
-        table.insert(lines, "-- categorizer: " .. info.categorizer)
-
-        if (info.filter_tags ~= nil) and (#info.filter_tags > 0) then
-            local all_tags = table.concat(info.filter_tags, " ")
-            table.insert(lines, "-- filter tags: " .. all_tags)
-        end
-
-        table.insert(lines, "")
-
-        return lines
-    end
-end
 
 --- organize().
 -- @section
