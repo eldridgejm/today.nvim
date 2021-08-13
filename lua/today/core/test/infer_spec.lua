@@ -70,10 +70,10 @@ describe("infer", function()
             assert.are.same(result, expected)
         end)
 
-        it("should infer 15 days from now in future", function()
+        it("should infer future to be minimum number of days", function()
             -- given
             local lines = {
-                "-- future | 1 {{{",
+                "-- future (20+ days from now) | 1 {{{",
                 "[ ] task 1",
                 "-- }}}",
             }
@@ -84,8 +84,8 @@ describe("infer", function()
             -- then
             -- July 01 was a Thursday
             local expected = {
-                "-- future | 1 {{{",
-                "[ ] task 1 <15 days from now>",
+                "-- future (20+ days from now) | 1 {{{",
+                "[ ] task 1 <20 days from now>",
                 "-- }}}",
             }
 

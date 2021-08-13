@@ -170,8 +170,8 @@ function categorizers.daily_agenda_categorizer(working_date, options)
 
                 if task.is_done(t) and ready_to_move then
                     return "done"
-                elseif days_until_do > self.options.days then
-                    return "hidden"
+                elseif days_until_do >= self.options.days then
+                    return "future"
                 elseif days_until_do <= 0 then
                     return tostring(working_date)
                 else
@@ -228,9 +228,11 @@ function categorizers.daily_agenda_categorizer(working_date, options)
                 end
             end
 
-            local undated = { "broken", "hidden", "done", "someday", "future" }
-            if util.contains_value(undated, category_key) then
+            local verbatime = { "broken", "hidden", "done", "someday" }
+            if util.contains_value(verbatime, category_key) then
                 title = category_key
+            elseif category_key == "future" then
+                title = "future (" .. self.options.days .. "+ days from now)"
             else
                 title = date_formatter(category_key, self.options.date_format)
 

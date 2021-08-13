@@ -24,9 +24,10 @@ RULES:add(function(title)
     end
 end)
 
--- future inferrer
+-- future (k+ days from now) inferrer
 RULES:add(function(title, options)
-    if title == "future" then
+    local match = title:match("future %((%d+)%+ days from now%)")
+    if match ~= nil then
         return function(t)
             -- this is a dummy working date; its value is not important
             local working_date = "2021-1-1"
@@ -37,7 +38,7 @@ RULES:add(function(title, options)
 
             return task.set_do_date(
                 t,
-                options.days_until_future + 1 .. " days from now"
+                match .. " days from now"
             )
         end
     end
@@ -83,7 +84,6 @@ end)
 
 function M.infer(lines, options)
     options = util.merge(options, {
-        days_until_future = 14,
     })
 
     local current_title

@@ -78,17 +78,17 @@ describe("categorizers", function()
             assert.are.same(result, expected)
         end)
 
-        it("should place days outside of range into hidden", function()
+        it("should place days beyond options.days into future category", function()
             -- given
             local tasks = {
                 "[ ] <2021-07-01> task 1",
-                "[ ] <2021-07-03> task 10", -- 10 == 2 in binary
+                "[ ] <2021-07-04> task 10", -- 10 == 2 in binary
             }
 
             -- when
             local result = categorizers.daily_agenda_categorizer(
                 "2021-07-01",
-                { days = 1, show_empty_days = true }
+                { days = 3, show_empty_days = true }
             )(tasks)
 
             -- then
@@ -102,12 +102,18 @@ describe("categorizers", function()
                     },
                 },
 
+                { header = "tomorrow", tasks = {} },
+
                 {
-                    header = "hidden",
-                    tasks = {
-                        "[ ] <2021-07-03> task 10", -- 10 == 2 in binary
-                    },
+                    header = "saturday",
+                    tasks = { },
                 },
+                {
+                    header = "future (3+ days from now)",
+                    tasks = {
+                        "[ ] <2021-07-04> task 10", -- 10 == 2 in binary
+                    }
+                }
             }
             assert.are.same(result, expected)
         end)
@@ -420,7 +426,6 @@ describe("categorizers", function()
             local tasks = {
                 "[ ] undone <tomorrow>",
                 "[ ] but this isn't",
-                "testing <40 days from now>",
             }
 
             -- when
@@ -443,13 +448,6 @@ describe("categorizers", function()
                     header = "jun 02 | 2021-06-02",
                     tasks = {
                         "[ ] undone <tomorrow>",
-                    },
-                },
-
-                {
-                    header = "hidden",
-                    tasks = {
-                        "testing <40 days from now>",
                     },
                 },
             }
