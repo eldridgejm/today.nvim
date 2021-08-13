@@ -84,7 +84,7 @@ function categorizers.make_categorizer_from_components(components)
         end
 
         local category_keys = util.keys(groups)
-        sort.mergesort(category_keys, components.category_key_comparator(self))
+        sort.mergesort(category_keys, components.category_key_comparator)
 
         local result = {}
         for _, category_key in ipairs(category_keys) do
@@ -177,15 +177,13 @@ function categorizers.daily_agenda_categorizer(options)
             return groups
         end,
 
-        category_key_comparator = function(_)
-            return sort.chain_comparators({
+        category_key_comparator = sort.chain_comparators({
                 sort.make_order_comparator({ "broken" }, true),
                 sort.make_order_comparator({ "done", "hidden" }, false),
                 function(x, y)
                     return x < y
                 end,
-            })
-        end,
+            }),
 
         task_comparator = function(self)
             return sort.chain_comparators({
@@ -264,15 +262,13 @@ function categorizers.first_tag_categorizer(options)
             return util.groupby(keyfunc, tasks)
         end,
 
-        category_key_comparator = function(_)
-            return sort.chain_comparators({
+        category_key_comparator = sort.chain_comparators({
                 sort.make_order_comparator({ "broken" }, true),
                 sort.make_order_comparator({ "hidden" }, false),
                 function(x, y)
                     return x < y
                 end,
-            })
-        end,
+            }),
 
         task_comparator = function(self)
             return function(x, y)

@@ -120,6 +120,98 @@ describe("categorizers", function()
             assert.are.same(result, expected)
         end)
 
+        it("should handle hidden tasks", function()
+            -- given
+            local tasks = {
+                "[ ] <2021-07-01> task 1",
+                "[ ] <2021-07-04> task 10", -- 10 == 2 in binary
+            }
+
+            local hidden_tasks = {
+                "[ ] <2021-07-02> task 3",
+            }
+
+            -- when
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-07-01",
+                days = 3,
+                show_empty_days = true,
+            })(tasks, hidden_tasks)
+
+            -- then
+            -- July 01 was a Thursday
+            local expected = {
+
+                {
+                    header = "today",
+                    tasks = {
+                        "[ ] <2021-07-01> task 1",
+                    },
+                },
+                { header = "tomorrow", tasks = {} },
+                {
+                    header = "saturday",
+                    tasks = {},
+                },
+                {
+                    header = "future (3+ days from now)",
+                    tasks = {
+                        "[ ] <2021-07-04> task 10", -- 10 == 2 in binary
+                    },
+                },
+                { header = "hidden",
+                tasks = { "[ ] <2021-07-02> task 3" }
+            }
+            }
+            assert.are.same(result, expected)
+        end)
+
+        it("should handle broken tasks by putting them first", function()
+            -- given
+            local tasks = {
+                "[ ] <2021-07-01> task 1",
+                "[ ] <2021-07-04> task 10", -- 10 == 2 in binary
+            }
+
+            local broken_tasks = {
+                "[ ] <zzz> task 3",
+            }
+
+            -- when
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-07-01",
+                days = 3,
+                show_empty_days = true,
+            })(tasks, nil, broken_tasks)
+
+            -- then
+            -- July 01 was a Thursday
+            local expected = {
+
+                { header = "broken",
+                tasks = { "[ ] <zzz> task 3" }
+            },
+                {
+                    header = "today",
+                    tasks = {
+                        "[ ] <2021-07-01> task 1",
+                    },
+                },
+                { header = "tomorrow", tasks = {} },
+                {
+                    header = "saturday",
+                    tasks = {},
+                },
+                {
+                    header = "future (3+ days from now)",
+                    tasks = {
+                        "[ ] <2021-07-04> task 10", -- 10 == 2 in binary
+                    },
+                },
+            }
+            assert.are.same(result, expected)
+        end)
+
         it(
             "should put done tasks in do date category if move_to_done_immediately=false",
             function()

@@ -162,7 +162,6 @@ function ui.organize(mode)
     end
 
     local opts = ui.get_buffer_options()[mode]
-
     assert(opts ~= nil)
 
     local was_modified = vim.api.nvim_buf_get_option(0, "modified")
@@ -190,14 +189,19 @@ function ui.organize(mode)
         filter_tags = filter_tags,
     })
 
+    local is_broken = function (t)
+        return task.datespec_is_broken(t, working_date)
+    end
+
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
 
-    lines = infer.infer(lines)
+    lines = infer.infer(lines, {working_date = working_date })
 
     lines = organize.organize(lines, {
         categorizer = categorizer,
         filterer = filterer,
         informer = informer,
+        is_broken = is_broken
     })
     vim.api.nvim_buf_set_lines(0, 0, -1, 0, lines)
     vim.api.nvim_buf_set_option(0, "modified", was_modified)
@@ -228,7 +232,6 @@ function ui.set_filter_tags(tags)
     ui.organize()
 end
 
-
 local function save_cursor()
     vim.b.today_cursor = vim.api.nvim_win_get_cursor(0)
 end
@@ -243,6 +246,7 @@ local function restore_cursor(n_lines)
 end
 
 function ui.update_pre_write()
+    save_cursor()
     ui.organize("write")
     ui.task_make_datespec_ymd(1, -1)
 end

@@ -50,6 +50,23 @@ local function remove_broken_tasks(unhidden_tasks, hidden_tasks, working_date)
     return unhidden_tasks, hidden_tasks, broken_tasks
 end
 
+--- Filter tasks into "good" tasks, hidden tasks, and broken tasks.
+local function separate_tasks(tasks, filterer, is_broken)
+    local function predicate(t)
+        if filterer and filterer(t) then
+            return "hidden"
+        elseif is_broken(t) then
+            return "broken"
+        else
+            return "good"
+        end
+    end
+
+    local groups = util.groupby(predicate, tasks)
+
+    return groups["good"], groups["hidden"], groups["broken"]
+end
+
 local function display_categories(categories)
     local result = {}
     local function add_line(s)
@@ -113,6 +130,8 @@ end
 -- or `False` depending on whether the task should be kept or hidden, respectively. This
 -- can be nil, in which case no tasks are filtered out.
 --
+-- `is_broken`: A function which accepts a task and returns true if it is broken.
+--
 -- `informer`: This should be a function which accepts no arguments and returns a list
 -- of lines to add to the beginning of the buffer. These lines provide information, for
 -- instance, about the current settings. This can be nil, in which case no information
@@ -140,14 +159,9 @@ function organize.organize(lines, components)
     local tasks = util.filter(task.is_task, lines)
     tasks = util.map(task.normalize, tasks)
 
-    local hidden_tasks
-    if components.filterer ~= nil then
-        local filtered = util.groupby(components.filterer, tasks)
-        tasks = filtered[true] or {}
-        hidden_tasks = filtered[false] or {}
-    end
+    tasks, hidden_tasks, broken_tasks = separate_tasks(tasks, components.filterer, components.is_broken)
 
-    local categories = components.categorizer(tasks, hidden_tasks)
+    local categories = components.categorizer(tasks, hidden_tasks, broken_tasks)
     local category_lines = display_categories(categories, components.header_formatter)
 
     local result = {}
