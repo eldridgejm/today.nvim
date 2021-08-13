@@ -9,20 +9,44 @@ ui.options = {
     -- the time at which the today buffer will be automatically refreshed
     automatic_refresh = true,
     buffer = {
-        categorizer = {
-            active = "daily_agenda",
-            options = {
-                show_empty_days = { at_least = 7 },
-                move_to_done_immediately = false,
-                date_format = "natural",
-                second_date_format = "monthday",
-                show_remaining_tasks_count = true,
+        view = {
+            categorizer = {
+                active = "daily_agenda",
+                options = {
+                    daily_agenda = {
+                        days = 7,
+                        show_empty_days = true,
+                        move_to_done_immediately = false,
+                        date_format = "natural",
+                        second_date_format = "monthday",
+                        show_remaining_tasks_count = false,
+                    },
+                    first_tag = {
+                        show_remaining_tasks_count = true,
+                    },
+                },
             },
+            filter_tags = nil,
+            default_date_format = "human",
         },
-        filter_tags = nil,
-        filter_days = 7,
-        default_date_format = "human",
-    },
+        write = {
+            categorizer = {
+                active = "daily_agenda",
+                options = {
+                    daily_agenda = {
+                        days = 7,
+                        show_empty_days = false,
+                        date_format = "ymd",
+                    },
+                    first_tag = {
+                        show_remaining_tasks_count = false,
+                    },
+                },
+                filter_tags = nil,
+                default_date_format = "ymd",
+            },
+        }
+    }
 }
 
 --- Takes in a function `func` and makes a function which applies `func` to a
@@ -61,7 +85,7 @@ end
 local function replace_datespec_with_next(line)
     return task.replace_datespec_with_next(line, vim.b.today_working_date, {
         natural = true,
-        default_format = ui.get_buffer_options().default_date_format,
+        default_format = ui.get_buffer_options().view.default_date_format,
     })
 end
 
@@ -89,7 +113,7 @@ ui.task_make_datespec_ymd = make_ranged_function(
 ui.task_make_datespec_natural = make_ranged_function(function(line)
     return task.make_datespec_natural(line, vim.b.today_working_date, {
         natural = true,
-        default_format = ui.get_buffer_options().default_date_format,
+        default_format = ui.get_buffer_options().view.default_date_format,
     })
 end)
 
@@ -128,7 +152,15 @@ function ui.get_buffer_options()
     return vim.b.today
 end
 
-function ui.organize()
+function ui.organize(mode)
+    if mode == nil then
+        mode = 'view'
+    end
+
+    local options = ui.get_buffer_options()[mode]
+
+    assert(options ~= nil)
+
     local was_modified = vim.api.nvim_buf_get_option(0, "modified")
     -- note: the working date will not be set if this is called before ui.update_post_read,
     -- as is the case when called from an ftplugin
@@ -136,14 +168,15 @@ function ui.organize()
 
     -- set up the categorizer
     local categorizer
-    local categorizer_key = ui.get_buffer_options().categorizer.active
-    if (categorizer_key == nil) or (categorizer_key == "daily_agenda") then
+    local categorizer_key = options.categorizer.active
+    local categorizer_options = options.categorizer.options[categorizer_key].write
+    if categorizer_key == "daily_agenda" then
         categorizer = organize.daily_agenda_categorizer(
             working_date,
-            ui.get_buffer_options().categorizer.options
+            categorizer_options
         )
     elseif categorizer_key == "first_tag" then
-        categorizer = organize.first_tag_categorizer(working_date)
+        categorizer = organize.first_tag_categorizer(working_date, categorizer_options)
     else
         error("Categorizer " .. categorizer_key .. " not known.")
     end
@@ -151,13 +184,13 @@ function ui.organize()
     -- set up the filterer
     local filterers = {}
 
-    local filter_tags = ui.get_buffer_options().filter_tags
+    local filter_tags = options.filter_tags
     if (filter_tags ~= nil) and (#filter_tags > 0) then
         local filterer = organize.tag_filterer(vim.b.today.filter_tags)
         table.insert(filterers, filterer)
     end
 
-    local filter_days = ui.get_buffer_options().filter_days
+    local filter_days = options.filter_days
     if filter_days ~= nil then
         local filterer = organize.do_date_filterer(filter_days, working_date)
         table.insert(filterers, filterer)
@@ -186,44 +219,36 @@ function ui.organize()
 end
 
 function ui.categorize_by_first_tag()
-    local opts = ui.get_buffer_options()
+    local opts = ui.get_buffer_options().view
     opts.categorizer.active = "first_tag"
     vim.b.today = opts
     ui.organize()
 end
 
 function ui.categorize_by_daily_agenda()
-    -- will be the empty string if no argument is provided
-    local opts = ui.get_buffer_options()
+    local opts = ui.get_buffer_options().view
     opts.categorizer.active = "daily_agenda"
     vim.b.today = opts
     ui.organize()
 end
 
 function ui.set_filter_tags(tags)
-    local opts = ui.get_buffer_options()
+    local opts = ui.get_buffer_options().view
     opts.filter_tags = tags
-    vim.b.today = opts
-    ui.organize()
-end
-
-function ui.set_days_to_show(n)
-    local opts = ui.get_buffer_options()
-    opts.days_to_show = n[1]
     vim.b.today = opts
     ui.organize()
 end
 
 function ui.update_pre_write()
     vim.b.today_cursor = vim.api.nvim_win_get_cursor(0)
-    ui.organize()
+    ui.organize('write')
     ui.task_make_datespec_ymd(1, -1)
-    ui.remove_comments(1, -1)
+    -- ui.remove_comments(1, -1)
 end
 
 function ui.update_post_read()
     vim.b.today_working_date = ui.get_current_time():fmt("%Y-%m-%d")
-    local n_lines = ui.organize()
+    local n_lines = ui.organize('view')
     ui.task_make_datespec_natural(1, -1)
 
     if vim.b.today_cursor ~= nil then
@@ -231,13 +256,6 @@ function ui.update_post_read()
             vim.b.today_cursor = { n_lines, vim.b.today_cursor[2] }
         end
         vim.api.nvim_win_set_cursor(0, vim.b.today_cursor) -- restore the cursor position
-    end
-end
-
-function ui.follow()
-    local cword = vim.fn.expand("<cWORD>")
-    if util.startswith(cword, "#") then
-        ui.set_filter_tags({ cword })
     end
 end
 

@@ -194,11 +194,9 @@ function organize.daily_agenda_categorizer(working_date, options)
             -- we will key the categories by either "done", or the do-date as a ymd
             -- string. later we'll convert the key to the requested date format
             local keyfunc = function(t)
-
                 local datespec = task.parse_datespec_safe(t, working_date)
 
                 local days_until_do = working_date:days_until(datespec.do_date)
-
 
                 local ready_to_move = options.move_to_done_immediately
                     or (days_until_do < 0)
@@ -212,13 +210,11 @@ function organize.daily_agenda_categorizer(working_date, options)
                 else
                     return tostring(working_date:add_days(days_until_do))
                 end
-
             end
 
             local groups = util.groupby(keyfunc, tasks)
 
             if options.show_empty_days then
-
                 local threshold = working_date:add_days(options.days)
                 local cursor = dates.DateObj:new(working_date)
 
@@ -233,13 +229,12 @@ function organize.daily_agenda_categorizer(working_date, options)
         end,
 
         category_key_comparator = sort.chain_comparators({
-            sort.make_order_comparator({"broken"}, true),
-            sort.make_order_comparator({"done", "hidden"}, false),
-            function (x, y)
+            sort.make_order_comparator({ "broken" }, true),
+            sort.make_order_comparator({ "done", "hidden" }, false),
+            function(x, y)
                 return x < y
-            end
+            end,
         }),
-
 
         task_comparator = sort.chain_comparators({
             sort.completed_comparator,
@@ -377,7 +372,7 @@ end
 -- @section
 
 function organize.chain_filterers(chain)
-    return function (t)
+    return function(t)
         for _, filter in pairs(chain) do
             if not filter(t) then
                 return false
@@ -389,7 +384,7 @@ end
 
 function organize.do_date_filterer(n_days_to_keep, working_date)
     working_date = dates.DateObj:new(working_date)
-    return function (t)
+    return function(t)
         local ds = task.parse_datespec_safe(t, working_date)
         local delta = working_date:days_until(ds.do_date) + 1 -- count today as well
         return delta <= n_days_to_keep
@@ -399,7 +394,7 @@ end
 --- Filters by tags.
 -- @param target_tags A list of the tags to include.
 function organize.tag_filterer(target_tags)
-    return function (t)
+    return function(t)
         local task_tags = task.get_tags(t)
         for _, tag in pairs(task_tags) do
             if util.contains_value(target_tags, tag) then

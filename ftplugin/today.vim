@@ -38,7 +38,6 @@ command -buffer -range -nargs=1 TodayPaintRecurPattern lua require('today.ui').p
 command -buffer TodayCategorizeByDoDate lua require('today.ui').categorize_by_do_date()
 command -buffer TodayCategorizeByFirstTag lua require('today.ui').categorize_by_first_tag()
 command -buffer -nargs=* TodayFilterTags lua require('today.ui').set_filter_tags({<f-args>})
-command -buffer -nargs=1 TodayDaysToShow lua require('today.ui').set_days_to_show({<args>})
 
 
 augroup today
