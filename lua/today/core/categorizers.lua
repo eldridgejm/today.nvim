@@ -70,10 +70,7 @@ end
 -- @param working_date The working date as a DateObj.
 -- @returns A list of categories, with each category being a table with "header" and "tasks"
 -- keys.
-function categorizers.make_categorizer_from_components(
-    defaults,
-    components
-)
+function categorizers.make_categorizer_from_components(defaults, components)
     local Categorizer = {
         options = defaults,
     }
@@ -144,9 +141,7 @@ end
 --
 -- `show_remaining_tasks_count`: (bool) If true, a count of remaining tasks is added to the
 -- header, after the date (if it is shown). Default: false.
-function categorizers.daily_agenda_categorizer(working_date, options)
-    working_date = dates.DateObj:new(working_date)
-
+function categorizers.daily_agenda_categorizer(options)
     options = util.merge(options, {
         date_format = "natural",
         second_date_format = false,
@@ -156,10 +151,11 @@ function categorizers.daily_agenda_categorizer(working_date, options)
         show_remaining_tasks_count = false,
     })
 
-    return categorizers.make_categorizer_from_components( options, {
+    return categorizers.make_categorizer_from_components(options, {
         grouper = function(self, tasks)
             -- we will key the categories by either "done", or the do-date as a ymd
             -- string. later we'll convert the key to the requested date format
+            local working_date = dates.DateObj:new(self.options.working_date)
             local keyfunc = function(t)
                 local datespec = task.parse_datespec_safe(t, working_date)
 
@@ -205,10 +201,10 @@ function categorizers.daily_agenda_categorizer(working_date, options)
             })
         end,
 
-        task_comparator = function(_)
+        task_comparator = function(self)
             return sort.chain_comparators({
                 sort.completed_comparator,
-                sort.make_do_date_comparator(working_date),
+                sort.make_do_date_comparator(self.options.working_date),
                 sort.priority_comparator,
             })
         end,
@@ -220,7 +216,7 @@ function categorizers.daily_agenda_categorizer(working_date, options)
                 if fmt == "ymd" then
                     return d
                 elseif fmt == "natural" then
-                    return dates.to_natural(d, working_date)
+                    return dates.to_natural(d, self.options.working_date)
                 elseif fmt == "monthday" then
                     return dates.to_month_day(d)
                 elseif fmt == "datestamp" then
@@ -259,19 +255,16 @@ end
 
 --- Organizes task by their first tag.
 -- @param working_date The working date as a string in YYYY-MM-DD format.
-function categorizers.first_tag_categorizer(working_date, options)
-    assert(working_date ~= nil)
-    working_date = dates.DateObj:new(working_date)
-
+function categorizers.first_tag_categorizer(options)
     options = util.merge(options, {
         show_remaining_tasks_count = false,
     })
 
     return categorizers.make_categorizer_from_components(options, {
 
-        grouper = function(_, tasks)
+        grouper = function(self, tasks)
             local keyfunc = function(line)
-                if task.parse_datespec_safe(line, working_date) == nil then
+                if task.parse_datespec_safe(line, self.options.working_date) == nil then
                     return "broken"
                 end
 
@@ -295,11 +288,11 @@ function categorizers.first_tag_categorizer(working_date, options)
             })
         end,
 
-        task_comparator = function(_)
+        task_comparator = function(self)
             return function(x, y)
                 local cmp = sort.chain_comparators({
                     sort.completed_comparator,
-                    sort.make_do_date_comparator(working_date),
+                    sort.make_do_date_comparator(self.options.working_date),
                     sort.priority_comparator,
                 })
                 return cmp(x, y)

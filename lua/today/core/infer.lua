@@ -36,10 +36,7 @@ RULES:add(function(title, options)
                 return t
             end
 
-            return task.set_do_date(
-                t,
-                match .. " days from now"
-            )
+            return task.set_do_date(t, match .. " days from now")
         end
     end
 end)
@@ -83,8 +80,7 @@ RULES:add(function(title)
 end)
 
 function M.infer(lines, options)
-    options = util.merge(options, {
-    })
+    options = util.merge(options, {})
 
     local current_title
     local new_lines = {}

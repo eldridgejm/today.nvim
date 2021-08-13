@@ -10,10 +10,10 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.daily_agenda_categorizer(
-                "2021-07-01",
-                { show_empty_days = true }
-            )(tasks)
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-07-01",
+                show_empty_days = true,
+            })(tasks)
 
             -- then
             -- July 01 was a Thursday
@@ -50,10 +50,11 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.daily_agenda_categorizer(
-                "2021-07-01",
-                { days = 3, show_empty_days = true }
-            )(tasks)
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-07-01",
+                days = 3,
+                show_empty_days = true,
+            })(tasks)
 
             -- then
             -- July 01 was a Thursday
@@ -86,10 +87,11 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.daily_agenda_categorizer(
-                "2021-07-01",
-                { days = 3, show_empty_days = true }
-            )(tasks)
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-07-01",
+                days = 3,
+                show_empty_days = true,
+            })(tasks)
 
             -- then
             -- July 01 was a Thursday
@@ -106,14 +108,14 @@ describe("categorizers", function()
 
                 {
                     header = "saturday",
-                    tasks = { },
+                    tasks = {},
                 },
                 {
                     header = "future (3+ days from now)",
                     tasks = {
                         "[ ] <2021-07-04> task 10", -- 10 == 2 in binary
-                    }
-                }
+                    },
+                },
             }
             assert.are.same(result, expected)
         end)
@@ -129,10 +131,11 @@ describe("categorizers", function()
                 }
 
                 -- when
-                local result = categorizers.daily_agenda_categorizer(
-                    "2021-06-01",
-                    { view = "daily", move_to_done_immediately = false }
-                )(tasks)
+                local result = categorizers.daily_agenda_categorizer({
+                    working_date = "2021-06-01",
+                    view = "daily",
+                    move_to_done_immediately = false,
+                })(tasks)
 
                 -- then
                 local expected = {
@@ -161,10 +164,11 @@ describe("categorizers", function()
                 }
 
                 -- when
-                local result = categorizers.daily_agenda_categorizer(
-                    "2021-06-01",
-                    { view = "daily", move_to_done_immediately = false }
-                )(tasks)
+                local result = categorizers.daily_agenda_categorizer({
+                    working_date = "2021-06-01",
+                    view = "daily",
+                    move_to_done_immediately = false,
+                })(tasks)
 
                 -- then
                 local expected = {
@@ -199,10 +203,11 @@ describe("categorizers", function()
                 }
 
                 -- when
-                local result = categorizers.daily_agenda_categorizer(
-                    "2021-06-01",
-                    { view = "daily", move_to_done_immediately = false }
-                )(tasks)
+                local result = categorizers.daily_agenda_categorizer({
+                    working_date = "2021-06-01",
+                    view = "daily",
+                    move_to_done_immediately = false,
+                })(tasks)
 
                 -- then
                 local expected = {
@@ -237,11 +242,9 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.daily_agenda_categorizer("2021-06-01", {})(
-                tasks,
-                nil,
-                broken_tasks
-            )
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-06-01",
+            })(tasks, nil, broken_tasks)
 
             -- then
             local expected = {
@@ -271,10 +274,10 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.daily_agenda_categorizer(
-                "2021-06-01",
-                { show_remaining_tasks_count = false }
-            )(tasks)
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-06-01",
+                show_remaining_tasks_count = false,
+            })(tasks)
 
             -- then
             local expected = {
@@ -303,7 +306,9 @@ describe("categorizers", function()
             }
 
             -- when
-            local categorizer = categorizers.daily_agenda_categorizer("2021-06-01")
+            local categorizer = categorizers.daily_agenda_categorizer({
+                working_date = "2021-06-01",
+            })
 
             categorizer.options.show_remaining_tasks_count = true
             result = categorizer(tasks)
@@ -330,10 +335,10 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.daily_agenda_categorizer(
-                "2021-06-01",
-                { date_format = "ymd" }
-            )(tasks)
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-06-01",
+                date_format = "ymd",
+            })(tasks)
 
             -- then
             local expected = {
@@ -363,10 +368,10 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.daily_agenda_categorizer(
-                "2021-06-01",
-                { date_format = "datestamp" }
-            )(tasks)
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-06-01",
+                date_format = "datestamp",
+            })(tasks)
 
             -- then
             local expected = {
@@ -396,10 +401,10 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.daily_agenda_categorizer(
-                "2021-06-01",
-                { date_format = "monthday" }
-            )(tasks)
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-06-01",
+                date_format = "monthday",
+            })(tasks)
 
             -- then
             local expected = {
@@ -429,10 +434,11 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.daily_agenda_categorizer(
-                "2021-06-01",
-                { date_format = "monthday", second_date_format = "ymd" }
-            )(tasks)
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-06-01",
+                date_format = "monthday",
+                second_date_format = "ymd",
+            })(tasks)
 
             -- then
             local expected = {
@@ -463,7 +469,8 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.daily_agenda_categorizer("2021-06-01", {
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-06-01",
                 move_to_done_immediately = false,
                 show_remaining_tasks_count = true,
             })(tasks)
@@ -501,10 +508,10 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.daily_agenda_categorizer(
-                "2021-06-01",
-                { show_remaining_tasks_count = true }
-            )(tasks, hidden_tasks)
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-06-01",
+                show_remaining_tasks_count = true,
+            })(tasks, hidden_tasks)
 
             -- then
             local expected = {
@@ -529,10 +536,6 @@ describe("categorizers", function()
     end)
 
     describe("first_tag_categorizer", function()
-        local components = {
-            categorizer = categorizers.first_tag_categorizer("2021-07-04"),
-        }
-
         it("should sort headers alphabetically", function()
             local tasks = {
                 "this is #one something",
@@ -542,7 +545,9 @@ describe("categorizers", function()
                 "this is another #one",
             }
 
-            local result = categorizers.first_tag_categorizer("2021-10-10")(tasks)
+            local result = categorizers.first_tag_categorizer({
+                working_date = "2021-10-10",
+            })(tasks)
 
             assert.are.same(result, {
 
@@ -587,7 +592,9 @@ describe("categorizers", function()
                 "and this is a four th",
             }
 
-            local result = categorizers.first_tag_categorizer("2021-10-10")(tasks)
+            local result = categorizers.first_tag_categorizer({
+                working_date = "2021-10-10",
+            })(tasks)
 
             assert.are.same(result, {
 
@@ -632,7 +639,9 @@ describe("categorizers", function()
                 "[ ] ok this works",
             }
 
-            local result = categorizers.first_tag_categorizer("2021-10-10")(tasks)
+            local result = categorizers.first_tag_categorizer({
+                working_date = "2021-10-10",
+            })(tasks)
 
             assert.are.same(result, {
 
@@ -676,11 +685,9 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.first_tag_categorizer("2021-10-10")(
-                tasks,
-                nil,
-                broken_tasks
-            )
+            local result = categorizers.first_tag_categorizer({
+                working_date = "2021-10-10",
+            })(tasks, nil, broken_tasks)
 
             -- then
             local expected = {
@@ -714,7 +721,8 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.first_tag_categorizer("2021-06-01", {
+            local result = categorizers.first_tag_categorizer({
+                working_date = "2021-06-01",
                 show_remaining_tasks_count = true,
             })(tasks)
 
@@ -767,10 +775,10 @@ describe("categorizers", function()
             }
 
             -- when
-            local result = categorizers.first_tag_categorizer(
-                "2021-06-01",
-                { show_remaining_tasks_count = true }
-            )(tasks, hidden_tasks)
+            local result = categorizers.first_tag_categorizer({
+                working_date = "2021-06-01",
+                show_remaining_tasks_count = true,
+            })(tasks, hidden_tasks)
             -- then
             local expected = {
 
@@ -805,7 +813,9 @@ describe("categorizers", function()
             }
 
             -- when
-            local categorizer = categorizers.first_tag_categorizer("2021-06-01")
+            local categorizer = categorizers.first_tag_categorizer({
+                working_date = "2021-06-01",
+            })
 
             categorizer.options.show_remaining_tasks_count = true
             result = categorizer(tasks, hidden_tasks)

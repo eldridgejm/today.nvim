@@ -210,6 +210,10 @@ function util.merge(provided, defaults)
         return opts
     end
 
+    for key, provided_value in pairs(provided) do
+        opts[key] = provided_value
+    end
+
     for key, default_value in pairs(defaults) do
         if provided[key] ~= nil then
             opts[key] = provided[key]

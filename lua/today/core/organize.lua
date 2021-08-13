@@ -23,7 +23,6 @@ local function split_by(func, lst)
     return result[true], result[false]
 end
 
-
 -- Removes the broken tasks from the unhidden and hidden tasks, placing them
 -- in their own table.
 local function remove_broken_tasks(unhidden_tasks, hidden_tasks, working_date)
