@@ -2,6 +2,7 @@ local task = require("today.core.task")
 local organize = require("today.core.organize")
 local util = require("today.util")
 local date = require("today.vendor.date")
+local infer = require("today.core.infer")
 
 local ui = {}
 
@@ -14,7 +15,7 @@ ui.options = {
                 active = "daily_agenda",
                 options = {
                     daily_agenda = {
-                        days = 7,
+                        days = 14,
                         show_empty_days = true,
                         move_to_done_immediately = false,
                         date_format = "natural",
@@ -27,14 +28,14 @@ ui.options = {
                 },
             },
             filter_tags = nil,
-            default_date_format = "human",
+            default_date_format = "datestamp",
         },
         write = {
             categorizer = {
                 active = "daily_agenda",
                 options = {
                     daily_agenda = {
-                        days = 7,
+                        days = 14,
                         show_empty_days = false,
                         date_format = "ymd",
                     },
@@ -42,11 +43,11 @@ ui.options = {
                         show_remaining_tasks_count = false,
                     },
                 },
-                filter_tags = nil,
-                default_date_format = "ymd",
             },
-        }
-    }
+            filter_tags = nil,
+            default_date_format = "ymd",
+        },
+    },
 }
 
 --- Takes in a function `func` and makes a function which applies `func` to a
@@ -154,12 +155,12 @@ end
 
 function ui.organize(mode)
     if mode == nil then
-        mode = 'view'
+        mode = "view"
     end
 
-    local options = ui.get_buffer_options()[mode]
+    local opts = ui.get_buffer_options()[mode]
 
-    assert(options ~= nil)
+    assert(opts ~= nil)
 
     local was_modified = vim.api.nvim_buf_get_option(0, "modified")
     -- note: the working date will not be set if this is called before ui.update_post_read,
@@ -168,8 +169,8 @@ function ui.organize(mode)
 
     -- set up the categorizer
     local categorizer
-    local categorizer_key = options.categorizer.active
-    local categorizer_options = options.categorizer.options[categorizer_key].write
+    local categorizer_key = opts.categorizer.active
+    local categorizer_options = opts.categorizer.options[categorizer_key].write
     if categorizer_key == "daily_agenda" then
         categorizer = organize.daily_agenda_categorizer(
             working_date,
@@ -182,21 +183,11 @@ function ui.organize(mode)
     end
 
     -- set up the filterer
-    local filterers = {}
-
-    local filter_tags = options.filter_tags
+    local filterer
+    local filter_tags = opts.filter_tags
     if (filter_tags ~= nil) and (#filter_tags > 0) then
-        local filterer = organize.tag_filterer(vim.b.today.filter_tags)
-        table.insert(filterers, filterer)
+        filterer = organize.tag_filterer(opts.filter_tags)
     end
-
-    local filter_days = options.filter_days
-    if filter_days ~= nil then
-        local filterer = organize.do_date_filterer(filter_days, working_date)
-        table.insert(filterers, filterer)
-    end
-
-    local filterer = organize.chain_filterers(filterers)
 
     -- set up the informer
     local informer = organize.basic_informer({
@@ -206,6 +197,8 @@ function ui.organize(mode)
     })
 
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
+
+    lines = infer.infer(lines)
 
     lines = organize.organize(lines, {
         categorizer = categorizer,
@@ -221,34 +214,33 @@ end
 function ui.categorize_by_first_tag()
     local opts = ui.get_buffer_options().view
     opts.categorizer.active = "first_tag"
-    vim.b.today = opts
+    vim.b.today.view = opts
     ui.organize()
 end
 
 function ui.categorize_by_daily_agenda()
     local opts = ui.get_buffer_options().view
     opts.categorizer.active = "daily_agenda"
-    vim.b.today = opts
+    vim.b.today.view = opts
     ui.organize()
 end
 
 function ui.set_filter_tags(tags)
-    local opts = ui.get_buffer_options().view
-    opts.filter_tags = tags
+    local opts = ui.get_buffer_options()
+    opts.view.filter_tags = tags
     vim.b.today = opts
     ui.organize()
 end
 
 function ui.update_pre_write()
     vim.b.today_cursor = vim.api.nvim_win_get_cursor(0)
-    ui.organize('write')
+    ui.organize("write")
     ui.task_make_datespec_ymd(1, -1)
-    -- ui.remove_comments(1, -1)
 end
 
 function ui.update_post_read()
     vim.b.today_working_date = ui.get_current_time():fmt("%Y-%m-%d")
-    local n_lines = ui.organize('view')
+    local n_lines = ui.organize("view")
     ui.task_make_datespec_natural(1, -1)
 
     if vim.b.today_cursor ~= nil then

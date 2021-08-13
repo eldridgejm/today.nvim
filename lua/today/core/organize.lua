@@ -371,26 +371,6 @@ end
 --- Filterers.
 -- @section
 
-function organize.chain_filterers(chain)
-    return function(t)
-        for _, filter in pairs(chain) do
-            if not filter(t) then
-                return false
-            end
-        end
-        return true
-    end
-end
-
-function organize.do_date_filterer(n_days_to_keep, working_date)
-    working_date = dates.DateObj:new(working_date)
-    return function(t)
-        local ds = task.parse_datespec_safe(t, working_date)
-        local delta = working_date:days_until(ds.do_date) + 1 -- count today as well
-        return delta <= n_days_to_keep
-    end
-end
-
 --- Filters by tags.
 -- @param target_tags A list of the tags to include.
 function organize.tag_filterer(target_tags)

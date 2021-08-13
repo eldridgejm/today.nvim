@@ -33,6 +33,7 @@ M.MONTHS = {
     "august",
     "september",
     "october",
+    "november",
     "december",
 }
 

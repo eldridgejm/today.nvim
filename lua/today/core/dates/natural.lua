@@ -215,7 +215,7 @@ RULES:add({
         local d = tonumber(day)
 
         local y
-        if not year == nil then
+        if year ~= nil then
             y = tonumber(year)
             if y == nil then
                 return nil

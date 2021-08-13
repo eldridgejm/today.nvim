@@ -670,27 +670,6 @@ describe("organize", function()
         end)
 
         describe("filterers", function()
-            describe("do_date_filterer", function()
-                it("should keep k days, filter out the rest", function()
-                    assert.are.equal(
-                        organize.do_date_filterer(3, "2021-08-12")("<2021-08-15> test"),
-                        false
-                    )
-
-                    assert.are.equal(
-                        organize.do_date_filterer(3, "2021-08-12")("<2021-08-14> test"),
-                        true
-                    )
-                end)
-
-                it("should keep all days in the past", function()
-                    assert.are.equal(
-                        organize.do_date_filterer(3, "2021-08-12")("<2021-08-11> test"),
-                        true
-                    )
-                end)
-            end)
-
             describe("tag_filterer", function()
                 local categorizer = organize.first_tag_categorizer("2021-07-04")
 
