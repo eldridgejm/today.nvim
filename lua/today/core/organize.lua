@@ -184,8 +184,8 @@ function organize.daily_agenda_categorizer(working_date, options)
         date_format = "natural",
         second_date_format = false,
         show_empty_days = false,
+        days = 7,
         move_to_done_immediately = true,
-        days_until_future = 14,
         show_remaining_tasks_count = false,
     })
 
@@ -205,6 +205,8 @@ function organize.daily_agenda_categorizer(working_date, options)
 
                 if task.is_done(t) and ready_to_move then
                     return "done"
+                elseif days_until_do > options.days then
+                    return "hidden"
                 elseif days_until_do <= 0 then
                     return tostring(working_date)
                 else
@@ -215,24 +217,12 @@ function organize.daily_agenda_categorizer(working_date, options)
 
             local groups = util.groupby(keyfunc, tasks)
 
-            if options.show_empty_days ~= false then
-                local get_do_date = function (t)
-                    return task.parse_datespec_safe(t, working_date).do_date
-                end
+            if options.show_empty_days then
 
-                local cmp = sort.make_do_date_comparator(working_date)
-                local max = get_do_date(util.maximum(tasks, cmp))
-
-                if options.show_empty_days.at_least ~= nil then
-                    local threshold = working_date:add_days(options.show_empty_days.at_least)
-                    if max < threshold then
-                        max = threshold
-                    end
-                end
-
+                local threshold = working_date:add_days(options.days)
                 local cursor = dates.DateObj:new(working_date)
 
-                while cursor < max do
+                while cursor < threshold do
                     if groups[tostring(cursor)] == nil then
                         groups[tostring(cursor)] = {}
                     end

@@ -165,13 +165,13 @@ end
 
 function util.minimum(lst, cmp)
     if cmp == nil then
-        cmp = function (x, y)
+        cmp = function(x, y)
             return x < y
         end
     end
 
     local m = lst[1]
-    for i=1,#lst do
+    for i = 1, #lst do
         if cmp(lst[i], m) then
             m = lst[i]
         end
@@ -181,12 +181,12 @@ end
 
 function util.maximum(lst, cmp)
     if cmp == nil then
-        cmp = function (x, y)
+        cmp = function(x, y)
             return x < y
         end
     end
 
-    local inverted_cmp = function (x, y)
+    local inverted_cmp = function(x, y)
         return not cmp(x, y)
     end
 
