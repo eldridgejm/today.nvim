@@ -8,7 +8,7 @@ local update = {}
 --- Filter tasks into "good" tasks, hidden tasks, and broken tasks.
 local function separate_tasks(tasks, filterer, is_broken)
     local function predicate(t)
-        if filterer and filterer(t) then
+        if filterer and not filterer(t) then
             return "hidden"
         elseif is_broken(t) then
             return "broken"

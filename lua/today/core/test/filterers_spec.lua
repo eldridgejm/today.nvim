@@ -26,5 +26,14 @@ describe("filterers", function()
                 true
             )
         end)
+
+        it("should work if there are multiple tags", function()
+            assert.are.equal(
+                filterers.tag_filterer({ tags = { "#two" } })(
+                    "this is a test #one #two"
+                ),
+                true
+            )
+        end)
     end)
 end)

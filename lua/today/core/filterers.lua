@@ -1,7 +1,7 @@
 --- Filter tasks before categorization.
 -- A filterer is a function that accepts a task and returns True or False.
--- If True, the task will be removed from the set of tasks before categorization,
--- and therefore "hidden".
+-- If False, the task will be removed from the set of tasks before categorization,
+-- and therefore "hidden". If True, the task will be kept.
 --
 
 local task = require("today.core.task")
