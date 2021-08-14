@@ -256,8 +256,11 @@ end
 --- Places the cursor at the beginning of the line containing the next section.
 -- This is useful for placing the cursor on the first section when opning the
 -- file for the first time.
-function ui.move_to_next_section()
+function ui.move_to_next_section(first_task)
     vim.fn.search("{{{")
+    if first_task then
+        vim.fn.search("^[")
+    end
 end
 
 function ui.follow_link()
