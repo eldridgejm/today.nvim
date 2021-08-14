@@ -16,74 +16,86 @@ function RULES:add(rule)
 end
 
 -- done inferrer
-RULES:add({name = "done", inferrer = function(title)
-    if title == "done" then
-        return function(t)
-            return task.mark_done(t)
+RULES:add({
+    name = "done",
+    inferrer = function(title)
+        if title == "done" then
+            return function(t)
+                return task.mark_done(t)
+            end
         end
-    end
-end})
+    end,
+})
 
 -- future (k+ days from now) inferrer
-RULES:add({name = "future", inferrer = function(title, options)
-    local match = title:match("future %((%d+)%+ days from now%)")
-    if match ~= nil then
-        return function(t)
-            -- this is a dummy working date; its value is not important
-            local working_date = dates.DateObj:new(options.working_date)
-            local ds = task.parse_datespec(t, working_date)
-            if ds ~= nil and ds.do_date ~= nil then
-                return t
-            end
+RULES:add({
+    name = "future",
+    inferrer = function(title, options)
+        local match = title:match("future %((%d+)%+ days from now%)")
+        if match ~= nil then
+            return function(t)
+                -- this is a dummy working date; its value is not important
+                local working_date = dates.DateObj:new(options.working_date)
+                local ds = task.parse_datespec(t, working_date)
+                if ds ~= nil and ds.do_date ~= nil then
+                    return t
+                end
 
-            return task.set_do_date(t, match .. " days from now")
+                return task.set_do_date(t, match .. " days from now")
+            end
         end
-    end
-end})
+    end,
+})
 
 -- do-date inferrer
-RULES:add({name = "date", inferrer = function(title, options)
-    local working_date = options.working_date
-    working_date = dates.DateObj:new(working_date)
+RULES:add({
+    name = "date",
+    inferrer = function(title, options)
+        local working_date = options.working_date
+        working_date = dates.DateObj:new(working_date)
 
-    local date = dates.parse(title, working_date)
+        local date = dates.parse(title, working_date)
 
-    if date ~= nil then
-        return function(t)
-            -- if a task in the today section (or before) has no datespec, don't give it one
-            if date <= working_date and task.get_datespec_as_string(t) == nil then
-                return t
+        if date ~= nil then
+            return function(t)
+                -- if a task in the today section (or before) has no datespec, don't give it one
+                if date <= working_date and task.get_datespec_as_string(t) == nil then
+                    return t
+                end
+
+                -- if a test is broken, don't mess with it
+                if task.datespec_is_broken(t, working_date) then
+                    return t
+                end
+
+                -- if the task already has a do date, don't give it one
+                local ds = task.parse_datespec(t, working_date)
+                if ds ~= nil and ds.do_date ~= nil then
+                    return t
+                end
+
+                return task.set_do_date(t, title)
             end
-
-            -- if a test is broken, don't mess with it
-            if task.datespec_is_broken(t, working_date) then
-                return t
-            end
-
-            -- if the task already has a do date, don't give it one
-            local ds = task.parse_datespec(t, working_date)
-            if ds ~= nil and ds.do_date ~= nil then
-                return t
-            end
-
-            return task.set_do_date(t, title)
         end
-    end
-end})
+    end,
+})
 
 -- # tag inferrer
-RULES:add({name = "tag", inferrer = function(title)
-    if util.startswith(title, "#") then
-        return function(t)
-            -- don't infer if there is already a tag
-            if task.get_first_tag(t) ~= nil then
-                return nil
-            end
+RULES:add({
+    name = "tag",
+    inferrer = function(title)
+        if util.startswith(title, "#") then
+            return function(t)
+                -- don't infer if there is already a tag
+                if task.get_first_tag(t) ~= nil then
+                    return nil
+                end
 
-            return task.set_first_tag(t, title)
+                return task.set_first_tag(t, title)
+            end
         end
-    end
-end})
+    end,
+})
 
 --- Infer information about tasks from the categories they are in.
 function M.infer(lines, options)
@@ -123,10 +135,9 @@ function M.infer(lines, options)
     return new_lines
 end
 
-
 function M.detect_categorizer(lines)
     -- a dummy date is all that is needed
-    local options = {working_date = dates.DateObj:new("2021-08-13")}
+    local options = { working_date = dates.DateObj:new("2021-08-13") }
 
     for _, line in pairs(lines) do
         local title = line:match("-- ([^|]*).*{{{")
@@ -143,7 +154,6 @@ function M.detect_categorizer(lines)
                     end
                 end
             end
-
         end
     end
 end

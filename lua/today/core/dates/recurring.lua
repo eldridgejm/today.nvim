@@ -209,16 +209,16 @@ RULES:add({
         end
     end,
 
-    advance = function (today, match)
+    advance = function(today, match)
         today = today:add_days(1)
-        for _ = 1,32 do
+        for _ = 1, 32 do
             local _, _, d = today:ymd()
             if d == match then
                 return today
             end
             today = today:add_days(1)
         end
-    end
+    end,
 })
 --- Find the next date in the sequence.
 -- Valid recur specifications are "daily", "every day", "weekly", "every week", "monthly",

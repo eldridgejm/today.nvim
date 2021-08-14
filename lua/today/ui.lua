@@ -211,20 +211,23 @@ ui.task_make_datespec_ymd = make_ranged_function(
 ui.task_make_datespec_natural = make_ranged_function(function(line)
     return task.make_datespec_natural(line, vim.b.today_working_date, {
         default_format = ui.get_buffer_options().view.default_date_format,
-        days_until_absolute = ui.get_buffer_options().view.categorizer.options.daily_agenda.days - 1
+        days_until_absolute = ui.get_buffer_options().view.categorizer.options.daily_agenda.days
+            - 1,
     })
 end)
 
 --- Simulates "unrolling" the recur sequence. It removes the recur pattern from
 -- the task, but creates a new task with the same recur seqeuence and a do-date
 -- which is the next date in the sequence.
-ui.expand_recur= function (n)
-    local row = vim.fn.line('.')
-    local t = vim.api.nvim_buf_get_lines(0, row-1, row, 0)[1]
-    if not task.is_task(t) then return end
+ui.expand_recur = function(n)
+    local row = vim.fn.line(".")
+    local t = vim.api.nvim_buf_get_lines(0, row - 1, row, 0)[1]
+    if not task.is_task(t) then
+        return
+    end
 
     local new_lines = {}
-    for _=1,n do
+    for _ = 1, n do
         local remainder = task.replace_datespec_with_next(t, vim.b.today_working_date)
         table.insert(new_lines, task.remove_recur_pattern(t))
         t = remainder
@@ -232,7 +235,7 @@ ui.expand_recur= function (n)
     table.insert(new_lines, t)
 
     print(#new_lines)
-    vim.api.nvim_buf_set_lines(0, row-1, row,0, new_lines)
+    vim.api.nvim_buf_set_lines(0, row - 1, row, 0, new_lines)
 end
 
 --- Apply a recur pattern to a range of lines.
@@ -426,7 +429,10 @@ function ui.refresh_all_buffers()
         end
 
         local actual_date = ui.get_current_date()
-        local buffer_working_date = vim.api.nvim_buf_get_var(bufnum, 'today_working_date')
+        local buffer_working_date = vim.api.nvim_buf_get_var(
+            bufnum,
+            "today_working_date"
+        )
         buffer_working_date = DateObj:new(buffer_working_date)
 
         return actual_date ~= buffer_working_date
@@ -484,7 +490,6 @@ end
 -- this date is out-of-sync with the wall time (`get_current_date`), the buffer
 -- needs to be refreshed.
 -- @section
-
 
 --- Get the current time in seconds since the epoch.
 function ui.get_current_time()
