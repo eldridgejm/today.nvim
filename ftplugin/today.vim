@@ -41,8 +41,11 @@ command -buffer TodayCategorizeFirstTag lua require('today.ui').categorize_by_fi
 command -buffer -nargs=* TodayFilterTags lua require('today.ui').set_filter_tags({<f-args>})
 
 
-autocmd BufWritePre <buffer> lua require('today.ui').update("write")
-autocmd BufWinEnter,BufWritePost,FileChangedShellPost <buffer> exec "lua require('today.ui').update('view')" | set modified&
-autocmd BufWinEnter <buffer> lua require('today.ui').start_refresh_loop()
-autocmd BufWinEnter <buffer> exec 'norm gg' | lua require('today.ui').move_to_next_section(true)
-autocmd BufDelete <buffer> lua require('today.ui').stop_refresh_loop_if_no_buffers()
+if !exists('b:today_autocommands_loaded')
+    let b:today_autocommands_loaded = 1
+    autocmd BufWritePre <buffer> lua require('today.ui').update("write")
+    autocmd BufWinEnter,BufWritePost,FileChangedShellPost <buffer> exec "lua require('today.ui').update('view')" | set modified&
+    autocmd BufWinEnter <buffer> lua require('today.ui').start_refresh_loop()
+    autocmd BufWinEnter <buffer> exec 'norm gg' | lua require('today.ui').move_to_next_section(true)
+    autocmd BufDelete <buffer> lua require('today.ui').stop_refresh_loop_if_no_buffers()
+endif
