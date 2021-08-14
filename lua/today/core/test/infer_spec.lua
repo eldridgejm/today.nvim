@@ -24,27 +24,30 @@ describe("infer", function()
             assert.are.same(result, expected)
         end)
 
-        it("should not infer datespec for unlabeled items in today category with absolute dates", function()
-            -- given
-            local lines = {
-                "-- 2021-08-05 | 1 {{{",
-                "[ ] task 1",
-                "-- }}}",
-            }
+        it(
+            "should not infer datespec for unlabeled items in today category with absolute dates",
+            function()
+                -- given
+                local lines = {
+                    "-- 2021-08-05 | 1 {{{",
+                    "[ ] task 1",
+                    "-- }}}",
+                }
 
-            -- when
-            local result = infer.infer(lines, { working_date = "2021-08-05" })
+                -- when
+                local result = infer.infer(lines, { working_date = "2021-08-05" })
 
-            -- then
-            -- July 01 was a Thursday
-            local expected = {
-                "-- 2021-08-05 | 1 {{{",
-                "[ ] task 1",
-                "-- }}}",
-            }
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- 2021-08-05 | 1 {{{",
+                    "[ ] task 1",
+                    "-- }}}",
+                }
 
-            assert.are.same(result, expected)
-        end)
+                assert.are.same(result, expected)
+            end
+        )
 
         it("should preserve datespec if it is given", function()
             -- given

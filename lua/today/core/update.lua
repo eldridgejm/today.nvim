@@ -1,22 +1,9 @@
---- Functions for organizing the tasks in a buffer.
---
--- A buffer should be organized into mutually-exclusive *categories*. Each category is
--- delimited by a starting category "header" and a trailing "footer". A category header
--- comment is of the form:
---      -- <title> [| <information 1> | <information 2> ...] {{{
--- A footer comment is of the form:
---      -- }}}
--- The term "header" refers to the content of the header comment. For example, given the
--- header comment:
---      -- tomorrow | aug 15 | 1 task {{{
--- the header is the string `"tomorrow | aug 15 | 1 task"`.
+--- Update a buffer in preparation for viewing or writing.
 
 local task = require("today.core.task")
 local util = require("today.util")
 
-local organize = {}
-
--- -------------------------------------------------------------------------------------
+local update = {}
 
 --- Filter tasks into "good" tasks, hidden tasks, and broken tasks.
 local function separate_tasks(tasks, filterer, is_broken)
@@ -63,11 +50,6 @@ local function display_categories(categories)
     return result
 end
 
--- -------------------------------------------------------------------------------------
-
---- organize().
--- @section
-
 local function extract_user_comments(lines)
     local comments = {}
 
@@ -81,18 +63,19 @@ local function extract_user_comments(lines)
     return {}
 end
 
---- Organize a set of tasks. This takes in a list of buffer lines and a table of
--- "components" (described below), and reorganizes them by filtering them, putting them
--- into categories, and displaying helpful information in comment lines.
--- The "components" implement the reorganization strategy, and there are four of them:
+--- Update a buffer's lines by:
+--
+--  1. Inferring information about tasks that are presently in categories.
+--  2. Separating out broken tasks.
+--  3. Applying a filterer to determine hidden tasks.
+--  4. Applying a categorizer to group tasks into categories.
+--  5. Adding information comments to the buffer.
+--
+-- @param lines A list of lines to organize. Note that this may include lines other than tasks.
+-- @param components The different components controlling how the buffer is organized.
 --
 -- `categorizer`: This should be a function which accepts a list of tasks and returns a table
 -- mapping "category keys" to lists of tasks.
---
--- `header_formatter`: This should be a function which accepts a category key string and
--- returns the string that will be displayed as the category's header. The header formatter
--- is responsible for adding things like a remaining task count to the header. This component
--- can be nil, in which case the category key is used as the header directly.
 --
 -- `filterer`: This should be a function which accepts a task string and returns either `True`
 -- or `False` depending on whether the task should be kept or hidden, respectively. This
@@ -110,28 +93,25 @@ end
 -- deleting them, or creating new tasks. In particular, functionality for inferring a
 -- datespec from membership in a category is contained within another module.
 --
--- @param lines A list of lines to organize. Note that this may include lines other than tasks.
--- @param components The different components controlling how the buffer is organized. See
--- above.
 -- @return The re-organized lines as a list.
-function organize.organize(lines, components)
-    if components.header_formatter == nil then
-        components.header_formatter = function(key)
-            return key
-        end
-    end
-
+function update.update(lines, components)
     local head_comments = extract_user_comments(lines)
     local tail_comments = extract_user_comments(util.reverse(lines))
+
+    lines = components.inferrer(lines)
 
     local tasks = util.filter(task.is_task, lines)
     tasks = util.map(task.normalize, tasks)
 
     local hidden_tasks, broken_tasks
-    tasks, hidden_tasks, broken_tasks = separate_tasks(tasks, components.filterer, components.is_broken)
+    tasks, hidden_tasks, broken_tasks = separate_tasks(
+        tasks,
+        components.filterer,
+        components.is_broken
+    )
 
     local categories = components.categorizer(tasks, hidden_tasks, broken_tasks)
-    local category_lines = display_categories(categories, components.header_formatter)
+    local category_lines = display_categories(categories)
 
     local result = {}
     if #head_comments > 0 then
@@ -154,4 +134,4 @@ function organize.organize(lines, components)
     return result
 end
 
-return organize
+return update

@@ -120,6 +120,32 @@ describe("categorizers", function()
             assert.are.same(result, expected)
         end)
 
+        it("should place someday in its own category", function()
+            -- given
+            local tasks = {
+                "[ ] <someday> task 1",
+            }
+
+            -- when
+            local result = categorizers.daily_agenda_categorizer({
+                working_date = "2021-07-01",
+                days = 3,
+            })(tasks)
+
+            -- then
+            -- July 01 was a Thursday
+            local expected = {
+
+                {
+                    header = "someday",
+                    tasks = {
+                        "[ ] <someday> task 1",
+                    },
+                },
+            }
+            assert.are.same(result, expected)
+        end)
+
         it("should handle hidden tasks", function()
             -- given
             local tasks = {
@@ -159,9 +185,10 @@ describe("categorizers", function()
                         "[ ] <2021-07-04> task 10", -- 10 == 2 in binary
                     },
                 },
-                { header = "hidden",
-                tasks = { "[ ] <2021-07-02> task 3" }
-            }
+                {
+                    header = "hidden",
+                    tasks = { "[ ] <2021-07-02> task 3" },
+                },
             }
             assert.are.same(result, expected)
         end)
@@ -188,9 +215,10 @@ describe("categorizers", function()
             -- July 01 was a Thursday
             local expected = {
 
-                { header = "broken",
-                tasks = { "[ ] <zzz> task 3" }
-            },
+                {
+                    header = "broken",
+                    tasks = { "[ ] <zzz> task 3" },
+                },
                 {
                     header = "today",
                     tasks = {
@@ -390,8 +418,6 @@ describe("categorizers", function()
             }
             assert.are.same(result, expected)
         end)
-
-        
 
         it("should use ymd date if requested", function()
             -- given
@@ -866,7 +892,5 @@ describe("categorizers", function()
 
             assert.are.same(result, expected)
         end)
-
-        
     end)
 end)

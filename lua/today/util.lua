@@ -163,6 +163,12 @@ function util.reverse(lst)
     return result
 end
 
+--- Return a minimum element in the list.
+-- @param lst The list to search through.
+-- @param cmp The comparator to use. Should accept two arguments and return True
+-- if the first argument should come before the second. If this is nil, the default
+-- built-in < operator is used.
+-- @return The minimum.
 function util.minimum(lst, cmp)
     if cmp == nil then
         cmp = function(x, y)
@@ -179,6 +185,12 @@ function util.minimum(lst, cmp)
     return m
 end
 
+-- Return a maximum element in the list.
+-- @param lst The list to search through.
+-- @param cmp The comparator to use. Should accept two arguments and return True
+-- if the first argument should come before the second. If this is nil, the default
+-- built-in < operator is used.
+-- @return The maximum.
 function util.maximum(lst, cmp)
     if cmp == nil then
         cmp = function(x, y)
@@ -197,7 +209,7 @@ end
 -- @param provided The "new" table that replaces the defaults. If this is nil, the
 -- defaults table is copied and returned. If `provided[key]` is nil but is defined in
 -- `defaults`, the default value is inserted into `provided`. If a key is in `provided`
--- but not in `defaults`, nothing happens.
+-- but not in `defaults`, the key is added to the output table from `provided`.
 -- @param defaults The default values.
 -- @returns The new table.
 function util.merge(provided, defaults)

@@ -1,8 +1,8 @@
---- Categorizers.
--- A categorizer is a functor that implements a strategy for organizing
--- tasks into categories. The functor should accept three arguments:
+--- Assign tasks to categories.
+-- A categorizer is a function that implements a strategy for organizing
+-- tasks into categories. The function should accept three arguments:
 --
--- 1. a list of tasks (as strings)
+-- 1. a list of *good* tasks (as strings)
 -- 2. a list of *hidden* tasks (can be nil)
 -- 3. a list of *broken* tasks (can be nil)
 --
@@ -10,10 +10,26 @@
 -- a separate category, and with key/value pairs: "header" (string) the
 -- category's header and "tasks" (list of strings) the tasks in the category.
 --
+-- A categorizer is responsible for displaying *all* of the categories, including
+-- the hidden category, the broken category, and others, such as the category
+-- of completed tasks. The categories it creates can be given whatever title is
+-- appropriate, however, care should be given to assign a title that gives the
+-- inferrer enough information to do its job.
+
+-- The format of the category headers is important. Each category should be
+-- delimited by a starting category "header" and a trailing "footer". A category header
+-- comment is of the form:
+--      -- <title> [| <information 1> | <information 2> ...] {{{
+-- A footer comment is of the form:
+--      -- }}}
+-- The term "header" refers to the content of the header comment. For example, given the
+-- header comment:
+--      -- tomorrow | aug 15 | 1 task {{{
+-- the header is the string `"tomorrow | aug 15 | 1 task"`.
+--
 -- There is a lot of overlap in the creation of categorizers. To simplify the process,
 -- the `make_categorizer_from_components` helper function may be used. It builds a
--- categorizer from several orthogonal component functions.
--- @section
+-- categorizer from several component functions.
 
 local dates = require("today.core.dates")
 local task = require("today.core.task")
@@ -22,7 +38,9 @@ local util = require("today.util")
 
 local categorizers = {}
 
---- Builds a header string out of its parts, separating them with " | "
+-- Helpers ---------------------------------------------------------------------
+
+-- Builds a header string out of its parts, separating them with " | "
 local function construct_header(parts)
     parts = util.filter(function(x)
         return x ~= nil
@@ -30,7 +48,7 @@ local function construct_header(parts)
     return table.concat(parts, " | ")
 end
 
---- Counts the undone tasks in the list.
+-- Counts the undone tasks in the list.
 local function count_remaining_tasks(tasks)
     local count = 0
     for _, t in pairs(tasks) do
@@ -40,6 +58,8 @@ local function count_remaining_tasks(tasks)
     end
     return count
 end
+
+-- `make_categorizer_from_components` ------------------------------------------
 
 --- Builds a categorizer from components. The required components are:
 --
@@ -56,17 +76,14 @@ end
 --
 -- `task_comparator`: Compares tasks for the purpose of ordering within categories.
 --
--- Before sending the tasks to the grouper, this function will remove the broken tasks.
--- After grouping, the hidden and broken tasks are added to the table groups returned
--- from the grouper with keys "hidden" and "broken", respectively. These headers
--- will be passed to the header_formatter, so be sure that the formatter expects
--- them.
+-- Broken and hidden groups are automatically created, but only if they are supplied
+-- and non-empty.
 --
 -- @param components A table with the components listed above.
--- @returns A list of categories, with each category being a table with "header" and "tasks"
+-- @return A categorizer function.
 -- keys.
 function categorizers.make_categorizer_from_components(components)
-    return function (tasks, hidden_tasks, broken_tasks)
+    return function(tasks, hidden_tasks, broken_tasks)
         local groups = components.grouper(tasks)
 
         if hidden_tasks and #hidden_tasks > 0 then
@@ -101,24 +118,46 @@ function categorizers.make_categorizer_from_components(components)
     end
 end
 
---- Organizes tasks into a daily agenda by their "do dates".
--- @param working_date The working date as a string or DateObj.
+-- `daily_agenda_categorizer` --------------------------------------------------
+
+--- Makes a categorizer which organizes tasks into a daily agenda by their "do dates".
+--
+-- The category titles produced by this categorizer are among the following:
+--
+-- *done*: roughly, tasks that are marked done (see: `move_to_done_immediately`)
+--
+-- *broken*: broken tasks
+--
+-- *hidden*: hidden tasks
+--
+-- *someday*: tasks with a do-date of "someday"
+--
+-- *future (k+ days from now)*: tasks that are in the "future", according to the
+-- value of the `days` option.
+--
+-- (date): A date parseable by `today.core.dates.parse`, like "today", or "2021-10-23"
 -- @param options A table of options. Valid options are:
 --
--- date_format: (string) The format used to display dates. If this is "natural", only the
+-- `working_date`: (string or DateObj) The working date. This **must** be supplied.
+--
+-- `date_format`: (string) The format used to display dates. If this is "natural", only the
 -- natural language is used, e.g., "tomorrow". If this is "ymd", the yyyy-mm-dd format
 -- is used, e.g., "2021-07-04". If this is "timestamp", this is a string of the form
 -- "wed jul 04 2021". If this is "monthday", a string of the form "jun 01" is used. Default: natural.
 --
--- second_date_format: (string or false or nil). The format used to show a 2nd date in the header, right
+-- `second_date_format`: (string or false or nil). The format used to show a 2nd date in the header, right
 -- after the first. If this is false or nil, no second date is displayed. For valid values, see the
 -- `date_format` option above. This can be used to display a date next to a natural date,
 -- e.g., "tomorrow | jul 04"
 --
--- `show_empty_days`: (int or false) If false, agenda days with no tasks are hidden.
--- Otherwise, this should be a table. If the table is totally empty, all empty days
--- between the current working day and last task are shown. If it contains an `at_least` key,
--- a minimum of that many days into the future (as compared to the working date) will be shown.
+-- `days`: (int) roughly, the number of agenda days to show. See `show_empty_days`
+-- below for a qualification on the previous statement. Tasks that occur this
+-- many days into the future are placed in the "future" category. For example,
+-- if it is Monday, and `days = 3`, then tasks on Mon, Tues, Wed, will be shown,
+-- and a task on Thursday will be placed in the "future".
+--
+-- `show_empty_days`: (bool) If false, days without tasks are not displayed as
+-- their own category. If true, exactly `days` day categories will be shown.
 --
 -- `move_to_done_immediately`: (bool) If false, a task that is marked as complete with a
 -- do-date of today is placed in the "today" category; all other completed tasks are placed
@@ -127,6 +166,7 @@ end
 --
 -- `show_remaining_tasks_count`: (bool) If true, a count of remaining tasks is added to the
 -- header, after the date (if it is shown). Default: false.
+-- @return The categorizer function.
 function categorizers.daily_agenda_categorizer(options)
     options = util.merge(options, {
         date_format = "natural",
@@ -139,8 +179,9 @@ function categorizers.daily_agenda_categorizer(options)
 
     return categorizers.make_categorizer_from_components({
         grouper = function(tasks)
-            -- we will key the categories by either "done", or the do-date as a ymd
-            -- string. later we'll convert the key to the requested date format
+            -- we will key the categories by either "done", "future", "someday",
+            -- or the do-date as a ymd string. later we'll convert the key to the
+            -- requested date format
             local working_date = dates.DateObj:new(options.working_date)
             local keyfunc = function(t)
                 local datespec = task.parse_datespec_safe(t, working_date)
@@ -152,6 +193,8 @@ function categorizers.daily_agenda_categorizer(options)
 
                 if task.is_done(t) and ready_to_move then
                     return "done"
+                elseif days_until_do == math.huge then
+                    return "someday"
                 elseif days_until_do >= options.days then
                     return "future"
                 elseif days_until_do <= 0 then
@@ -178,19 +221,18 @@ function categorizers.daily_agenda_categorizer(options)
         end,
 
         category_key_comparator = sort.chain_comparators({
-                sort.make_order_comparator({ "broken" }, true),
-                sort.make_order_comparator({ "done", "hidden" }, false),
-                function(x, y)
-                    return x < y
-                end,
-            }),
+            sort.make_order_comparator({ "broken" }, true),
+            sort.make_order_comparator({ "done", "hidden" }, false),
+            function(x, y)
+                return x < y
+            end,
+        }),
 
-        task_comparator =
-            sort.chain_comparators({
-                sort.completed_comparator,
-                sort.make_do_date_comparator(options.working_date),
-                sort.priority_comparator,
-            }),
+        task_comparator = sort.chain_comparators({
+            sort.completed_comparator,
+            sort.make_do_date_comparator(options.working_date),
+            sort.priority_comparator,
+        }),
 
         header_formatter = function(category_key, category_tasks)
             local title, second_date, tasks_remaining
@@ -236,8 +278,21 @@ function categorizers.daily_agenda_categorizer(options)
     })
 end
 
---- Organizes task by their first tag.
--- @param working_date The working date as a string in YYYY-MM-DD format.
+-- `first_tag_categorizer` -----------------------------------------------------
+
+--- Makes a categorizer which organizes tasks by their first tag.
+--
+-- The category titles produced by this categorizer include "broken", 'hidden",
+-- "other" (or tasks without tags), and each of the unique first tags, prepended
+-- with a `#`.
+--
+-- @param options A table of options. The options are
+--
+-- `working_date`: this must be supplied
+--
+-- `show_remaining_tasks_count`: (bool) If true, a count of remaining tasks is added to the
+-- header, after the date (if it is shown). Default: false.
+-- @return The categorizer function.
 function categorizers.first_tag_categorizer(options)
     options = util.merge(options, {
         show_remaining_tasks_count = false,
@@ -262,22 +317,21 @@ function categorizers.first_tag_categorizer(options)
         end,
 
         category_key_comparator = sort.chain_comparators({
-                sort.make_order_comparator({ "broken" }, true),
-                sort.make_order_comparator({ "hidden" }, false),
-                function(x, y)
-                    return x < y
-                end,
-            }),
-
-        task_comparator =
+            sort.make_order_comparator({ "broken" }, true),
+            sort.make_order_comparator({ "hidden" }, false),
             function(x, y)
-                local cmp = sort.chain_comparators({
-                    sort.completed_comparator,
-                    sort.make_do_date_comparator(options.working_date),
-                    sort.priority_comparator,
-                })
-                return cmp(x, y)
+                return x < y
             end,
+        }),
+
+        task_comparator = function(x, y)
+            local cmp = sort.chain_comparators({
+                sort.completed_comparator,
+                sort.make_do_date_comparator(options.working_date),
+                sort.priority_comparator,
+            })
+            return cmp(x, y)
+        end,
 
         header_formatter = function(category_key, category_tasks)
             local tasks_remaining

@@ -1,13 +1,20 @@
---- Filterers.
--- @section
+--- Filter tasks before categorization.
+-- A filterer is a function that accepts a task and returns True or False.
+-- If True, the task will be removed from the set of tasks before categorization,
+-- and therefore "hidden".
+--
 
 local task = require("today.core.task")
 local util = require("today.util")
 
 local filterers = {}
 
---- Filters by tags.
--- @param target_tags A list of the tags to include.
+--- Creates a filterer that filters by tag.
+-- @param options A table of options. The valid options are:
+--
+-- `tags`: (list of string) A list of tags (each with prepended `#`) that should
+-- be removed. If this is empty, no tasks are removed.
+-- @return The filterer.
 function filterers.tag_filterer(options)
     options = util.merge(options, {
         tags = {},

@@ -42,8 +42,9 @@ command -buffer -nargs=* TodayFilterTags lua require('today.ui').set_filter_tags
 
 augroup today
     autocmd!
-    autocmd BufWritePre <buffer> lua require('today.ui').update_pre_write()
-    autocmd BufWinEnter,BufWritePost,FileChangedShellPost <buffer> exec "lua require('today.ui').update_post_read()" | set modified&
+    autocmd BufWritePre <buffer> lua require('today.ui').update("write")
+    autocmd BufWinEnter,BufWritePost,FileChangedShellPost <buffer> exec "lua require('today.ui').update('view')" | set modified&
     autocmd BufWinEnter <buffer> lua require('today.ui').start_refresh_loop()
-    autocmd BufDelete <buffer> lua require('today.ui').on_buffer_delete()
+    autocmd BufWinEnter <buffer> exec 'norm gg' | lua require('today.ui').move_to_next_section()
+    autocmd BufDelete <buffer> lua require('today.ui').stop_refresh_loop_if_no_buffers()
 augroup END
