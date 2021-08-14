@@ -45,7 +45,7 @@ local categorizers = require("today.core.categorizers")
 local filterers = require("today.core.filterers")
 local informers = require("today.core.informers")
 local util = require("today.util")
-local DateObj = require('today.core.dates.dateobj')
+local DateObj = require("today.core.dates.dateobj")
 local date = require("today.vendor.date")
 local infer = require("today.core.infer")
 
@@ -61,7 +61,11 @@ function ui.get_buffer_options()
     if vim.b.today == nil then
         vim.b.today = vim.deepcopy(ui.options.buffer_defaults)
     else
-        vim.b.today = vim.tbl_deep_extend("keep", vim.b.today, ui.options.buffer_defaults)
+        vim.b.today = vim.tbl_deep_extend(
+            "keep",
+            vim.b.today,
+            ui.options.buffer_defaults
+        )
     end
 
     return vim.b.today
@@ -229,7 +233,7 @@ end
 -- This is useful for placing the cursor on the first section when opning the
 -- file for the first time.
 function ui.move_to_next_section()
-    vim.fn.search('{{{')
+    vim.fn.search("{{{")
 end
 
 -- buffer updating -------------------------------------------------------------
@@ -312,7 +316,7 @@ function ui.update(mode)
         return task.datespec_is_broken(t, working_date)
     end
 
-    local inferrer = function (lines)
+    local inferrer = function(lines)
         return infer.infer(lines, { working_date = working_date })
     end
 
@@ -423,7 +427,6 @@ function ui.stop_refresh_loop()
         ui.timer = nil
     end
 end
-
 
 --- Stops the refresh timer loop if there are no more today buffers open.
 function ui.stop_refresh_loop_if_no_buffers()
