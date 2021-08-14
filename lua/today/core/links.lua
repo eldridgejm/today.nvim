@@ -16,8 +16,8 @@ function M.extract_link(line, column)
     --   ^  ^   ^   ^  ^      ^      ^
     --   A  B   C   D  E      F      G
     --
-    local start_pattern = '[['
-    local end_pattern = ']]'
+    local start_pattern = "[["
+    local end_pattern = "]]"
 
     local function find_next_pair(starting_at)
         local start_ix = line:find(start_pattern, starting_at, true)
@@ -41,6 +41,5 @@ function M.extract_link(line, column)
         cursor = start_ix + 1
     end
 end
-
 
 return M

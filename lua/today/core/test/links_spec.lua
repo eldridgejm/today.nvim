@@ -1,7 +1,6 @@
-local linkslib = require('today.core.links')
+local linkslib = require("today.core.links")
 
 describe("extract_link", function()
-
     local ex1 = "this is [[a test of]] this thing [[and so on]] junk"
 
     --  There are seven cases:
@@ -26,7 +25,6 @@ describe("extract_link", function()
         assert.are.equal(result, "a test of")
     end)
 
-
     it("should extract the link in case D", function()
         local result = linkslib.extract_link(ex1, 21)
         assert.are.equal(result, "a test of")
@@ -48,5 +46,4 @@ describe("extract_link", function()
         local result = linkslib.extract_link(ex1, 48)
         assert.are.equal(result, nil)
     end)
-
 end)

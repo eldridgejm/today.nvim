@@ -227,7 +227,6 @@ function util.index_of(lst, target, cmp)
     end
 end
 
-
 --- Merges the keys/values in two tables.
 -- @param provided The "new" table that replaces the defaults. If this is nil, the
 -- defaults table is copied and returned. If `provided[key]` is nil but is defined in

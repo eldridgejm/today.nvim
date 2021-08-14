@@ -267,7 +267,7 @@ function ui.follow_link()
     end
 
     local cursor = vim.api.nvim_win_get_cursor(0)
-    local line = vim.fn.getline('.')
+    local line = vim.fn.getline(".")
     local link = linkslib.extract_link(line, cursor[2] - 1)
 
     vim.fn[followfunc](link)

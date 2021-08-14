@@ -127,5 +127,4 @@ describe("util module", function()
             assert.are.same(util.strip(" "), "")
         end)
     end)
-
 end)
