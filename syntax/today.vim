@@ -72,4 +72,8 @@ highlight default todayPriorityLow gui=bold guifg=#ffa500
 " tags
 " ====
 syntax match todayTag /\v#\w+/
-highlight default todayTag gui=bold,underline
+highlight default todayTag gui=bold
+
+" links
+" =====
+syntax match todayLink /\[\[.*\]\]/

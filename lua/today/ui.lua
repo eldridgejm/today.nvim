@@ -55,6 +55,7 @@ local util = require("today.util")
 local DateObj = require("today.core.dates.dateobj")
 local date = require("today.vendor.date")
 local infer = require("today.core.infer")
+local linkslib = require("today.core.links")
 
 local ui = {}
 
@@ -257,6 +258,19 @@ end
 -- file for the first time.
 function ui.move_to_next_section()
     vim.fn.search("{{{")
+end
+
+function ui.follow_link()
+    local followfunc = ui.get_buffer_options().follow
+    if followfunc == nil then
+        return
+    end
+
+    local cursor = vim.api.nvim_win_get_cursor(0)
+    local line = vim.fn.getline('.')
+    local link = linkslib.extract_link(line, cursor[2] - 1)
+
+    vim.fn[followfunc](link)
 end
 
 -- buffer updating -------------------------------------------------------------

@@ -23,7 +23,7 @@ vnoremap <buffer> <localleader>rr :TodayTaskSetDoDate
 nnoremap <buffer> <localleader>cd :TodayCategorizeDailyAgenda<cr>
 nnoremap <buffer> <localleader>ct :TodayCategorizeFirstTag<cr>
 
-nnoremap <buffer> <cr> :lua require('today.ui').follow()<cr>
+nnoremap <buffer> <cr> :lua require('today.ui').follow_link()<cr>
 
 
 command -buffer -range TodayTaskMarkDone lua require('today.ui').task_mark_done(<line1>, <line2>)

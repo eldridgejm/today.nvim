@@ -208,6 +208,26 @@ function util.maximum(lst, cmp)
     return util.minimum(lst, inverted_cmp)
 end
 
+--- Performs a linear search.
+-- @param lst The table to search.
+-- @param target The element to look for.
+-- @param cmp A comparator. If nil, == is used.
+-- @return The first index of the element, or nil if it does not appear.
+function util.index_of(lst, target, cmp)
+    if cmp == nil then
+        cmp = function(x)
+            return x == target
+        end
+    end
+
+    for i, x in ipairs(lst) do
+        if cmp(x) then
+            return i
+        end
+    end
+end
+
+
 --- Merges the keys/values in two tables.
 -- @param provided The "new" table that replaces the defaults. If this is nil, the
 -- defaults table is copied and returned. If `provided[key]` is nil but is defined in
@@ -320,25 +340,6 @@ function util.prefix_search(lst, prefix, require_unique)
         return matches[1]
     else
         return nil
-    end
-end
-
---- Performs a linear search.
--- @param lst The table to search.
--- @param target The element to look for.
--- @param cmp A comparator. If nil, == is used.
--- @return The first index of the element, or nil if it does not appear.
-function util.index_of(lst, target, cmp)
-    if cmp == nil then
-        cmp = function(x)
-            return x == target
-        end
-    end
-
-    for i, x in ipairs(lst) do
-        if cmp(x) then
-            return i
-        end
     end
 end
 

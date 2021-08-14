@@ -1,7 +1,7 @@
 -- working date: 2021-08-14
 -- categorizer: first_tag
 
--- #aesthetics | 3 {{{
+-- #aesthetics {{{
 [ ] ! have paintrecurpattern use the default, human date format #aesthetics
 [ ] colors for light and dark backgrounds #aesthetics
 [ ] better colors for datespec syntax highlighting (today, tomorrow, etc.) #aesthetics
@@ -9,21 +9,21 @@
 [x] !! sorting within a group by do-date #aesthetics
 [x] !! syntax highlighting for tags #aesthetics
 [x] ! option to show empty sections #aesthetics
-[x] <14 days ago> highlighting for overdue tasks #aesthetics
-[x] <14 days ago> syntax highlighting red when date spec is invalid #aesthetics
+[x] <2021-07-31> highlighting for overdue tasks #aesthetics
+[x] <2021-07-31> syntax highlighting red when date spec is invalid #aesthetics
 -- }}}
 
--- #bugfix | 1 {{{
-[ ] !! investigate and fix bug with update not working after another today buffer is opened #bugfix
+-- #bugfix {{{
+[x] <2021-08-14> !! investigate and fix bug with update not working after another today buffer is opened #bugfix
 -- }}}
 
--- #cleaning | 1 {{{
+-- #cleaning {{{
 [ ] clean up "working_date/time" and "today" variable names #cleaning
-[x] <14 days ago> handle multiple datespecs or priorities per line #cleaning
-[x] <yesterday> ! update docs and comment code for organize and ui #cleaning
+[x] <2021-07-31> handle multiple datespecs or priorities per line #cleaning
+[x] <2021-08-13> ! update docs and comment code for organize and ui #cleaning
 -- }}}
 
--- #feature | 4 {{{
+-- #feature {{{
 [ ] ! custom action when "clicking" on a wiki link, like [[notes]] #feature
 [ ] tag completions for omnicomplete #feature
 [ ] different color for different tags? #feature #tags #aesthetics
@@ -37,13 +37,14 @@
 [x] ! a "someday" datespec #feature
 [x] ! add "next tuesday", for example #feature
 [x] ! short alias for "tomorrow" #feature
-[x] <14 days ago> !! automatically assign datespec based on the section the cursor is in? #feature
-[x] <14 days ago> ! pressing enter (or maybe c-]) on a tag will sort by that tag #feature #tags
-[x] <14 days ago> ! add command to remove datespec #feature
-[x] <14 days ago> add an "add tag" and "remove tag" command #feature #tags
+[x] <2021-07-31> !! automatically assign datespec based on the section the cursor is in? #feature
+[x] <2021-07-31> ! pressing enter (or maybe c-]) on a tag will sort by that tag #feature #tags
+[x] <2021-07-31> ! add command to remove datespec #feature
+[x] <2021-07-31> add an "add tag" and "remove tag" command #feature #tags
+[x] <2021-08-14> !! find out which autocommands can be used to set buffer options #feature
 -- }}}
 
--- other | 0 {{{
+-- other {{{
 [x] !! an option to keep the done tasks in the same category for do date categorizer.
 [x] !! TodayRecur: apply a sequence of recurrences to each task in a selection
 [x] !! sections for "this week" and "next week"
@@ -60,18 +61,18 @@
 [x] !! "next week" category
 [x] ! stop the refresh loop on exiting the last buffer
 [x] ! make ex commands local to current buffer
-[x] <14 days ago> !! fix problem with comments going bye
-[x] <14 days ago> !! fix error when FilterTags is given a tag that doesn't exist.
-[x] <14 days ago> !! error handling, and handling malformed tasks
-[x] <14 days ago> !! normalize presentation of day in sun aug 4 2021 (pad zeros)
-[x] <14 days ago> display future dates in form of "Mon Jul 05 2021"
-[x] <4 days ago> !! re-think default agenda view
-[x] <4 days ago> !! fix problem with cursor jumping on save
-[x] <yesterday> !! option to show date in category header (and not show natural date?)
-[x] <yesterday> !! better organization of file when written to disk
-[x] <yesterday> !! option for days to look ahead in daily view
-[x] <yesterday> !! allow creating tasks with only a recur pattern
-[x] <yesterday> ! rename paintrecurpattern to paintrecur
-[x] <yesterday> ! add natural dates: kth of every month, every k days, every other monday, every jan 10, feb 23
-[x] <yesterday> ! place cursor on first task when opening file
+[x] <2021-07-31> !! fix problem with comments going bye
+[x] <2021-07-31> !! fix error when FilterTags is given a tag that doesn't exist.
+[x] <2021-07-31> !! error handling, and handling malformed tasks
+[x] <2021-07-31> !! normalize presentation of day in sun aug 4 2021 (pad zeros)
+[x] <2021-07-31> display future dates in form of "Mon Jul 05 2021"
+[x] <2021-08-10> !! re-think default agenda view
+[x] <2021-08-10> !! fix problem with cursor jumping on save
+[x] <2021-08-13> !! option to show date in category header (and not show natural date?)
+[x] <2021-08-13> !! better organization of file when written to disk
+[x] <2021-08-13> !! option for days to look ahead in daily view
+[x] <2021-08-13> !! allow creating tasks with only a recur pattern
+[x] <2021-08-13> ! rename paintrecurpattern to paintrecur
+[x] <2021-08-13> ! add natural dates: kth of every month, every k days, every other monday, every jan 10, feb 23
+[x] <2021-08-13> ! place cursor on first task when opening file
 -- }}}
