@@ -16,16 +16,16 @@ function RULES:add(rule)
 end
 
 -- done inferrer
-RULES:add(function(title)
+RULES:add({name = "done", inferrer = function(title)
     if title == "done" then
         return function(t)
             return task.mark_done(t)
         end
     end
-end)
+end})
 
 -- future (k+ days from now) inferrer
-RULES:add(function(title, options)
+RULES:add({name = "future", inferrer = function(title, options)
     local match = title:match("future %((%d+)%+ days from now%)")
     if match ~= nil then
         return function(t)
@@ -39,11 +39,10 @@ RULES:add(function(title, options)
             return task.set_do_date(t, match .. " days from now")
         end
     end
-end)
+end})
 
 -- do-date inferrer
-RULES:add(function(title, options)
-    -- this is a dummy working date
+RULES:add({name = "date", inferrer = function(title, options)
     local working_date = options.working_date
     working_date = dates.DateObj:new(working_date)
 
@@ -51,8 +50,13 @@ RULES:add(function(title, options)
 
     if date ~= nil then
         return function(t)
-            -- if a task in the today section has no datespec, don't give it one
-            if date == working_date and task.get_datespec_as_string(t) == nil then
+            -- if a task in the today section (or before) has no datespec, don't give it one
+            if date <= working_date and task.get_datespec_as_string(t) == nil then
+                return t
+            end
+
+            -- if a test is broken, don't mess with it
+            if task.datespec_is_broken(t, working_date) then
                 return t
             end
 
@@ -65,9 +69,10 @@ RULES:add(function(title, options)
             return task.set_do_date(t, title)
         end
     end
-end)
+end})
 
-RULES:add(function(title)
+-- # tag inferrer
+RULES:add({name = "tag", inferrer = function(title)
     if util.startswith(title, "#") then
         return function(t)
             -- don't infer if there is already a tag
@@ -78,8 +83,9 @@ RULES:add(function(title)
             return task.set_first_tag(t, title)
         end
     end
-end)
+end})
 
+--- Infer information about tasks from the categories they are in.
 function M.infer(lines, options)
     options = util.merge(options, {})
 
@@ -95,7 +101,7 @@ function M.infer(lines, options)
         if title ~= nil then
             current_title = util.strip(title)
             task_updater = util.first_non_nil(function(rule)
-                return rule(current_title, options)
+                return rule.inferrer(current_title, options)
             end, RULES)
         end
 
@@ -115,6 +121,31 @@ function M.infer(lines, options)
     end
 
     return new_lines
+end
+
+
+function M.detect_categorizer(lines)
+    -- a dummy date is all that is needed
+    local options = {working_date = dates.DateObj:new("2021-08-13")}
+
+    for _, line in pairs(lines) do
+        local title = line:match("-- ([^|]*).*{{{")
+
+        if title ~= nil then
+            local current_title = util.strip(title)
+            for _, rule in pairs(RULES) do
+                local result = rule.inferrer(current_title, options)
+                if result ~= nil then
+                    if (rule.name == "future") or (rule.name == "date") then
+                        return "daily_agenda"
+                    elseif rule.name == "tag" then
+                        return "first_tag"
+                    end
+                end
+            end
+
+        end
+    end
 end
 
 return M

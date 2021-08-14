@@ -67,6 +67,21 @@ describe("next", function()
         assert.are.equal(result, DateObj:new("2021-10-01"))
     end)
 
+    it("should recognize every 15th (st,nd,rd)", function()
+        local result = dateslib.next("2021-08-31", "every 15th")
+        assert.are.equal(result, DateObj:new("2021-9-15"))
+    end)
+
+    it("should recognize every 15th (st,nd,rd) if tomorrow", function()
+        local result = dateslib.next("2021-09-14", "every 15th")
+        assert.are.equal(result, DateObj:new("2021-9-15"))
+    end)
+
+    it("should recognize every 15th (st,nd,rd) if today", function()
+        local result = dateslib.next("2021-09-15", "every 15th")
+        assert.are.equal(result, DateObj:new("2021-10-15"))
+    end)
+
     it("should recognize every monday", function()
         local result = dateslib.next("2021-07-04", "every monday")
         assert.are.equal(result, DateObj:new("2021-07-05"))

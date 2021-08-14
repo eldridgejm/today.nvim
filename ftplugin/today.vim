@@ -8,17 +8,17 @@ vnoremap <buffer> <localleader>2 :TodayTaskSetPriority 2<cr>
 nnoremap <buffer> <localleader>d :exec "TodayTaskToggleDone" <bar> norm j<cr>
 vnoremap <buffer> <localleader>d :TodayTaskToggleDone<cr>
 
-nnoremap <buffer> <localleader>rt :exec "TodayTaskReschedule today"<cr>
-vnoremap <buffer> <localleader>rt :TodayTaskReschedule today<cr>
+nnoremap <buffer> <localleader>rt :exec "TodayTaskSetDoDate today"<cr>
+vnoremap <buffer> <localleader>rt :TodayTaskSetDoDate today<cr>
 
-nnoremap <buffer> <localleader>rm :exec "TodayTaskReschedule tomorrow"<cr>
-vnoremap <buffer> <localleader>rm :TodayTaskReschedule tomorrow<cr>
+nnoremap <buffer> <localleader>rm :exec "TodayTaskSetDoDate tomorrow"<cr>
+vnoremap <buffer> <localleader>rm :TodayTaskSetDoDate tomorrow<cr>
 
-nnoremap <buffer> <localleader>rw :exec "TodayTaskReschedule next week"<cr>
-vnoremap <buffer> <localleader>rw :TodayTaskReschedule next week<cr>
+nnoremap <buffer> <localleader>rw :exec "TodayTaskSetDoDate next week"<cr>
+vnoremap <buffer> <localleader>rw :TodayTaskSetDoDate next week<cr>
 
-nnoremap <buffer> <localleader>rr :TodayTaskReschedule 
-vnoremap <buffer> <localleader>rr :TodayTaskReschedule 
+nnoremap <buffer> <localleader>rr :TodayTaskSetDoDate 
+vnoremap <buffer> <localleader>rr :TodayTaskSetDoDate 
 
 nnoremap <buffer> <localleader>cd :TodayCategorizeDailyAgenda<cr>
 nnoremap <buffer> <localleader>ct :TodayCategorizeFirstTag<cr>
@@ -30,21 +30,19 @@ command -buffer -range TodayTaskMarkDone lua require('today.ui').task_mark_done(
 command -buffer -range TodayTaskMarkUndone lua require('today.ui').task_mark_undone(<line1>, <line2>)
 command -buffer -range TodayTaskToggleDone lua require('today.ui').task_toggle_done(<line1>, <line2>)
 command -buffer -range TodayTaskRemoveDatespec lua require('today.ui').task_remove_datespec(<line1>, <line2>)
-command -buffer -range -nargs=1 TodayTaskReschedule lua require('today.ui').task_reschedule(<line1>, <line2>, "<args>")
+command -buffer -range -nargs=1 TodayTaskSetDoDate lua require('today.ui').task_set_do_date(<line1>, <line2>, "<args>")
 command -buffer -range -nargs=1 TodayTaskSetPriority lua require('today.ui').task_set_priority(<line1>, <line2>, <args>)
 command -buffer -range -nargs=1 TodayTaskSetFirstTag lua require('today.ui').task_set_first_tag(<line1>, <line2>, "<args>")
 command -buffer -range TodayTaskRemoveFirstTag lua require('today.ui').task_remove_first_tag(<line1>, <line2>)
-command -buffer -range -nargs=1 TodayPaintRecurPattern lua require('today.ui').paint_recur_pattern("<args>", <line1>, <line2>)
+command -buffer -nargs=1 TodayExpandRecur lua require('today.ui').expand_recur("<args>")
+command -buffer -range -nargs=1 TodayPaintRecur lua require('today.ui').paint_recur("<args>", <line1>, <line2>)
 command -buffer TodayCategorizeDailyAgenda lua require('today.ui').categorize_by_daily_agenda()
 command -buffer TodayCategorizeFirstTag lua require('today.ui').categorize_by_first_tag()
 command -buffer -nargs=* TodayFilterTags lua require('today.ui').set_filter_tags({<f-args>})
 
 
-augroup today
-    autocmd!
-    autocmd BufWritePre <buffer> lua require('today.ui').update("write")
-    autocmd BufWinEnter,BufWritePost,FileChangedShellPost <buffer> exec "lua require('today.ui').update('view')" | set modified&
-    autocmd BufWinEnter <buffer> lua require('today.ui').start_refresh_loop()
-    autocmd BufWinEnter <buffer> exec 'norm gg' | lua require('today.ui').move_to_next_section()
-    autocmd BufDelete <buffer> lua require('today.ui').stop_refresh_loop_if_no_buffers()
-augroup END
+autocmd BufWritePre <buffer> lua require('today.ui').update("write")
+autocmd BufWinEnter,BufWritePost,FileChangedShellPost <buffer> exec "lua require('today.ui').update('view')" | set modified&
+autocmd BufWinEnter <buffer> lua require('today.ui').start_refresh_loop()
+autocmd BufWinEnter <buffer> exec 'norm gg' | lua require('today.ui').move_to_next_section()
+autocmd BufDelete <buffer> lua require('today.ui').stop_refresh_loop_if_no_buffers()

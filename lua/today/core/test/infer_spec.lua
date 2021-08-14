@@ -24,6 +24,28 @@ describe("infer", function()
             assert.are.same(result, expected)
         end)
 
+        it("should not infer a broken datespec as today", function()
+            -- given
+            local lines = {
+                "-- today | 1 {{{",
+                "[ ] <zzz> task 1",
+                "-- }}}",
+            }
+
+            -- when
+            local result = infer.infer(lines, { working_date = "2021-08-05" })
+
+            -- then
+            -- July 01 was a Thursday
+            local expected = {
+                "-- today | 1 {{{",
+                "[ ] <zzz> task 1",
+                "-- }}}",
+            }
+
+            assert.are.same(result, expected)
+        end)
+
         it(
             "should not infer datespec for unlabeled items in today category with absolute dates",
             function()
@@ -41,6 +63,31 @@ describe("infer", function()
                 -- July 01 was a Thursday
                 local expected = {
                     "-- 2021-08-05 | 1 {{{",
+                    "[ ] task 1",
+                    "-- }}}",
+                }
+
+                assert.are.same(result, expected)
+            end
+        )
+
+        it(
+            "should not infer datespec for unlabeled items in a category that is in the past",
+            function()
+                -- given
+                local lines = {
+                    "-- 2021-08-04 | 1 {{{",
+                    "[ ] task 1",
+                    "-- }}}",
+                }
+
+                -- when
+                local result = infer.infer(lines, { working_date = "2021-08-05" })
+
+                -- then
+                -- July 01 was a Thursday
+                local expected = {
+                    "-- 2021-08-04 | 1 {{{",
                     "[ ] task 1",
                     "-- }}}",
                 }
@@ -323,6 +370,40 @@ describe("infer", function()
                 "-- }}}",
             }
 
+            assert.are.same(result, expected)
+        end)
+    end)
+
+    describe("detector", function()
+        it("should detect tags", function()
+            -- given
+            local lines = {
+                "-- #testing | 1 {{{",
+                "[ ] something",
+                "-- }}}",
+            }
+
+            -- when
+            local result = infer.detect_categorizer(lines)
+
+            -- then
+            local expected = "first_tag"
+            assert.are.same(result, expected)
+        end)
+
+        it("should detect dates", function()
+            -- given
+            local lines = {
+                "-- tomorrow | 1 {{{",
+                "[ ] something",
+                "-- }}}",
+            }
+
+            -- when
+            local result = infer.detect_categorizer(lines)
+
+            -- then
+            local expected = "daily_agenda"
             assert.are.same(result, expected)
         end)
     end)

@@ -39,6 +39,13 @@
 -- addresses this with a "refresh loop" that checks for stale buffers with
 -- out-of-sync working dates and performs a view update on them. The refresh
 -- only occurs if the buffer is not modified, as then it is safe to change it.
+--
+-- The refresh system can be tested by setting the vim-global variable
+-- today_time_delta` to be a number of seconds that is used as an offset to the
+-- actual system time. A convencience function, `ui.set_current_time`, is provided
+-- which allows one to set the wall time to an arbitrary date/time. This is useful
+-- to simulate the passing of midnight, for example.
+--
 local task = require("today.core.task")
 local update = require("today.core.update")
 local categorizers = require("today.core.categorizers")
@@ -74,17 +81,18 @@ end
 ui.options = {
     -- the time at which the today buffer will be automatically refreshed
     automatic_refresh = true,
+    detect_categorizer = true,
     buffer_defaults = {
         view = {
             categorizer = {
                 active = "daily_agenda",
                 options = {
                     daily_agenda = {
-                        days = 14,
+                        days = 8,
                         show_empty_days = true,
                         move_to_done_immediately = false,
-                        date_format = "natural",
-                        second_date_format = "monthday",
+                        date_format = "monthday",
+                        second_date_format = "natural",
                         show_remaining_tasks_count = false,
                     },
                     first_tag = {
@@ -202,21 +210,33 @@ ui.task_make_datespec_ymd = make_ranged_function(
 --- Change the datespec to natural language.
 ui.task_make_datespec_natural = make_ranged_function(function(line)
     return task.make_datespec_natural(line, vim.b.today_working_date, {
-        natural = true,
         default_format = ui.get_buffer_options().view.default_date_format,
+        days_until_absolute = ui.get_buffer_options().view.categorizer.options.daily_agenda.days - 1
     })
 end)
 
 --- Simulates "unrolling" the recur sequence. It removes the recur pattern from
 -- the task, but creates a new task with the same recur seqeuence and a do-date
 -- which is the next date in the sequence.
-ui.task_expand_recur = make_ranged_function(
-    task.remove_recur_pattern,
-    with_working_date(replace_datespec_with_next)
-)
+ui.expand_recur= function (n)
+    local row = vim.fn.line('.')
+    local t = vim.api.nvim_buf_get_lines(0, row-1, row, 0)[1]
+    if not task.is_task(t) then return end
+
+    local new_lines = {}
+    for _=1,n do
+        local remainder = task.replace_datespec_with_next(t, vim.b.today_working_date)
+        table.insert(new_lines, task.remove_recur_pattern(t))
+        t = remainder
+    end
+    table.insert(new_lines, t)
+
+    print(#new_lines)
+    vim.api.nvim_buf_set_lines(0, row-1, row,0, new_lines)
+end
 
 --- Apply a recur pattern to a range of lines.
-function ui.paint_recur_pattern(recur_pattern, start_row, end_row)
+function ui.paint_recur(recur_pattern, start_row, end_row)
     local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, 0)
     local new_lines = task.paint_recur_pattern(
         lines,
@@ -273,15 +293,23 @@ function ui.update(mode)
         mode = "view"
     end
 
+    -- if vim.b.today is nil, this is our first update. stop, and
+    -- detect the categorizer. detect_categorizer will change the active buffer
+    -- in the buffer options, so it is important that this is done before getting
+    -- the options below
+    if vim.b.today == nil and ui.options.detect_categorizer then
+        ui.detect_categorizer()
+    end
+
+    local opts = ui.get_buffer_options()[mode]
+    assert(opts ~= nil)
+
     if mode == "write" then
         save_cursor()
         ui.task_make_datespec_ymd(1, -1)
     elseif mode == "view" then
         vim.b.today_working_date = tostring(ui.get_current_date())
     end
-
-    local opts = ui.get_buffer_options()[mode]
-    assert(opts ~= nil)
 
     -- save this; we'll restore it in a moment
     local was_modified = vim.api.nvim_buf_get_option(0, "modified")
@@ -369,6 +397,19 @@ function ui.set_filter_tags(tags)
     ui.update()
 end
 
+--- Detect the categorization from the buffer. This is useful on first reading
+-- the file.
+function ui.detect_categorizer()
+    local opts = ui.get_buffer_options()
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, 0)
+    local guess = infer.detect_categorizer(lines)
+    if guess ~= nil then
+        opts.view.categorizer.active = guess
+        opts.write.categorizer.active = guess
+        vim.b.today = opts
+    end
+end
+
 --- Refreshing.
 -- @section
 
@@ -385,7 +426,8 @@ function ui.refresh_all_buffers()
         end
 
         local actual_date = ui.get_current_date()
-        local buffer_working_date = DateObj:new(vim.b.today_working_date)
+        local buffer_working_date = vim.api.nvim_buf_get_var(bufnum, 'today_working_date')
+        buffer_working_date = DateObj:new(buffer_working_date)
 
         return actual_date ~= buffer_working_date
     end
@@ -443,9 +485,14 @@ end
 -- needs to be refreshed.
 -- @section
 
+
 --- Get the current time in seconds since the epoch.
 function ui.get_current_time()
-    local delta = vim.b.today_time_delta or 0
+    local delta = vim.g.today_time_delta
+    if delta == nil then
+        delta = 0
+    end
+
     local epoch = date(1970, 1, 1)
     return (date():addseconds(delta) - epoch):spanseconds()
 end
@@ -466,7 +513,7 @@ function ui.set_current_time(s)
         d = date(s)
     end
 
-    vim.b.today_time_delta = (d - date()):spanseconds()
+    vim.g.today_time_delta = (d - date()):spanseconds()
 end
 
 return ui

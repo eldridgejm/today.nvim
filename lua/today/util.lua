@@ -76,6 +76,9 @@ end
 -- of each group.
 function util.groupby(keyfn, lst)
     local groups = {}
+    if lst == nil or #lst == 0 then
+        return groups
+    end
     for _, x in pairs(lst) do
         local key = keyfn(x)
 

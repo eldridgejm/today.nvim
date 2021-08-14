@@ -194,6 +194,32 @@ RULES:add({
     end,
 })
 
+-- every kth (st/rd)
+RULES:add({
+    -- defaults to the first day of next month
+    match = function(recur)
+        local match_st = recur:match("every (%d+)st")
+        local match_th = recur:match("every (%d+)th")
+        local match_rd = recur:match("every (%d+)rd")
+
+        local match = match_st or match_th or match_rd
+
+        if match ~= nil then
+            return tonumber(match)
+        end
+    end,
+
+    advance = function (today, match)
+        today = today:add_days(1)
+        for _ = 1,32 do
+            local _, _, d = today:ymd()
+            if d == match then
+                return today
+            end
+            today = today:add_days(1)
+        end
+    end
+})
 --- Find the next date in the sequence.
 -- Valid recur specifications are "daily", "every day", "weekly", "every week", "monthly",
 -- "every month", and specifications of the form "every mon, wed, fri", "every tues".

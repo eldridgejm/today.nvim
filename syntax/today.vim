@@ -1,20 +1,24 @@
 syntax clear
 syntax case ignore
 
-let s:comment_color = "guifg=#565f89 ctermfg=14"
+let s:comment_color = "guifg=#3c425f ctermfg=14"
 let s:checked_color = "guifg=#565f89 ctermfg=14"
 
 " comments
 " ========
-syntax match todayComment /^--.*/ contains=todayCategory,todayBrokenCategory,todayCategoryDivider
-syntax match todayCategory /^--\s\zs\(\w\|\s\)\+\ze / contained
-syntax match todayCategoryDivider /|/ contained
-syntax match todayBrokenCategory /^-- \zsbroken\ze (/ contained
+syntax match todayComment /^--.*/ contains=todayHeader,todayBrokenHeader,todayHeaderDivider
+syntax match todayHeader /^-- \zs.*\ze {{{/ contained contains=todayHeaderDivider
+syntax match todayHeaderDivider /|/ contained
+syntax match todayBrokenHeader /^-- \zsbroken\ze (/ contained
+
+syntax match todayFirstHeaderElement /^-- \zs[^|]\+\ze.* \(|\|{\)/ contained
+syntax match todayMiddleHeaderElement /|.*|/ contained
+syntax cluster todayHeaderElement add=todayFirstHeaderElement,todayMiddleHeaderElement
 
 exec "highlight default todayComment " . s:comment_color
 exec "highlight default todayCategory gui=bold,underline " . s:comment_color
 exec "highlight default todayCategoryDate gui=italic " . s:comment_color
-highlight default todayBrokenCategory gui=bold guifg=#db4b4b
+highlight default link todayFirstHeaderElement todayHeaderElement
 
 
 " checkboxes

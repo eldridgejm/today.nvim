@@ -116,6 +116,9 @@ local recur_patterns = {
     "every other year",
     "every \\d\\+ years",
     "yearly",
+    "every \\d\\+th",
+    "every \\d\\+st",
+    "every \\d\\+rd",
 }
 
 local weekday_pattern = "\\%\\(\\%\\("
