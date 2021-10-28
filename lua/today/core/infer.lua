@@ -58,11 +58,6 @@ RULES:add({
 
         if date ~= nil then
             return function(t)
-                -- if a task in the today section (or before) has no datespec, don't give it one
-                if date <= working_date and task.get_datespec_as_string(t) == nil then
-                    return t
-                end
-
                 -- if a test is broken, don't mess with it
                 if task.datespec_is_broken(t, working_date) then
                     return t

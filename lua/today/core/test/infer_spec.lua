@@ -2,7 +2,7 @@ describe("infer", function()
     local infer = require("today.core.infer")
 
     describe("do_date inferrer", function()
-        it("should not infer datespec for unlabeled items in today category", function()
+        it("should infer datespec for unlabeled items in today category", function()
             -- given
             local lines = {
                 "-- today | 1 {{{",
@@ -17,7 +17,7 @@ describe("infer", function()
             -- July 01 was a Thursday
             local expected = {
                 "-- today | 1 {{{",
-                "[ ] task 1",
+                "[ ] task 1 <today>",
                 "-- }}}",
             }
 
@@ -47,7 +47,7 @@ describe("infer", function()
         end)
 
         it(
-            "should not infer datespec for unlabeled items in today category with absolute dates",
+            "should infer datespec for unlabeled items in today category with absolute dates",
             function()
                 -- given
                 local lines = {
@@ -63,7 +63,7 @@ describe("infer", function()
                 -- July 01 was a Thursday
                 local expected = {
                     "-- 2021-08-05 | 1 {{{",
-                    "[ ] task 1",
+                    "[ ] task 1 <2021-08-05>",
                     "-- }}}",
                 }
 
@@ -72,7 +72,7 @@ describe("infer", function()
         )
 
         it(
-            "should not infer datespec for unlabeled items in a category that is in the past",
+            "should infer datespec for unlabeled items in a category that is in the past",
             function()
                 -- given
                 local lines = {
@@ -88,7 +88,7 @@ describe("infer", function()
                 -- July 01 was a Thursday
                 local expected = {
                     "-- 2021-08-04 | 1 {{{",
-                    "[ ] task 1",
+                    "[ ] task 1 <2021-08-04>",
                     "-- }}}",
                 }
 
@@ -294,7 +294,7 @@ describe("infer", function()
             -- July 01 was a Thursday
             local expected = {
                 "-- today | jun 01 | 1 {{{",
-                "[ ] but this isn't",
+                "[ ] but this isn't <today>",
                 "-- }}}",
                 "",
                 "-- tomorrow | jun 02 | 2 {{{",
