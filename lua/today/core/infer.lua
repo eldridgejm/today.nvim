@@ -27,6 +27,18 @@ RULES:add({
     end,
 })
 
+-- undated inferrer
+RULES:add({
+    name = "undated",
+    inferrer = function(title, options)
+        if title == "undated" then
+            return function(t)
+                return t
+            end
+        end
+    end,
+})
+
 -- future (k+ days from now) inferrer
 RULES:add({
     name = "future",
@@ -139,10 +151,14 @@ function M.detect_categorizer(lines)
 
         if title ~= nil then
             local current_title = util.strip(title)
-            for _, rule in pairs(RULES) do
+            for k, rule in pairs(RULES) do
                 local result = rule.inferrer(current_title, options)
                 if result ~= nil then
-                    if (rule.name == "future") or (rule.name == "date") then
+                    if
+                        (rule.name == "undated")
+                        or (rule.name == "future")
+                        or (rule.name == "date")
+                    then
                         return "daily_agenda"
                     elseif rule.name == "tag" then
                         return "first_tag"

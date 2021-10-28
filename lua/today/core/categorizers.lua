@@ -59,6 +59,11 @@ local function count_remaining_tasks(tasks)
     return count
 end
 
+-- Returns true/false if the task has a datespec.
+local function has_datespec(t)
+    return task.get_datespec_as_string(t) ~= nil
+end
+
 -- `make_categorizer_from_components` ------------------------------------------
 
 --- Builds a categorizer from components. The required components are:
@@ -135,6 +140,8 @@ end
 -- *future (k+ days from now)*: tasks that are in the "future", according to the
 -- value of the `days` option.
 --
+-- *undated*: tasks without a datespec
+--
 -- (date): A date parseable by `today.core.dates.parse`, like "today", or "2021-10-23"
 -- @param options A table of options. Valid options are:
 --
@@ -180,8 +187,8 @@ function categorizers.daily_agenda_categorizer(options)
     return categorizers.make_categorizer_from_components({
         grouper = function(tasks)
             -- we will key the categories by either "done", "future", "someday",
-            -- or the do-date as a ymd string. later we'll convert the key to the
-            -- requested date format
+            -- "undated", or the do-date as a ymd string. later we'll convert
+            -- the key to the requested date format
             local working_date = dates.DateObj:new(options.working_date)
             local keyfunc = function(t)
                 local datespec = task.parse_datespec_safe(t, working_date)
@@ -197,6 +204,8 @@ function categorizers.daily_agenda_categorizer(options)
                     return "someday"
                 elseif days_until_do >= options.days then
                     return "future"
+                elseif not has_datespec(t) then
+                    return "undated"
                 elseif days_until_do <= 0 then
                     return tostring(working_date)
                 else
@@ -221,7 +230,7 @@ function categorizers.daily_agenda_categorizer(options)
         end,
 
         category_key_comparator = sort.chain_comparators({
-            sort.make_order_comparator({ "broken" }, true),
+            sort.make_order_comparator({ "broken", "undated" }, true),
             sort.make_order_comparator({ "done", "hidden" }, false),
             function(x, y)
                 return x < y
@@ -249,7 +258,8 @@ function categorizers.daily_agenda_categorizer(options)
                 end
             end
 
-            local verbatime = { "broken", "hidden", "done", "someday" }
+            -- which categories should be left unformatted
+            local verbatime = { "broken", "undated", "hidden", "done", "someday" }
             if util.contains_value(verbatime, category_key) then
                 title = category_key
             elseif category_key == "future" then

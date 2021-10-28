@@ -245,9 +245,9 @@ describe("categorizers", function()
             function()
                 -- given
                 local tasks = {
-                    "[ ] undone",
+                    "[ ] undone <today>",
                     "[x] <today> this is done",
-                    "[ ] but this isn't",
+                    "[ ] but this isn't <today>",
                 }
 
                 -- when
@@ -263,8 +263,8 @@ describe("categorizers", function()
                     {
                         header = "today",
                         tasks = {
-                            "[ ] undone",
-                            "[ ] but this isn't",
+                            "[ ] undone <today>",
+                            "[ ] but this isn't <today>",
                             "[x] <today> this is done",
                         },
                     },
@@ -278,9 +278,9 @@ describe("categorizers", function()
             function()
                 -- given
                 local tasks = {
-                    "[ ] undone",
+                    "[ ] undone <today>",
                     "[x] <yesterday> this is done",
-                    "[ ] but this isn't",
+                    "[ ] but this isn't <today>",
                 }
 
                 -- when
@@ -296,8 +296,8 @@ describe("categorizers", function()
                     {
                         header = "today",
                         tasks = {
-                            "[ ] undone",
-                            "[ ] but this isn't",
+                            "[ ] undone <today>",
+                            "[ ] but this isn't <today>",
                         },
                     },
 
@@ -317,9 +317,9 @@ describe("categorizers", function()
             function()
                 -- given
                 local tasks = {
-                    "[ ] undone",
+                    "[ ] undone <today>",
                     "[x] this is done",
-                    "[ ] but this isn't",
+                    "[ ] but this isn't <today>",
                 }
 
                 -- when
@@ -335,8 +335,8 @@ describe("categorizers", function()
                     {
                         header = "today",
                         tasks = {
-                            "[ ] undone",
-                            "[ ] but this isn't",
+                            "[ ] undone <today>",
+                            "[ ] but this isn't <today>",
                         },
                     },
 
@@ -354,7 +354,7 @@ describe("categorizers", function()
         it("should move move tasks to a broken section", function()
             -- given
             local tasks = {
-                "[ ] but this isn't",
+                "[ ] but this isn't <today>",
             }
 
             local broken_tasks = {
@@ -379,7 +379,7 @@ describe("categorizers", function()
                 {
                     header = "today",
                     tasks = {
-                        "[ ] but this isn't",
+                        "[ ] but this isn't <today>",
                     },
                 },
             }
@@ -390,7 +390,7 @@ describe("categorizers", function()
             -- given
             local tasks = {
                 "[ ] undone <tomorrow>",
-                "[ ] but this isn't",
+                "[ ] but this isn't <today>",
             }
 
             -- when
@@ -405,7 +405,7 @@ describe("categorizers", function()
                 {
                     header = "today",
                     tasks = {
-                        "[ ] but this isn't",
+                        "[ ] but this isn't <today>",
                     },
                 },
 
@@ -423,7 +423,7 @@ describe("categorizers", function()
             -- given
             local tasks = {
                 "[ ] undone <tomorrow>",
-                "[ ] but this isn't",
+                "[ ] but this isn't <today>",
             }
 
             -- when
@@ -438,7 +438,7 @@ describe("categorizers", function()
                 {
                     header = "2021-06-01",
                     tasks = {
-                        "[ ] but this isn't",
+                        "[ ] but this isn't <today>",
                     },
                 },
 
@@ -456,7 +456,7 @@ describe("categorizers", function()
             -- given
             local tasks = {
                 "[ ] undone <tomorrow>",
-                "[ ] but this isn't",
+                "[ ] but this isn't <today>",
             }
 
             -- when
@@ -471,7 +471,7 @@ describe("categorizers", function()
                 {
                     header = "tue jun 01 2021",
                     tasks = {
-                        "[ ] but this isn't",
+                        "[ ] but this isn't <today>",
                     },
                 },
 
@@ -489,7 +489,7 @@ describe("categorizers", function()
             -- given
             local tasks = {
                 "[ ] undone <tomorrow>",
-                "[ ] but this isn't",
+                "[ ] but this isn't <today>",
             }
 
             -- when
@@ -504,7 +504,7 @@ describe("categorizers", function()
                 {
                     header = "jun 01",
                     tasks = {
-                        "[ ] but this isn't",
+                        "[ ] but this isn't <today>",
                     },
                 },
 
@@ -522,7 +522,7 @@ describe("categorizers", function()
             -- given
             local tasks = {
                 "[ ] undone <tomorrow>",
-                "[ ] but this isn't",
+                "[ ] but this isn't <today>",
             }
 
             -- when
@@ -538,7 +538,7 @@ describe("categorizers", function()
                 {
                     header = "jun 01 | 2021-06-01",
                     tasks = {
-                        "[ ] but this isn't",
+                        "[ ] but this isn't <today>",
                     },
                 },
 
@@ -556,7 +556,7 @@ describe("categorizers", function()
             -- given
             local tasks = {
                 "[ ] undone <tomorrow>",
-                "[ ] but this isn't",
+                "[ ] but this isn't <today>",
                 "[x] <today> and this is done",
             }
 
@@ -573,7 +573,7 @@ describe("categorizers", function()
                 {
                     header = "today | 1",
                     tasks = {
-                        "[ ] but this isn't",
+                        "[ ] but this isn't <today>",
                         "[x] <today> and this is done",
                     },
                 },
@@ -609,7 +609,7 @@ describe("categorizers", function()
             local expected = {
 
                 {
-                    header = "today | 1",
+                    header = "undated | 1",
                     tasks = {
                         "this is the first one",
                     },
@@ -773,7 +773,7 @@ describe("categorizers", function()
             -- given
             local tasks = {
                 "[ ] undone <zzz>",
-                "[ ] but this isn't",
+                "[ ] but this isn't <today>",
             }
 
             -- when
@@ -794,7 +794,7 @@ describe("categorizers", function()
                 {
                     header = "other",
                     tasks = {
-                        "[ ] but this isn't",
+                        "[ ] but this isn't <today>",
                     },
                 },
             }

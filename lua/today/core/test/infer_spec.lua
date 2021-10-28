@@ -2,7 +2,7 @@ describe("infer", function()
     local infer = require("today.core.infer")
 
     describe("do_date inferrer", function()
-        it("should infer datespec for unlabeled items in today category", function()
+        it("should infer datespec for undated items in today category", function()
             -- given
             local lines = {
                 "-- today | 1 {{{",
@@ -22,6 +22,49 @@ describe("infer", function()
             }
 
             assert.are.same(result, expected)
+        end)
+
+        it("should infer datespec for undated items in undated", function()
+            -- given
+            local lines = {
+                "-- undated | 1 {{{",
+                "[ ] task 1",
+                "-- }}}",
+            }
+
+            -- when
+            local result = infer.infer(lines, { working_date = "2021-08-05" })
+
+            -- then
+            -- July 01 was a Thursday
+            local expected = {
+                "-- undated | 1 {{{",
+                "[ ] task 1",
+                "-- }}}",
+            }
+
+            assert.are.same(result, expected)
+        end)
+
+        it("should detect the categorizer if undated section appears", function()
+            -- given
+            local lines = {
+                "-- undated | 1 {{{",
+                "[ ] task 1",
+                "-- }}}",
+                "-- today | 1 {{{",
+                "[ ] task 2",
+                "-- }}}",
+            }
+
+            -- when
+            local result = infer.detect_categorizer(
+                lines,
+                { working_date = "2021-08-05" }
+            )
+
+            -- then
+            assert.are.same(result, "daily_agenda")
         end)
 
         it("should not infer a broken datespec as today", function()
