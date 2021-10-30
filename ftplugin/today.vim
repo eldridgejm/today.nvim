@@ -5,7 +5,7 @@ vnoremap <buffer> <localleader>1 :TodayTaskSetPriority 1<cr>
 nnoremap <buffer> <localleader>2 :TodayTaskSetPriority 2<cr>
 vnoremap <buffer> <localleader>2 :TodayTaskSetPriority 2<cr>
 
-nnoremap <buffer> <localleader>d :exec "TodayTaskToggleDone" <bar> norm j<cr>
+nnoremap <buffer> <localleader>d :TodayTaskToggleDone<cr>
 vnoremap <buffer> <localleader>d :TodayTaskToggleDone<cr>
 
 nnoremap <buffer> <localleader>rt :exec "TodayTaskSetDoDate today"<cr>
@@ -28,7 +28,7 @@ nnoremap <buffer> <cr> :lua require('today.ui').follow_link()<cr>
 
 command -buffer -range TodayTaskMarkDone lua require('today.ui').task_mark_done(<line1>, <line2>)
 command -buffer -range TodayTaskMarkUndone lua require('today.ui').task_mark_undone(<line1>, <line2>)
-command -buffer -range TodayTaskToggleDone lua require('today.ui').task_toggle_done(<line1>, <line2>)
+command -buffer -range TodayTaskToggleDone lua require('today.ui').task_toggle_done(<line1>, <line2>, 1)
 command -buffer -range TodayTaskRemoveDatespec lua require('today.ui').task_remove_datespec(<line1>, <line2>)
 command -buffer -range -nargs=1 TodayTaskSetDoDate lua require('today.ui').task_set_do_date(<line1>, <line2>, "<args>")
 command -buffer -range -nargs=1 TodayTaskSetPriority lua require('today.ui').task_set_priority(<line1>, <line2>, <args>)
@@ -39,6 +39,7 @@ command -buffer -range -nargs=1 TodayPaintRecur lua require('today.ui').paint_re
 command -buffer TodayCategorizeDailyAgenda lua require('today.ui').categorize_by_daily_agenda()
 command -buffer TodayCategorizeFirstTag lua require('today.ui').categorize_by_first_tag()
 command -buffer -nargs=* TodayFilterTags lua require('today.ui').set_filter_tags({<f-args>})
+command -buffer TodayRefresh lua require('today.ui').update("read")
 
 
 if !exists('b:today_autocommands_loaded')

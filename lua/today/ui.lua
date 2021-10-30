@@ -176,14 +176,21 @@ end
 --- Mark tasks as done.
 ui.task_mark_done = make_ranged_function(
     with_working_date(task.mark_done_with_do_date),
-    replace_datespec_with_next
+    with_working_date(replace_datespec_with_next)
 )
 
 --- Toggle the checkbox.
-ui.task_toggle_done = make_ranged_function(
+local _toggle_done = make_ranged_function(
     with_working_date(task.toggle_done_with_do_date),
     with_working_date(replace_datespec_with_next)
 )
+
+ui.task_toggle_done = function(line1, line2, update)
+    _toggle_done(line1, line2)
+    if update ~= 0 then
+        ui.update("view")
+    end
+end
 
 --- Mark task as undone.
 ui.task_mark_undone = make_ranged_function(task.mark_undone)
@@ -324,8 +331,8 @@ function ui.update(mode)
     local opts = ui.get_buffer_options()[mode]
     assert(opts ~= nil)
 
+    save_cursor()
     if mode == "write" then
-        save_cursor()
         ui.task_make_datespec_ymd(1, -1)
     elseif mode == "view" then
         vim.b.today_working_date = tostring(ui.get_current_date())
@@ -383,8 +390,8 @@ function ui.update(mode)
 
     if mode == "view" then
         ui.task_make_datespec_natural(1, -1)
-        restore_cursor(#lines)
     end
+    restore_cursor(#lines)
 end
 
 --- Update the buffer to use the first tag categorizer. This will set the active
