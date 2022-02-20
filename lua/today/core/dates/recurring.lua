@@ -220,6 +220,21 @@ RULES:add({
         end
     end,
 })
+
+local function find_matching_rule(recur_pattern)
+    for _, rule in ipairs(RULES) do
+        local match = rule.match(recur_pattern)
+        if match ~= nil then
+            return rule, match
+        end
+    end
+end
+
+function M.validate_recur_pattern(recur_pattern)
+    rule, match = find_matching_rule(recur_pattern)
+    return rule ~= nil
+end
+
 --- Find the next date in the sequence.
 -- Valid recur specifications are "daily", "every day", "weekly", "every week", "monthly",
 -- "every month", and specifications of the form "every mon, wed, fri", "every tues".
@@ -233,18 +248,13 @@ function M.next(today, recur_pattern)
         today = DateObj:new(today)
     end
 
-    assert(today.class == "DateObj")
-
-    for _, rule in ipairs(RULES) do
-        local match = rule.match(recur_pattern)
-        if match ~= nil then
-            local result = rule.advance(today, match)
-            assert(result.class == "DateObj")
-            return result
-        end
+    local rule, match = find_matching_rule(recur_pattern)
+    if rule == nil then
+        return nil
     end
 
-    return nil
+    local result = rule.advance(today, match)
+    return result
 end
 
 return M

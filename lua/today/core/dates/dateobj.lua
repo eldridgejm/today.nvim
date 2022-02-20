@@ -21,8 +21,8 @@ local function both(lhs, rhs, value)
 end
 
 --- Constructor for DateObjects.
--- @param date A date as a string in YYYY-MM-DD format or "infinite_future"/
--- "infinite_past", or another DateObject.
+-- @param date A date as a string in YYYY-MM-DD format or `"infinite_future"`/
+-- `"infinite_past"`, or another DateObject.
 -- @return A new DateObject.
 function DateObj:new(date)
     if type(date) == "string" then
