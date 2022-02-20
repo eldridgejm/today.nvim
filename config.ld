@@ -4,6 +4,7 @@ file = {
     "lua/today/core/dates/natural.lua",
     "lua/today/core/dates/recurring.lua",
     "lua/today/core/taskparser.lua",
+    "lua/today/core/task.lua",
     "lua/today/ui.lua",
     "lua/today/util.lua",
 }

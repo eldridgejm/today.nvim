@@ -1,6 +1,7 @@
 describe("today.core.taskparser.parse", function()
     local taskparser = require("today.core.taskparser")
     local dates = require("today.core.dates")
+    local MALFORMED = require("today.core.task").MALFORMED
 
     describe("parsing task completeness", function()
         it("parses a simple task", function()
@@ -242,8 +243,8 @@ describe("today.core.taskparser.parse", function()
             -- 2022-02-19 was a saturday
             local task = taskparser.parse(taskstr, "2022-02-19")
 
-            assert.are.equal(task.recur_pattern, taskparser.MALFORMED)
-            assert.are.equal(task.do_date, taskparser.MALFORMED)
+            assert.are.equal(task.recur_pattern, MALFORMED)
+            assert.are.equal(task.do_date, MALFORMED)
         end)
 
         it(
@@ -254,8 +255,8 @@ describe("today.core.taskparser.parse", function()
                 -- 2022-02-19 was a saturday
                 local task = taskparser.parse(taskstr, "2022-02-19")
 
-                assert.are.equal(task.recur_pattern, taskparser.MALFORMED)
-                assert.are.equal(task.do_date, taskparser.MALFORMED)
+                assert.are.equal(task.recur_pattern, MALFORMED)
+                assert.are.equal(task.do_date, MALFORMED)
             end
         )
 

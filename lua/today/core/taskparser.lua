@@ -125,10 +125,10 @@ end
 --- Retrieve the parsed parts of the datespec.
 --
 -- If the datespec is missing, this will infer a do_date of infinite_past, and
--- a recur_spec of nil.
+-- a recur_pattern of nil.
 --
 -- If the datespec is malformed, this will return MALFORMED for both the do_date
--- and the recur_spec.
+-- and the recur_pattern.
 --
 -- The following assumes there is a datespec:
 --
@@ -140,7 +140,7 @@ end
 --
 -- @param taskstr The task as a string.
 -- @param working_date The working date as a DateObj (or a yyyy-mm-dd string).
--- @return A table with two keys: do_date and recur_spec, whose values are set
+-- @return A table with two keys: do_date and recur_pattern, whose values are set
 -- as per the above.
 local function parse_datespec(taskstr, working_date)
     assert(working_date ~= nil, "Must supply working date")
@@ -156,14 +156,14 @@ local function parse_datespec(taskstr, working_date)
         }
     end
 
-    -- try to partse the do_date; it could be malformed
+    -- try to parse the do_date; it could be malformed
     if parts.do_date ~= nil then
         parts.do_date = dates.parse(parts["do_date"], working_date)
 
         if parts.do_date == nil then
             return {
-                do_date = M.MALFORMED,
-                recur_pattern = M.MALFORMED,
+                do_date = MALFORMED,
+                recur_pattern = MALFORMED,
             }
         end
     end
@@ -171,8 +171,8 @@ local function parse_datespec(taskstr, working_date)
     if parts.recur_pattern ~= nil then
         if not dates.validate_recur_pattern(parts.recur_pattern) then
             return {
-                do_date = M.MALFORMED,
-                recur_pattern = M.MALFORMED,
+                do_date = MALFORMED,
+                recur_pattern = MALFORMED,
             }
         end
     end
@@ -222,18 +222,19 @@ end
 --  - If a task has no checkbox, it is assumed to be undone.
 --  - If a task has no explicity priority, it is assumed to have a priority of 0.
 --  - If a task has no datespec, a `do_date` of the infinite past is assumed, and
---    a `recur_spec` of nil is assigned.
---  - If a task has a datespec with a `do_date` but no `recur_spec`, a `recur_spec` of
+--    a `recur_pattern` of nil is assigned.
+--  - If a task has a datespec with a `do_date` but no `recur_pattern`, a
+--  `recur_pattern` of
 --    nil is assigned.
---  - If a task has a datespec with no `do_date` but a `recur_spec`, a do date is
+--  - If a task has a datespec with no `do_date` but a `recur_pattern`, a do date is
 --    assigned by taking the next date in the sequence defined by the recur
---    spec, starting with the `working_date`. For example, if the working date is
---    Friday, and the `recur_spec` is "every monday", the do date is set to the
---    coming monday. If the `recur_spec` were "every friday", the `do_date` would be
+--    patter, starting with the `working_date`. For example, if the working date is
+--    Friday, and the `recur_pattern` is "every monday", the do date is set to the
+--    coming monday. If the `recur_pattern` were "every friday", the `do_date` would be
 --    set to the working date.
 --
--- If the do date or the recur spec are malformed, both are given a value of
--- `MALFORMED`.
+-- If the do date or the recur patter are malformed, both are given a value of
+-- `core.task.MALFORMED`.
 --
 -- @param taskstr The task as a string.
 -- @param working_date A DateObj representing the current date.

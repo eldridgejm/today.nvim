@@ -31,7 +31,7 @@ describe("today.core.task", function()
     end)
 
     describe("copy", function()
-        it("produces a distinct copy of the original task", function()
+        it("new produces a distinct copy of the original task", function()
             local task = Task:new({
                 done = true,
                 tags = {},
@@ -41,7 +41,7 @@ describe("today.core.task", function()
                 recur_pattern = "every monday",
             })
 
-            local new_task = task:copy()
+            local new_task = Task:new(task)
             new_task.done = false
             table.insert(new_task.tags, "foo")
 
