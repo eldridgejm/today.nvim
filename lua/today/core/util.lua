@@ -138,7 +138,7 @@ end
 function util.slice(lst, a, b)
     local result = {}
     local i = a
-    while i < b do
+    while i <= b do
         table.insert(result, lst[i])
         i = i + 1
     end

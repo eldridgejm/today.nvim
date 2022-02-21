@@ -13,12 +13,12 @@ describe("today.core.taskparser.parse", function()
             assert.are.equal(task.description, "this is a task")
         end)
 
-        it("parses a task without a checkbox as not done", function()
+        it("parses a task without a checkbox as nil", function()
             local taskstr = "this is a task"
 
             local task = taskparser.parse(taskstr, "2022-02-19")
 
-            assert.are.equal(task.done, false)
+            assert.are.equal(task.done, nil)
             assert.are.equal(task.description, "this is a task")
         end)
 
@@ -122,12 +122,12 @@ describe("today.core.taskparser.parse", function()
             assert.are.equal(task.priority, 2)
         end)
 
-        it("assumes a default priority of 0 when none are provided", function()
+        it("assumes a default priority of nil when none are provided", function()
             local taskstr = "this is high priority"
 
             local task = taskparser.parse(taskstr, "2022-02-19")
 
-            assert.are.equal(task.priority, 0)
+            assert.are.equal(task.priority, nil)
         end)
 
         it("takes the first priority, if there are multiple", function()
@@ -143,7 +143,7 @@ describe("today.core.taskparser.parse", function()
 
             local task = taskparser.parse(taskstr, "2022-02-19")
 
-            assert.are.equal(task.priority, 0)
+            assert.are.equal(task.priority, nil)
         end)
 
         it("gets priorities from multiline descriptions", function()
@@ -213,14 +213,14 @@ describe("today.core.taskparser.parse", function()
         end)
 
         it(
-            "infers a do_date of infinite past, nil recur, when datespec missing",
+            "infers a do_date of nil, nil recur, when datespec missing",
             function()
                 local taskstr = "is the task"
 
                 local task = taskparser.parse(taskstr, "2022-02-19")
 
                 assert.are.equal(task.recur_pattern, nil)
-                assert.are.equal(task.do_date, dates.DateObj:infinite_past())
+                assert.are.equal(task.do_date, nil)
             end
         )
 
@@ -233,7 +233,7 @@ describe("today.core.taskparser.parse", function()
                 local task = taskparser.parse(taskstr, "2022-02-19")
 
                 assert.are.equal(task.recur_pattern, "every monday")
-                assert.are.equal(task.do_date, dates.DateObj:from_ymd(2022, 2, 21))
+                assert.are.equal(task.do_date, nil)
             end
         )
 
