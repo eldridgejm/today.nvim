@@ -345,16 +345,15 @@ end
 --- Trees.
 -- @section
 
-
 --- Return an iterator that performs a preorder traversal on the tree.
 function util.preorder_traversal(root, children_key)
     if children_key == nil then
-        children_key = 'children'
+        children_key = "children"
     end
 
-    local stack = {root}
+    local stack = { root }
 
-    local function iterator ()
+    local function iterator()
         local node = table.remove(stack)
         if node ~= nil and node[children_key] ~= nil then
             for i = #node[children_key], 0, -1 do
@@ -366,6 +365,5 @@ function util.preorder_traversal(root, children_key)
 
     return iterator
 end
-
 
 return util

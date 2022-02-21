@@ -1,5 +1,4 @@
 describe("today.core.linemap", function()
-
     local linemap = require("today.core.linemap")
 
     describe("find_line", function()
@@ -10,11 +9,11 @@ describe("today.core.linemap", function()
             local b4 = { size = 2 } -- 15, 16
             local b5 = { size = 1 } -- 17
 
-            local s1 = { children = {b1, b2} }
-            local s2 = { children = {b3, b4} }
-            local s3 = { children = {b5} }
+            local s1 = { children = { b1, b2 } }
+            local s2 = { children = { b3, b4 } }
+            local s3 = { children = { b5 } }
 
-            local root = { children = {s1, s2, s3} }
+            local root = { children = { s1, s2, s3 } }
 
             assert.are.equal(linemap.find_line(root, 2), b1)
             assert.are.equal(linemap.find_line(root, 5), b2)
@@ -31,11 +30,11 @@ describe("today.core.linemap", function()
             local b4 = { size = 2 } -- 15, 16
             local b5 = { size = 1 } -- 17
 
-            local s1 = { children = {b1, b2} }
-            local s2 = { children = {b3, b4} }
-            local s3 = { children = {b5} }
+            local s1 = { children = { b1, b2 } }
+            local s2 = { children = { b3, b4 } }
+            local s3 = { children = { b5 } }
 
-            local root = { children = {s1, s2, s3} }
+            local root = { children = { s1, s2, s3 } }
 
             assert.are.equal(linemap.find_line(root, 99), nil)
         end)
@@ -55,11 +54,11 @@ describe("today.core.linemap", function()
             local b4 = { size = 2 } -- 15, 16
             local b5 = { size = 1 } -- 17
 
-            local s1 = { children = {b1, b2} }
-            local s2 = { children = {b3, b4} }
-            local s3 = { children = {b5} }
+            local s1 = { children = { b1, b2 } }
+            local s2 = { children = { b3, b4 } }
+            local s3 = { children = { b5 } }
 
-            local root = { children = {s1, s2, s3} }
+            local root = { children = { s1, s2, s3 } }
 
             assert.are.equal(linemap.size(b2), 3)
             assert.are.equal(linemap.size(b3), 7)
@@ -72,11 +71,11 @@ describe("today.core.linemap", function()
             local b4 = { size = 2 } -- 15, 16
             local b5 = { size = 1 } -- 17
 
-            local s1 = { children = {b1, b2} }
-            local s2 = { children = {b3, b4} }
-            local s3 = { children = {b5} }
+            local s1 = { children = { b1, b2 } }
+            local s2 = { children = { b3, b4 } }
+            local s3 = { children = { b5 } }
 
-            local root = { children = {s1, s2, s3} }
+            local root = { children = { s1, s2, s3 } }
 
             assert.are.equal(linemap.size(s1), 7)
             assert.are.equal(linemap.size(s2), 9)
@@ -86,18 +85,17 @@ describe("today.core.linemap", function()
 
     describe("span", function()
         it("computes the start and end line for block nodes", function()
-
             local b1 = { size = 4 } -- 1, 4
             local b2 = { size = 3 } -- 5, 7
             local b3 = { size = 7 } -- 8, 14
             local b4 = { size = 2 } -- 15, 16
             local b5 = { size = 1 } -- 17
 
-            local s1 = { children = {b1, b2} }
-            local s2 = { children = {b3, b4} }
-            local s3 = { children = {b5} }
+            local s1 = { children = { b1, b2 } }
+            local s2 = { children = { b3, b4 } }
+            local s3 = { children = { b5 } }
 
-            local root = { children = {s1, s2, s3} }
+            local root = { children = { s1, s2, s3 } }
 
             local start, stop = linemap.span(root, b1)
             assert.are.equal(start, 1)
@@ -109,18 +107,17 @@ describe("today.core.linemap", function()
         end)
 
         it("computes the start and end line for inner nodes", function()
-
             local b1 = { size = 4 } -- 1, 4
             local b2 = { size = 3 } -- 5, 7
             local b3 = { size = 7 } -- 8, 14
             local b4 = { size = 2 } -- 15, 16
             local b5 = { size = 1 } -- 17
 
-            local s1 = { children = {b1, b2} }
-            local s2 = { children = {b3, b4} }
-            local s3 = { children = {b5} }
+            local s1 = { children = { b1, b2 } }
+            local s2 = { children = { b3, b4 } }
+            local s3 = { children = { b5 } }
 
-            local root = { children = {s1, s2, s3} }
+            local root = { children = { s1, s2, s3 } }
 
             local start, stop = linemap.span(root, s1)
             assert.are.equal(start, 1)

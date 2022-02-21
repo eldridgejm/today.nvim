@@ -1,6 +1,6 @@
 --- Describe the hierarchy of a collection of lines.
 
-local util = require('today.core.util')
+local util = require("today.core.util")
 
 local M = {}
 
@@ -18,7 +18,6 @@ function M.find_line(root, line_no)
     return nil
 end
 
-
 function M.size(node)
     if node.children == nil then
         return node.size
@@ -30,7 +29,6 @@ function M.size(node)
         return s
     end
 end
-
 
 function M.first_block_successor(node)
     for node in util.preorder_traversal(node) do
@@ -51,20 +49,18 @@ local function starting_line_number(root, node)
     end
 end
 
-
 function M.span(root, node)
     local start_line_no = starting_line_number(root, node)
     local end_line_no = start_line_no + M.size(node) - 1
     return start_line_no, end_line_no
 end
 
-
 --- iterate over line_no, node pairs
-function M.iter_blocks (root)
+function M.iter_blocks(root)
     local traversal = util.preorder_traversal(root)
     local next_line_no = 1
 
-    local function iterator ()
+    local function iterator()
         -- traverse until we find a node with nonzero lines
         while true do
             local cur_line_no = next_line_no
@@ -82,8 +78,6 @@ function M.iter_blocks (root)
     end
 
     return iterator
-
 end
-
 
 return M
