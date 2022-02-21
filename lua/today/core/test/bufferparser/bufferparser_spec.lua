@@ -305,4 +305,13 @@ describe("today.core.bufferparser.parse", function()
         end)
     end)
 
+    describe("defaults are applied", function()
+        local lines = {
+            "this is a test task"
+        }
+
+        local lmap, tasktree = parse(lines)
+        tasktree.children[1].done == true
+    end)
+
 end)
