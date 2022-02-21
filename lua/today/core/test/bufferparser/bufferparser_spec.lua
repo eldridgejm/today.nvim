@@ -1,5 +1,5 @@
-describe("today.core.treeparser.parse", function()
-    local parse = require("today.core.treeparser").parse
+describe("today.core.bufferparser.parse", function()
+    local parse = require("today.core.bufferparser").parse
     local linemap = require("today.core.linemap")
 
     describe("linemap output", function()

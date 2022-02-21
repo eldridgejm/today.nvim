@@ -1,5 +1,5 @@
-describe("today.core.headerparser.parse", function()
-    local parse = require("today.core.headerparser").parse
+describe("today.core.bufferparser._headerparser.parse", function()
+    local parse = require("today.core.bufferparser._headerparser").parse
     local DateObj = require("today.core.dates").DateObj
 
     describe("done category parsing", function()

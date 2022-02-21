@@ -1,5 +1,5 @@
-describe("today.core.inferrer", function()
-    local inferrer = require("today.core.inferrer")
+describe("today.core.bufferparser._inferrer", function()
+    local inferrer = require("today.core.bufferparser._inferrer")
     local Task = require("today.core.task").Task
     local DateObj = require("today.core.dates").DateObj
 
