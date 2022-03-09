@@ -9,7 +9,7 @@ describe("today.core.bufferparser.parse", function()
                 "[x] this is a task"
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(lmap.children[1].size, 1)
             assert.are.equal(lmap.children[1].kind, "task")
@@ -20,7 +20,7 @@ describe("today.core.bufferparser.parse", function()
                 "this is a task"
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(lmap.children[1].size, 1)
             assert.are.equal(lmap.children[1].kind, "task")
@@ -32,7 +32,7 @@ describe("today.core.bufferparser.parse", function()
                 "[ ] this is another task"
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(lmap.children[1].size, 1)
             assert.are.equal(lmap.children[1].kind, "task")
@@ -48,7 +48,7 @@ describe("today.core.bufferparser.parse", function()
                 "[ ] this is another task"
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(#lmap.children, 2)
             assert.are.equal(lmap.children[1].size, 3)
@@ -66,7 +66,7 @@ describe("today.core.bufferparser.parse", function()
                 "    it, too, has multiple lines"
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(#lmap.children, 2)
             assert.are.equal(lmap.children[1].size, 3)
@@ -82,7 +82,7 @@ describe("today.core.bufferparser.parse", function()
                 "[ ] this is another task",
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(#lmap.children, 3)
             assert.are.equal(lmap.children[1].kind, "comment")
@@ -97,7 +97,7 @@ describe("today.core.bufferparser.parse", function()
                 "}}}"
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(#lmap.children, 1)
             assert.are.equal(lmap.children[1].kind, "category")
@@ -113,7 +113,7 @@ describe("today.core.bufferparser.parse", function()
                 "}}}"
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(#lmap.children, 1)
             assert.are.equal(lmap.children[1].kind, "category")
@@ -130,7 +130,7 @@ describe("today.core.bufferparser.parse", function()
                 "}}}" -- this one is extra
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(#lmap.children, 2)
             assert.are.equal(lmap.children[1].kind, "category")
@@ -148,7 +148,7 @@ describe("today.core.bufferparser.parse", function()
                 "}}}" -- this one is extra
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(#lmap.children, 2)
             assert.are.equal(lmap.children[1].kind, "category")
@@ -170,7 +170,7 @@ describe("today.core.bufferparser.parse", function()
                 ""
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(#lmap.children, 3)
             assert.are.equal(lmap.children[1].kind, "whitespace")
@@ -195,7 +195,7 @@ describe("today.core.bufferparser.parse", function()
                 ""
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(#lmap.children, 3)
             assert.are.equal(lmap.children[1].kind, "whitespace")
@@ -220,7 +220,7 @@ describe("today.core.bufferparser.parse", function()
                 ""
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(linemap.find_line(lmap, 3).kind, "category_header")
             assert.are.equal(linemap.find_line(lmap, 1).kind, "whitespace")
@@ -249,7 +249,7 @@ describe("today.core.bufferparser.parse", function()
                 ""
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(#tasktree.children, 1)
             assert.are.equal(tasktree.children[1].children[1].done, true)
@@ -269,7 +269,7 @@ describe("today.core.bufferparser.parse", function()
                 ""
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(linemap.find_line(lmap, 5).task.done, true)
             assert.are.equal(linemap.find_line(lmap, 7).task.done, false)
@@ -297,7 +297,7 @@ describe("today.core.bufferparser.parse", function()
                 ""
             }
 
-            local lmap, tasktree = parse(lines)
+            local lmap, tasktree = parse(lines, "2022-02-20")
 
             assert.are.equal(#tasktree.children, 2)
             assert.are.equal(#tasktree.children[2].children, 1)
@@ -310,8 +310,8 @@ describe("today.core.bufferparser.parse", function()
             "this is a test task"
         }
 
-        local lmap, tasktree = parse(lines)
-        tasktree.children[1].done == true
+        local lmap, tasktree = parse(lines, "2022-02-20")
+        assert.are.equal(tasktree.children[1].done, false)
     end)
 
 end)

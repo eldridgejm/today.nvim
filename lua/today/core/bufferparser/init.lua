@@ -3,6 +3,7 @@
 local taskparser = require("today.core.taskparser")
 local util = require("today.core.util")
 local linemap = require("today.core.linemap")
+local inferrer = require("today.core.bufferparser._inferrer")
 
 local M = {}
 
@@ -137,7 +138,7 @@ local function build_line_map(lines)
 end
 
 
-local function build_task_tree_node(lines, lmap_node, parent)
+local function build_task_tree_node(lines, lmap_node, parent, working_date)
     local node
 
     if lmap_node.kind ~= "task" and lmap_node.kind ~= "category" and lmap_node.kind ~= "root" then
@@ -148,12 +149,13 @@ local function build_task_tree_node(lines, lmap_node, parent)
         local task_lines = util.slice(lines, lmap_node.start_line_no, lmap_node.end_line_no)
         local task_text = table.concat(task_lines, "\n")
         node = taskparser.parse(task_text, "2022-02-20")
+        node = inferrer.infer_defaults(node, working_date)
         table.insert(parent.children, node)
         lmap_node.task = node
     elseif lmap_node.kind == "category" then
         node = { children = {} }
         for _, lmap_child in pairs(lmap_node.children) do
-            build_task_tree_node(lines, lmap_child, node)
+            build_task_tree_node(lines, lmap_child, node, working_date)
         end
         table.insert(parent.children, node)
     end
@@ -161,10 +163,10 @@ local function build_task_tree_node(lines, lmap_node, parent)
 end
 
 
-local function build_task_tree(lines, lmap_root)
+local function build_task_tree(lines, lmap_root, working_date)
     local root = { children = {} }
     for _, lmap_child in pairs(lmap_root.children) do
-        build_task_tree_node(lines, lmap_child, root)
+        build_task_tree_node(lines, lmap_child, root, working_date)
     end
     return root
 end
@@ -179,10 +181,10 @@ local function calculate_spans(lmap)
 end
 
 
-function M.parse(lines)
+function M.parse(lines, working_date)
     local lmap = build_line_map(lines)
     calculate_spans(lmap)
-    local tasktree = build_task_tree(lines, lmap)
+    local tasktree = build_task_tree(lines, lmap, working_date)
     return lmap, tasktree
 end
 
